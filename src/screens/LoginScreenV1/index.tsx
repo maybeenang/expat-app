@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 25, // Padding kiri-kanan utama
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 50, // Jarak dari atas layar
   },
   mainTitle: {
     fontFamily: 'Roboto-Bold', // Gunakan font bold
