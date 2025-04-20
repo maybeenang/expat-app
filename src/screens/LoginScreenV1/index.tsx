@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   TextInput,
   StyleSheet,
   SafeAreaView,
-  Alert,
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
@@ -15,38 +14,49 @@ import Icon from '@react-native-vector-icons/ionicons';
 import COLORS from '../../constants/colors';
 import StyledText from '../../components/common/StyledText';
 import StyledButton from '../../components/common/StyledButton';
+import {useAuthMutations} from '../../hooks/useAuthMutations';
 
 const LoginScreenV1 = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const {login, error, isLoading} = useAuthMutations();
+
+  const isValid = email && password && isLoading === false;
+
   const handleLoginPress = () => {
-    console.log('Login Attempt:', { email, password });
-    Alert.alert(
-      'Login Attempt',
-      `Email: ${email}\nPassword: ${password}`,
-      [{ text: 'OK' }]
-    );
+    if (!isValid) {
+      console.log('Email and password are required.');
+      return;
+    }
+
+    login({email, password});
   };
 
   const handleEyePress = () => {
     setShowPassword(!showPassword);
   };
 
+  useEffect(() => {
+    if (error) {
+      console.log('Login Error:', error.message);
+    }
+
+    // Reset error state after displayingjk
+    return () => {};
+  }, [error]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-
-      <StatusBar
-        backgroundColor={COLORS.white}
-        barStyle="dark-content"
-      />
+      <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
 
       <View style={styles.container}>
         {/* --- Header Teks --- */}
         <StyledText style={styles.mainTitle}>Masuk ke Akun Anda</StyledText>
-        <StyledText style={styles.subTitle}>Masukkan email dan password</StyledText>
+        <StyledText style={styles.subTitle}>
+          Masukkan email dan password
+        </StyledText>
 
         {/* --- Form Input --- */}
         <View style={styles.form}>
@@ -69,7 +79,7 @@ const LoginScreenV1 = () => {
             <Text style={styles.label}>Password</Text>
             <View style={styles.passwordContainer}>
               <TextInput
-                style={[styles.input, styles.inputPassword]} // Sedikit override style untuk password
+                style={[styles.input, styles.inputPassword]}
                 placeholder="Masukkan password anda"
                 placeholderTextColor={COLORS.greyDark}
                 value={password}
@@ -83,22 +93,30 @@ const LoginScreenV1 = () => {
                 activeOpacity={0.7} // Efek opacity saat ditekan
               >
                 <Icon
-                  name={showPassword ? 'eye-off' : 'eye'}
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={20}
                   color={COLORS.greyDark}
                 />
               </TouchableOpacity>
-
             </View>
           </View>
 
           <StyledButton
             onPress={handleLoginPress}
-            style={{ marginTop: 20 }}
-          >
-            <StyledText style={styles.loginButtonText} weight="medium">Masuk</StyledText>
+            disabled={!isValid}
+            style={[
+              styles.loginButton,
+              {
+                backgroundColor: isValid
+                  ? COLORS.primary
+                  : COLORS.primaryDisabled,
+              },
+            ]}
+            activeOpacity={0.8}>
+            <StyledText style={styles.loginButtonText} weight="medium">
+              Masuk
+            </StyledText>
           </StyledButton>
-
         </View>
       </View>
     </SafeAreaView>
@@ -146,15 +164,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start', // Pastikan label rata kiri
   },
   input: {
-    fontFamily: 'Roboto-Regular',
     fontSize: 16,
     backgroundColor: COLORS.white, // Background input putih
-    height: 55, // Tinggi input
-    borderRadius: 10, // Sudut melengkung
+    height: 55,
+    borderRadius: 8,
     paddingHorizontal: 15, // Padding dalam input
     borderWidth: 1, // Beri border tipis
     borderColor: COLORS.greyMedium, // Warna border abu-abu
-    color: '#E5E5E5', // Warna teks yang diketik
+    color: COLORS.textPrimary,
   },
   passwordContainer: {
     flexDirection: 'row', // Susun TextInput dan Ikon secara horizontal
@@ -172,6 +189,9 @@ const styles = StyleSheet.create({
     height: '100%', // Pastikan area sentuh ikon setinggi input
     justifyContent: 'center', // Pusatkan ikon secara vertikal di area sentuh
     paddingLeft: 10, // Sedikit padding agar tidak terlalu mepet teks
+  },
+  loginButton: {
+    marginTop: 20,
   },
   loginButtonText: {
     fontSize: 16,

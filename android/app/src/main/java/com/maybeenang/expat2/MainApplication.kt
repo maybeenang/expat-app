@@ -1,4 +1,4 @@
-package com.mobileexpat
+package com.maybeenang.expat2
 
 import android.app.Application
 import com.facebook.react.PackageList
