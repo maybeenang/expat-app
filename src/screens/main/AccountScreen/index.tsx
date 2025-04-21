@@ -1,27 +1,17 @@
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  TextInput,
-} from 'react-native';
+import {View, StyleSheet, SafeAreaView, StatusBar} from 'react-native';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../navigation/types';
 import COLORS from '../../../constants/colors';
 import StyledButton from '../../../components/common/StyledButton';
 import StyledText from '../../../components/common/StyledText';
-import {useAuthMutations} from '../../../hooks/useAuthMutations';
 
 // Sesuaikan nama 'Account' jika berbeda di types.ts
 type Props = NativeStackScreenProps<RootStackParamList, 'Account'>;
 
 const AccountScreen = ({navigation}: Props) => {
-  const {logout} = useAuthMutations();
   const handleLoginPress = () => {
-    // Arahkan pengguna ke layar login yang sesuai
-    // navigation.navigate('LoginV2'); // Asumsi LoginV2 adalah target
-    logout();
+    navigation.navigate('LoginV1');
   };
 
   return (

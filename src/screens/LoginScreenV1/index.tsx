@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from 'react-native';
 
 import Icon from '@react-native-vector-icons/ionicons';
@@ -15,8 +16,11 @@ import COLORS from '../../constants/colors';
 import StyledText from '../../components/common/StyledText';
 import StyledButton from '../../components/common/StyledButton';
 import {useAuthMutations} from '../../hooks/useAuthMutations';
+import {useNavigation} from '@react-navigation/native';
 
 const LoginScreenV1 = () => {
+  const navigation = useNavigation();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,11 +45,27 @@ const LoginScreenV1 = () => {
   useEffect(() => {
     if (error) {
       console.log('Login Error:', error.message);
+      Alert.alert(error.message);
     }
 
-    // Reset error state after displayingjk
     return () => {};
   }, [error]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight() {
+        return (
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{padding: 10}}>
+            <Icon name="close" size={32} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+        );
+      },
+    });
+
+    return () => {};
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

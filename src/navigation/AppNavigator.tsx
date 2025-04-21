@@ -9,11 +9,14 @@ import MainTabNavigator from './MainTabNavigator';
 import {useAuthStore} from '../store/useAuthStore';
 import LoadingScreen from '../screens/LoadingScreen';
 import {useShallow} from 'zustand/react/shallow';
+import GalleryDetailScreen from '../screens/main/GalleryScreen/detail';
+import COLORS from '../constants/colors';
+import BlogDetailScreen from '../screens/main/BlogScreen/detail';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
-  const {isLoggedIn, isLoading} = useAuthStore(
+  const {isLoading, isLoggedIn} = useAuthStore(
     useShallow(state => ({
       isLoggedIn: state.isLoggedIn,
       isLoading: state.isLoading,
@@ -25,18 +28,41 @@ const AppNavigator = () => {
   }
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        {isLoggedIn ? (
-          <Stack.Screen
-            name="MainTabs"
-            component={MainTabNavigator}
-            options={{headerShown: false}}
-          />
-        ) : (
+      <Stack.Navigator initialRouteName="MainTabs">
+        <Stack.Screen
+          name="MainTabs"
+          component={MainTabNavigator}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="GalleryDetail"
+          component={GalleryDetailScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+        <Stack.Screen
+          name="BlogDetail"
+          component={BlogDetailScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+        {!isLoggedIn && (
           <Stack.Screen
             name="LoginV1"
             component={LoginScreenV1}
-            options={{headerShown: false}}
+            options={{
+              headerShown: true,
+              title: '',
+              headerTransparent: true,
+              headerShadowVisible: false,
+              headerBackVisible: false,
+            }}
           />
         )}
       </Stack.Navigator>

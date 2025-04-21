@@ -1,18 +1,25 @@
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import COLORS from '../../constants/colors';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const LoadingScreen = () => (
-  <View style={styles.loadingContainer}>
-    <ActivityIndicator size="large" />
-  </View>
+  <SafeAreaView style={styles.safeArea}>
+    <View style={styles.centerContainer}>
+      <ActivityIndicator size="large" color={COLORS.primary} />
+    </View>
+  </SafeAreaView>
 );
 
 const styles = StyleSheet.create({
-  loadingContainer: {
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.primary,
+    padding: 20,
   },
 });
 

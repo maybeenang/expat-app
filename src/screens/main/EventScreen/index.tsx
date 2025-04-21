@@ -3,12 +3,12 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import COLORS from '../../../constants/colors';
 import StyledText from '../../../components/common/StyledText';
 
-const ExploreScreen = () => {
+const EventScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.container}>
-        <StyledText style={styles.title}>Explore</StyledText>
+        <StyledText style={styles.title}>Event</StyledText>
       </View>
     </SafeAreaView>
   );
@@ -35,4 +35,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ExploreScreen;
+export default EventScreen;

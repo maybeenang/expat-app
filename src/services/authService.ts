@@ -6,6 +6,7 @@ import type {
   LoginApiResponseData,
   ApiErrorData,
 } from '../types/auth';
+import {useAuthStore} from '../store/useAuthStore';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -38,14 +39,12 @@ export const loginApiCall = async (
   }
 };
 
-// Jika ada, setup interceptor untuk menambahkan token ke header:
-/*
-apiClient.interceptors.request.use(async (config) => {
-    const token = // Dapatkan token dari store atau storage Anda
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+apiClient.interceptors.request.use(async config => {
+  const token = useAuthStore.getState().token;
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
-*/
 export default apiClient;

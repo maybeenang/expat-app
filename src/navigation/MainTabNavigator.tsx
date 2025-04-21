@@ -1,103 +1,102 @@
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {
+  type BottomTabNavigationOptions,
+  createBottomTabNavigator,
+} from '@react-navigation/bottom-tabs';
 
-import AccountScreen from '../screens/main/AccountScreen';
-
-import {MainTabParamList, RootStackParamList} from './types'; // Import tipe params
+import {MainTabParamList} from './types'; // Import tipe params
 import COLORS from '../constants/colors';
 import ExploreScreen from '../screens/main/ExploreScreen';
 import Icon from '@react-native-vector-icons/ionicons';
-import BlogScreen from '../screens/main/BlogScreen';
 import {getTabBarIconName} from '../utils/helpers';
 import NoRippleTabBarButton from '../components/tabbar/NoRippleTabBarButton';
+import AccountStackNavigator from './AccountNavigator';
+import {StyleSheet} from 'react-native';
+import GalleryScreen from '../screens/main/GalleryScreen';
+import BlogScreen from '../screens/main/BlogScreen';
+import EventScreen from '../screens/main/EventScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
-const AccountStack = createNativeStackNavigator<RootStackParamList>(); // Stack untuk Tab Akun
-
-function AccountStackNavigator() {
-  const isUserLoggedIn = false; // Ganti dengan state auth Anda
-
-  return (
-    <AccountStack.Navigator>
-      {isUserLoggedIn ? (
-        <></> // Placeholder
-      ) : (
-        <AccountStack.Screen
-          name="Account"
-          component={AccountScreen}
-          options={{
-            title: 'Account',
-            headerTitleAlign: 'left',
-            headerStyle: {
-              backgroundColor: '#fff',
-            },
-            headerTintColor: COLORS.textPrimary,
-            headerTitleStyle: {
-              fontWeight: 'bold',
-            },
-            headerShadowVisible: false,
-          }}
-        />
-      )}
-    </AccountStack.Navigator>
-  );
-}
 
 const MainTabNavigator = () => {
   return (
-    <Tab.Navigator
-      screenOptions={({route}) => ({
-        headerShown: false,
-        tabBarIcon: ({focused, color, size}) => {
-          const iconName = getTabBarIconName(route.name, focused);
-          // @ts-ignore
-          return <Icon name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: COLORS.primary, // Warna ikon aktif
-        tabBarInactiveTintColor: 'gray',
-        tabBarStyle: {
-          borderTopWidth: 0,
-          elevation: 0,
-          height: 70,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          marginBottom: 5,
-        },
-        animation: 'shift',
-        tabBarButton: props => <NoRippleTabBarButton {...props} />,
-      })}>
+    <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen
         name="Explore"
         component={ExploreScreen}
-        options={{tabBarLabel: 'Explore', headerShown: false}}
+        options={{tabBarLabel: 'Explore'}}
       />
 
       <Tab.Screen
         name="Blog"
         component={BlogScreen}
-        options={{tabBarLabel: 'Blog', headerShown: false}}
+        options={{
+          headerRight: () => {
+            return (
+              <Icon
+                name="search"
+                size={24}
+                color={COLORS.primary}
+                style={{marginRight: 15}}
+              />
+            );
+          },
+        }}
       />
 
-      <Tab.Screen
-        name="Event"
-        component={BlogScreen}
-        options={{tabBarLabel: 'Event', headerShown: false}}
-      />
+      <Tab.Screen name="Event" component={EventScreen} />
 
-      <Tab.Screen
-        name="Gallery"
-        component={BlogScreen}
-        options={{tabBarLabel: 'Gallery', headerShown: false}}
-      />
+      <Tab.Screen name="Gallery" component={GalleryScreen} />
 
       <Tab.Screen
         name="AccountStack"
         component={AccountStackNavigator}
-        options={{tabBarLabel: 'Login', headerShown: false}}
+        options={{tabBarLabel: 'Login', title: 'Account'}}
       />
     </Tab.Navigator>
   );
 };
+
+const screenOptions = ({route}: any): BottomTabNavigationOptions => {
+  return {
+    headerShown: true,
+    tabBarIcon: ({focused, color, size}) => {
+      const iconName = getTabBarIconName(route.name, focused);
+      // @ts-ignore
+      return <Icon name={iconName} size={size} color={color} />;
+    },
+    tabBarActiveTintColor: COLORS.primary,
+    tabBarInactiveTintColor: 'gray',
+    tabBarLabelStyle: {
+      fontSize: 12,
+      marginBottom: 5,
+    },
+    tabBarItemStyle: {
+      padding: 10,
+    },
+
+    animation: 'shift',
+    tabBarButton: props => <NoRippleTabBarButton {...props} />,
+    tabBarStyle: styles.tabBarStyleBase,
+    headerShadowVisible: false,
+    headerTitleStyle: {
+      fontFamily: 'Roboto-Medium',
+      fontWeight: '600',
+      fontSize: 24,
+    },
+    headerStyle: {
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.greyLight,
+    },
+  };
+};
+
+// Style dasar untuk tab bar (jika ada kustomisasi lain)
+const styles = StyleSheet.create({
+  tabBarStyleBase: {
+    borderColor: COLORS.greyLight,
+    elevation: 0,
+    height: 70,
+  },
+});
 
 export default MainTabNavigator;
