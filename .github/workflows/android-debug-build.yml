@@ -2,7 +2,7 @@ name: Android Debug Build CI
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -57,4 +57,4 @@ jobs:
           tag_name: v${{ github.run_number }}
           files: android/app/build/outputs/apk/release/app-release.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
