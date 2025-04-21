@@ -1,0 +1,50 @@
+import axios from 'axios';
+import {API_BASE_URL, LOGIN_ENDPOINT} from '../constants/api';
+import type {
+  LoginCredentials,
+  LoginApiResponse,
+  LoginApiResponseData,
+  ApiErrorData,
+} from '../types/auth';
+import {useAuthStore} from '../store/useAuthStore';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+});
+
+export const loginApiCall = async (
+  credentials: LoginCredentials,
+): Promise<LoginApiResponseData> => {
+  try {
+    const response = await apiClient.post<LoginApiResponse>(
+      LOGIN_ENDPOINT,
+      credentials,
+    );
+
+    if (
+      response.data &&
+      response.data.status === 200 &&
+      response.data.data?.['x-token']
+    ) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message || 'Invalid response data');
+    }
+  } catch (error) {
+    if (axios.isAxiosError<ApiErrorData>(error) && error.response) {
+      throw new Error(error.response.data?.message || 'Login failed');
+    }
+    throw new Error('Network error or failed to connect');
+  }
+};
+
+apiClient.interceptors.request.use(async config => {
+  const token = useAuthStore.getState().token;
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+export default apiClient;
