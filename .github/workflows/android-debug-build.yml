@@ -2,7 +2,7 @@ name: Android Debug Build CI
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   workflow_dispatch:
 
 jobs:
@@ -29,17 +29,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Uncomment (hapus # di awal baris) jika Opsi 1 gagal atau Anda butuh kontrol lebih
-      # - name: Setup Android SDK
-      #   uses: android-actions/setup-android@v3 # Action komunitas untuk setup Android SDK
-      #   # Tidak perlu `with` jika versi SDK/NDK default cukup
-      #   # Jika perlu versi spesifik, tambahkan:
-      #   # with:
-      #   #   api-level: 33 # Ganti dengan API level target Anda
-      #   #   build-tools: 33.0.2 # Ganti dengan versi build tools Anda
-      #   #   ndk-version: 25.2.9519653 # Ganti jika perlu NDK versi spesifik
-
-      - name: Setup Gradle Cache # Cache dependensi Gradle untuk mempercepat build
+      - name: Setup Gradle Cache
         uses: actions/cache@v4
         with:
           path: |
@@ -53,8 +43,12 @@ jobs:
         run: chmod +x ./android/gradlew
         working-directory: ./
 
-      - name: Build Android Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Copy keystore
+        run: mv my-release-key.keystore.bak my-release-key.keystore
+        working-directory: ./android
+
+      - name: Build Android Release APK
+        run: ./gradlew assembleRelease
         working-directory: ./android
 
       - name: Upload Debug APK Artifact
@@ -62,4 +56,11 @@ jobs:
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
