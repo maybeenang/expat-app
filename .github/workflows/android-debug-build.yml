@@ -45,7 +45,7 @@ jobs:
 
       - name: Copy keystore
         run: mv my-release-key.keystore.bak my-release-key.keystore
-        working-directory: ./android
+        working-directory: ./android/app
 
       - name: Build Android Release APK
         run: ./gradlew assembleRelease
