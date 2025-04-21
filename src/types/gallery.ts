@@ -11,10 +11,14 @@ export interface GalleryImageApi {
 export interface GalleryListApiResponse {
   status: number;
   message: string;
-  data: GalleryImageApi[];
+  page: number; // Halaman saat ini
+  limit: number; // Limit per halaman
+  total_pages: number; // Total halaman tersedia
+  total_data: number; // Total item
+  data: GalleryImageApi[]; // Data untuk halaman ini
 }
 
-// Tipe yang diproses untuk UI
+// Tipe yang diproses untuk UI (tetap sama)
 export interface GalleryItemData {
   id: string;
   imageUrl: string;

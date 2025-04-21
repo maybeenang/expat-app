@@ -59,3 +59,20 @@ export interface ProcessedBlogDetailData {
 export interface ProcessedBlogDetail extends ProcessedBlogPost {
   content: string;
 }
+
+export interface BlogSearchApiResponse {
+  status: number;
+  message: string;
+  data: BlogPost[];
+}
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+}
+
+export interface BlogCategoriesApiResponse {
+  status: number;
+  message: string;
+  data: BlogCategory[];
+}

@@ -12,6 +12,7 @@ import {useShallow} from 'zustand/react/shallow';
 import GalleryDetailScreen from '../screens/main/GalleryScreen/detail';
 import COLORS from '../constants/colors';
 import BlogDetailScreen from '../screens/main/BlogScreen/detail';
+import BlogSearchScreen from '../screens/main/BlogScreen/search';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -46,6 +47,16 @@ const AppNavigator = () => {
         <Stack.Screen
           name="BlogDetail"
           component={BlogDetailScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="BlogSearch"
+          component={BlogSearchScreen}
           options={{
             headerShown: true,
             title: '',

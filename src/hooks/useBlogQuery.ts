@@ -1,16 +1,18 @@
 import {useQuery} from '@tanstack/react-query';
 import {
+  fetchBlogCategoriesApi,
   fetchBlogPostDetailApi,
   fetchBlogPostsApi,
   formatDate,
+  searchBlogPostsApi,
 } from '../services/blogService';
 import type {
+  BlogCategory,
   BlogPost,
   ProcessedBlogDetail,
   ProcessedBlogDetailData,
   ProcessedBlogPost,
 } from '../types/blog';
-import {useMemo} from 'react';
 
 // Query key untuk blog posts
 export const blogPostsQueryKey = ['blogPosts'];
@@ -37,22 +39,24 @@ export const useBlogPosts = () => {
   });
 };
 
-export const useBlogCategories = () => {
-  const {data: posts} = useBlogPosts();
+export const blogCategoriesQueryKey = ['blogCategories'];
 
-  const categories = useMemo(() => {
-    if (!posts) {
-      return ['Semua Kategori'];
-    }
+// --- Hook untuk Fetch Kategori ---
+export const useBlogCategoriesQuery = () => {
+  const ALL_CATEGORY_PLACEHOLDER: BlogCategory = {
+    id: 'all',
+    name: 'Semua Kategori',
+  };
 
-    const allCats = new Set<string>(['Semua Kategori']);
-    posts.forEach(post => {
-      post.categories.forEach(cat => allCats.add(cat));
-    });
-    return Array.from(allCats);
-  }, [posts]);
-
-  return categories;
+  return useQuery<BlogCategory[], Error, BlogCategory[]>({
+    queryKey: blogCategoriesQueryKey,
+    queryFn: fetchBlogCategoriesApi,
+    staleTime: Infinity,
+    select: data => {
+      return [ALL_CATEGORY_PLACEHOLDER, ...data];
+    },
+    placeholderData: [ALL_CATEGORY_PLACEHOLDER],
+  });
 };
 
 export const blogPostDetailQueryKey = (slug: string) => [
@@ -106,5 +110,31 @@ export const useBlogPostDetail = (slug: string) => {
         recentPosts: recentPostsProcessed,
       };
     },
+  });
+};
+
+export const useBlogSearch = (query: string) => {
+  const queryKey = ['blogSearch', query];
+
+  return useQuery<BlogPost[], Error, ProcessedBlogPost[]>({
+    queryKey: queryKey,
+    queryFn: () => searchBlogPostsApi(query),
+    enabled: !!query,
+    staleTime: 1000 * 60 * 1,
+    select: data => {
+      return data.map(post => ({
+        id: post.id,
+        title: post.blog_title,
+        author: post.created_by,
+        date: formatDate(post.created_date),
+        categories: post.categories
+          .split(',')
+          .map(cat => cat.trim())
+          .filter(cat => cat),
+        imageUrl: post.image_feature?.img_url ?? null,
+        slug: post.blog_slug,
+      }));
+    },
+    placeholderData: previousData => previousData,
   });
 };

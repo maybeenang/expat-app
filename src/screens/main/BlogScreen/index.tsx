@@ -8,39 +8,66 @@ import {
   TouchableOpacity,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import COLORS from '../../../constants/colors';
-import {useBlogCategories, useBlogPosts} from '../../../hooks/useBlogQuery';
+import {
+  useBlogCategoriesQuery,
+  useBlogPosts,
+} from '../../../hooks/useBlogQuery';
 import LoadingScreen from '../../LoadingScreen';
 import ErrorScreen from '../../ErrorScreen';
 import {BlogItem} from '../../../components/blog/BlogItem';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../navigation/types';
+import {BlogCategory} from '../../../types/blog';
 
 type Props = NativeStackScreenProps<RootStackParamList>;
 
 const BlogScreen = ({navigation}: Props) => {
-  const {data: posts, isLoading, error, refetch, isFetching} = useBlogPosts();
-  const categories = useBlogCategories();
-  const [activeCategory, setActiveCategory] = useState<string>(
-    categories[0] || 'Semua Kategori',
+  const {
+    data: categories,
+    isLoading: isLoadingCategories,
+    error: errorCategories,
+  } = useBlogCategoriesQuery();
+  const [activeCategory, setActiveCategory] = useState<BlogCategory | null>(
+    null,
   );
 
+  const {data: posts, isLoading, error, refetch, isFetching} = useBlogPosts();
   useEffect(() => {
-    if (!categories.includes(activeCategory)) {
-      setActiveCategory(categories[0] || 'Semua Kategori');
+    if (categories && !activeCategory) {
+      setActiveCategory(categories[0]);
     }
   }, [categories, activeCategory]);
 
   const filteredPosts = useMemo(() => {
-    if (!posts) {
+    if (!posts || !activeCategory) {
       return [];
     }
-    if (activeCategory === 'Semua Kategori') {
+    if (activeCategory.id === 'all') {
       return posts;
     }
-    return posts.filter(post => post.categories.includes(activeCategory));
+    return posts.filter(post => post.categories.includes(activeCategory.name));
   }, [activeCategory, posts]);
+
+  if (isLoadingCategories && !categories) {
+    return (
+      <View style={[styles.categoryContainer, styles.centerContainerShort]}>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (errorCategories) {
+    return (
+      <ErrorScreen
+        error={errorCategories}
+        refetch={refetch}
+        placeholder="Gagal memuat kategori"
+      />
+    );
+  }
 
   if (isLoading && !posts) {
     return <LoadingScreen />;
@@ -60,7 +87,6 @@ const BlogScreen = ({navigation}: Props) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.container}>
-        {/* Filter Kategori */}
         <View style={styles.categoryContainer}>
           <ScrollView
             horizontal
@@ -70,11 +96,8 @@ const BlogScreen = ({navigation}: Props) => {
               const isActive = category === activeCategory;
               return (
                 <TouchableOpacity
-                  key={category}
-                  style={[
-                    styles.categoryButton,
-                    isActive && styles.categoryButtonActive,
-                  ]}
+                  key={category.id}
+                  style={[styles.categoryButton]}
                   onPress={() => setActiveCategory(category)}
                   activeOpacity={0.7}>
                   <Text
@@ -82,7 +105,7 @@ const BlogScreen = ({navigation}: Props) => {
                       styles.categoryText,
                       isActive && styles.categoryTextActive,
                     ]}>
-                    {category}
+                    {category.name}
                   </Text>
                   {isActive && <View style={styles.activeIndicator} />}
                 </TouchableOpacity>
@@ -100,8 +123,6 @@ const BlogScreen = ({navigation}: Props) => {
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
-          // TODO: Tambahkan fitur pull-to-refresh jika perlu
-          // ListEmptyComponent={<Text>Tidak ada post.</Text>}
           onRefresh={refetch}
           refreshing={isFetching && !!posts}
         />
@@ -132,9 +153,6 @@ const styles = StyleSheet.create({
     marginRight: 20, // Jarak antar kategori
     paddingBottom: 12, // Ruang untuk indicator di bawah teks
     alignItems: 'center',
-  },
-  categoryButtonActive: {
-    // Style tambahan jika perlu saat aktif (misal border bawah jadi tebal)
   },
   categoryText: {
     fontFamily: 'Roboto-Medium', // Atau Regular
@@ -210,20 +228,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  errorText: {
-    color: COLORS.primary,
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  retryButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 5,
-  },
-  retryButtonText: {
-    color: COLORS.white,
-    fontFamily: 'Roboto-Medium',
+  centerContainerShort: {
+    // Untuk loading/error di container kategori
+    alignItems: 'center',
+    paddingVertical: 10, // Sedikit padding vertikal
+    flexDirection: 'row', // Susun error dan tombol retry horizontal jika perlu
+    justifyContent: 'center',
+    paddingHorizontal: 15,
   },
 });
 

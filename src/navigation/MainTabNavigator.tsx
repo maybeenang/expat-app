@@ -10,14 +10,17 @@ import Icon from '@react-native-vector-icons/ionicons';
 import {getTabBarIconName} from '../utils/helpers';
 import NoRippleTabBarButton from '../components/tabbar/NoRippleTabBarButton';
 import AccountStackNavigator from './AccountNavigator';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, TouchableOpacity} from 'react-native';
 import GalleryScreen from '../screens/main/GalleryScreen';
 import BlogScreen from '../screens/main/BlogScreen';
 import EventScreen from '../screens/main/EventScreen';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const MainTabNavigator = () => {
+type Props = NativeStackScreenProps<MainTabParamList>;
+
+const MainTabNavigator = ({navigation}: Props) => {
   return (
     <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen
@@ -32,12 +35,18 @@ const MainTabNavigator = () => {
         options={{
           headerRight: () => {
             return (
-              <Icon
-                name="search"
-                size={24}
-                color={COLORS.primary}
-                style={{marginRight: 15}}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  // @ts-ignore
+                  navigation.navigate('BlogSearch');
+                }}>
+                <Icon
+                  name="search"
+                  size={24}
+                  color={COLORS.primary}
+                  style={{marginRight: 15}}
+                />
+              </TouchableOpacity>
             );
           },
         }}

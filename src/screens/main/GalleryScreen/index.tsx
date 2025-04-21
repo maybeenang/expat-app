@@ -53,7 +53,23 @@ const GalleryItem = React.memo(({item}: {item: GalleryItemData}) => {
 
 // Komponen Layar Gallery
 const GalleryScreen = () => {
-  const {data: images, isLoading, error, refetch} = useGalleryImages();
+  const {
+    data: images, // Data yang sudah di-select (flat array)
+    fetchNextPage, // Fungsi untuk fetch halaman berikutnya
+    hasNextPage, // Boolean: apakah ada halaman berikutnya?
+    isFetchingNextPage, // Boolean: sedang fetch halaman berikutnya?
+    isLoading, // Boolean: loading awal?
+    isFetching, // Boolean: sedang fetch (awal atau berikutnya)?
+    error, // Error object
+    refetch, // Fungsi untuk refetch semua halaman (pull-to-refresh)
+  } = useGalleryImages();
+
+  const loadMore = () => {
+    // Hanya fetch jika ada halaman berikutnya dan tidak sedang fetching
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
   if (isLoading && !images) {
     return <LoadingScreen />;
@@ -69,6 +85,16 @@ const GalleryScreen = () => {
       />
     );
   }
+  const renderFooter = () => {
+    if (!isFetchingNextPage) {
+      return null;
+    } // Jangan render apa2 jika tidak loading next page
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -87,6 +113,9 @@ const GalleryScreen = () => {
             <Text>Galeri masih kosong.</Text>
           </View>
         }
+        onEndReached={loadMore} // Panggil loadMore saat mendekati akhir
+        onEndReachedThreshold={0.5} // Trigger 0.5 panjang layar dari akhir
+        ListFooterComponent={renderFooter} // Tampilkan loading di bawah
       />
     </SafeAreaView>
   );
@@ -134,6 +163,9 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: COLORS.white,
     fontFamily: 'Roboto-Medium',
+  },
+  footerLoader: {
+    paddingVertical: 20, // Beri ruang untuk loader di bawah
   },
 });
 
