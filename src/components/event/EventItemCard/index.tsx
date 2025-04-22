@@ -20,7 +20,6 @@ interface EventItemCardProps {
 const EventItemCard = React.memo(
   ({item, navigation, usePush}: EventItemCardProps) => {
     const handlePress = () => {
-      console.log('Navigate to event detail:', item.slug);
       if (navigation) {
         if (usePush) {
           navigation.push('EventDetail', {eventId: item.id});

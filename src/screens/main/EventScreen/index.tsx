@@ -20,8 +20,12 @@ import EmptyScreen from '../../EmptyScreen';
 import EventItemCard from '../../../components/event/EventItemCard';
 import COLORS from '../../../constants/colors';
 import useManualRefresh from '../../../hooks/useManualRefresh';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../../navigation/types';
 
-const EventScreen = () => {
+const EventScreen = ({
+  navigation,
+}: NativeStackScreenProps<RootStackParamList>) => {
   const {
     data: categoriesData,
     isLoading: isLoadingCategories,
@@ -114,7 +118,9 @@ const EventScreen = () => {
     return (
       <FlatList
         data={eventItems}
-        renderItem={({item}) => <EventItemCard item={item} />} // Gunakan EventItemCard
+        renderItem={({item}) => (
+          <EventItemCard item={item} navigation={navigation} />
+        )}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
