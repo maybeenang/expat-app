@@ -13,6 +13,9 @@ export type RootStackParamList = {
   BlogSearch: {
     query: string;
   };
+  RentalDetail: {
+    rentalId: string;
+  };
 };
 
 export type MainTabParamList = {

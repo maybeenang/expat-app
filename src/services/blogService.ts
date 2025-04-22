@@ -9,22 +9,31 @@ import type {
 } from '../types/blog';
 import apiClient from './authService';
 
-export const fetchBlogPostsApi = async (): Promise<BlogPost[]> => {
-  const params: Record<string, string> = {};
+export const fetchBlogPostsApi = async (
+  {pageParam = 1},
+  categoryNames?: string[],
+): Promise<BlogListApiResponse> => {
+  const params: Record<string, string | number> = {
+    page: pageParam,
+    limit: 10,
+  };
+  if (categoryNames && categoryNames.length > 0) {
+    const filteredCats = categoryNames.filter(
+      name => name !== 'Semua Kategori',
+    );
+    if (filteredCats.length > 0) {
+      params.categories = filteredCats.join(',');
+    }
+  }
+
   try {
     const response = await apiClient.get<BlogListApiResponse>(
       BLOG_LIST_ENDPOINT,
-      {params},
+      {
+        params,
+      },
     );
-    if (
-      response.data &&
-      response.data.status === 200 &&
-      Array.isArray(response.data.data)
-    ) {
-      return response.data.data;
-    } else {
-      throw new Error(response.data.message || 'Failed to fetch blog posts');
-    }
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(

@@ -13,6 +13,7 @@ import GalleryDetailScreen from '../screens/main/GalleryScreen/detail';
 import COLORS from '../constants/colors';
 import BlogDetailScreen from '../screens/main/BlogScreen/detail';
 import BlogSearchScreen from '../screens/main/BlogScreen/search';
+import RentalDetailScreen from '../screens/main/ExploreScreen/detail';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -57,6 +58,16 @@ const AppNavigator = () => {
         <Stack.Screen
           name="BlogSearch"
           component={BlogSearchScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="RentalDetail"
+          component={RentalDetailScreen}
           options={{
             headerShown: true,
             title: '',

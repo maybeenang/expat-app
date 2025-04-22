@@ -3,12 +3,11 @@ import StyledText from '../../common/StyledText';
 import COLORS from '../../../constants/colors';
 import {memo} from 'react';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../../navigation/types';
 import {ProcessedBlogPost} from '../../../types/blog';
 
 interface Props {
   item: ProcessedBlogPost;
-  navigation?: NativeStackNavigationProp<RootStackParamList>;
+  navigation?: NativeStackNavigationProp<any>;
   usePush?: boolean; // Flag untuk menentukan pakai push atau navigate
 }
 

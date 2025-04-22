@@ -10,6 +10,14 @@ const LoadingScreen = () => (
   </SafeAreaView>
 );
 
+export const LoadingFooter = () => {
+  return (
+    <View style={styles.footerLoader}>
+      <ActivityIndicator size="small" color={COLORS.primary} />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -20,6 +28,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+
+  footerLoader: {
+    paddingVertical: 20,
   },
 });
 

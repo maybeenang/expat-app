@@ -1,4 +1,5 @@
-import React, {useState, useMemo, useEffect} from 'react';
+// src/screens/BlogScreen/index.tsx
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -10,23 +11,23 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import COLORS from '../../../constants/colors';
+import {useQueryClient} from '@tanstack/react-query';
+import {BlogCategory} from '../../../types/blog';
 import {
+  blogCategoriesQueryKey,
   useBlogCategoriesQuery,
-  useBlogPosts,
+  useBlogPostsInfinite,
 } from '../../../hooks/useBlogQuery';
-import LoadingScreen from '../../LoadingScreen';
-import ErrorScreen from '../../ErrorScreen';
+import COLORS from '../../../constants/colors';
 import {BlogItem} from '../../../components/blog/BlogItem';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../../navigation/types';
-import {BlogCategory} from '../../../types/blog';
+import EmptyScreen from '../../EmptyScreen';
+import {LoadingFooter} from '../../LoadingScreen';
 
-type Props = NativeStackScreenProps<RootStackParamList>;
-
-const BlogScreen = ({navigation}: Props) => {
+const BlogScreen = ({navigation}: NativeStackScreenProps<any>) => {
+  const queryClient = useQueryClient();
   const {
-    data: categories,
+    data: categoriesData,
     isLoading: isLoadingCategories,
     error: errorCategories,
   } = useBlogCategoriesQuery();
@@ -34,72 +35,86 @@ const BlogScreen = ({navigation}: Props) => {
     null,
   );
 
-  const {data: posts, isLoading, error, refetch, isFetching} = useBlogPosts();
+  const {
+    data: posts,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isLoadingPosts,
+    isFetching: isFetchingPosts,
+    error: errorPosts,
+    refetch: refetchPosts,
+  } = useBlogPostsInfinite(activeCategory);
+
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+
   useEffect(() => {
-    if (categories && !activeCategory) {
-      setActiveCategory(categories[0]);
+    if (categoriesData && !activeCategory) {
+      setActiveCategory(categoriesData[0]);
     }
-  }, [categories, activeCategory]);
+  }, [categoriesData, activeCategory]);
 
-  const filteredPosts = useMemo(() => {
-    if (!posts || !activeCategory) {
-      return [];
+  const handleManualRefresh = useCallback(async () => {
+    setIsManualRefreshing(true);
+    try {
+      await refetchPosts(); // Tunggu refetch selesai (opsional, tapi bisa lebih baik)
+    } catch (err) {
+      console.error('Manual refresh failed:', err);
+    } finally {
+      setIsManualRefreshing(false); // Akan dihandle oleh useEffect di bawah
     }
-    if (activeCategory.id === 'all') {
-      return posts;
+  }, [refetchPosts]);
+
+  // Efek untuk mematikan state manual refresh saat fetching selesai
+  useEffect(() => {
+    if (!isFetchingPosts) {
+      setIsManualRefreshing(false);
     }
-    return posts.filter(post => post.categories.includes(activeCategory.name));
-  }, [activeCategory, posts]);
+  }, [isFetchingPosts]);
 
-  if (isLoadingCategories && !categories) {
-    return (
-      <View style={[styles.categoryContainer, styles.centerContainerShort]}>
-        <ActivityIndicator size="small" color={COLORS.primary} />
-      </View>
-    );
-  }
-
-  if (errorCategories) {
-    return (
-      <ErrorScreen
-        error={errorCategories}
-        refetch={refetch}
-        placeholder="Gagal memuat kategori"
-      />
-    );
-  }
-
-  if (isLoading && !posts) {
-    return <LoadingScreen />;
-  }
-
-  if (error) {
-    return (
-      <ErrorScreen
-        error={error}
-        refetch={refetch}
-        placeholder="Gagal memuat data"
-      />
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <View style={styles.container}>
+  // Render bagian filter kategori
+  const renderCategoryFilter = () => {
+    if (isLoadingCategories && !categoriesData) {
+      return (
+        <View style={[styles.categoryContainer, styles.centerContainerShort]}>
+          <ActivityIndicator size="small" color={COLORS.primary} />
+        </View>
+      );
+    }
+    if (errorCategories && !categoriesData) {
+      return (
+        <View style={[styles.categoryContainer, styles.centerContainerShort]}>
+          <Text style={styles.errorTextSmall}>Gagal memuat kategori.</Text>
+          <TouchableOpacity
+            onPress={() =>
+              queryClient.refetchQueries({queryKey: blogCategoriesQueryKey})
+            }
+            style={styles.retryButtonSmall}>
+            <Text style={styles.retryButtonTextSmall}>Coba Lagi</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    if (categoriesData) {
+      return (
         <View style={styles.categoryContainer}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryScroll}>
-            {categories.map(category => {
-              const isActive = category === activeCategory;
+            {categoriesData.map(category => {
+              const isActive = activeCategory?.id === category.id;
               return (
                 <TouchableOpacity
                   key={category.id}
-                  style={[styles.categoryButton]}
+                  style={[
+                    styles.categoryButton,
+                    isActive && styles.categoryButtonActive,
+                  ]}
                   onPress={() => setActiveCategory(category)}
-                  activeOpacity={0.7}>
+                  activeOpacity={0.7}
+                  disabled={isManualRefreshing} // Disable saat post loading/refetching
+                >
                   <Text
                     style={[
                       styles.categoryText,
@@ -113,19 +128,70 @@ const BlogScreen = ({navigation}: Props) => {
             })}
           </ScrollView>
         </View>
+      );
+    }
+    return <View style={styles.categoryContainer} />;
+  };
 
-        {/* Daftar Blog Post */}
-        <FlatList
-          data={filteredPosts}
-          renderItem={({item}) => (
-            <BlogItem item={item} navigation={navigation} />
-          )}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          onRefresh={refetch}
-          refreshing={isFetching && !!posts}
-        />
+  // Render bagian list post
+  const renderPostList = () => {
+    // Loading awal post (setelah kategori ada)
+    if (isLoadingPosts && !posts) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      );
+    }
+    // Error awal post (setelah kategori ada)
+    if (errorPosts && !posts) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>
+            Gagal memuat artikel: {errorPosts.message}
+          </Text>
+          <TouchableOpacity
+            onPress={() => refetchPosts()}
+            style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Coba Lagi</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    // Jika tidak loading/error awal, tampilkan FlatList
+    return (
+      <FlatList
+        data={posts} // Data flat dari hook infinite query
+        renderItem={({item}) => (
+          <BlogItem item={item} navigation={navigation} />
+        )}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          !isFetchingPosts && categoriesData ? <EmptyScreen /> : null
+        }
+        // Infinite Scroll
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={isFetchingNextPage ? <LoadingFooter /> : null}
+        onRefresh={handleManualRefresh}
+        refreshing={isManualRefreshing}
+      />
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <View style={styles.container}>
+        {renderCategoryFilter()}
+        {/* Area untuk list post, mengisi sisa ruang */}
+        <View style={styles.listArea}>{renderPostList()}</View>
       </View>
     </SafeAreaView>
   );
@@ -139,102 +205,104 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // --- Category Filter ---
+  // Kategori Styles
   categoryContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.greyLight, // Warna garis bawah filter
-    paddingBottom: 0, // Tidak perlu padding bawah jika indicator nempel
+    borderBottomColor: COLORS.greyLight,
+    minHeight: 55,
+    justifyContent: 'center',
+  },
+  centerContainerShort: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingHorizontal: 15,
+  },
+  errorTextSmall: {
+    color: COLORS.primary,
+    fontSize: 14,
+    marginRight: 10,
+    fontFamily: 'Roboto-Regular',
+  },
+  retryButtonSmall: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 4,
+  },
+  retryButtonTextSmall: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontFamily: 'Roboto-Medium',
   },
   categoryScroll: {
-    paddingHorizontal: 15, // Padding kiri-kanan untuk scroll
-    paddingVertical: 12, // Padding atas-bawah tombol kategori
+    paddingHorizontal: 15,
+    paddingVertical: 12,
   },
   categoryButton: {
-    marginRight: 20, // Jarak antar kategori
-    paddingBottom: 12, // Ruang untuk indicator di bawah teks
+    marginRight: 20,
+    paddingBottom: 12,
     alignItems: 'center',
   },
+  categoryButtonActive: {
+    // Tidak perlu style khusus jika hanya indicator
+  },
   categoryText: {
-    fontFamily: 'Roboto-Medium', // Atau Regular
+    fontFamily: 'Roboto-Medium',
     fontSize: 15,
-    color: COLORS.textSecondary, // Warna teks non-aktif
+    color: COLORS.textSecondary,
   },
   categoryTextActive: {
-    fontFamily: 'Roboto-Bold', // Atau Medium
-    color: COLORS.textPrimary, // Warna teks aktif
+    fontFamily: 'Roboto-Bold',
+    color: COLORS.textPrimary,
   },
   activeIndicator: {
     height: 3,
     width: '100%',
-    backgroundColor: COLORS.textPrimary,
+    backgroundColor: COLORS.primary,
     position: 'absolute',
     bottom: -1,
   },
-
+  // List Area & Content Styles
+  listArea: {
+    flex: 1,
+  },
   listContainer: {
     paddingHorizontal: 15,
     paddingTop: 20,
-    paddingBottom: 20,
-  },
-
-  blogItemContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    backgroundColor: COLORS.white,
-    minHeight: 80,
-  },
-  blogItemImage: {
-    width: 90, // Lebar gambar
-    height: 90, // Tinggi gambar
-    borderRadius: 8, // Sudut gambar melengkung
-    marginRight: 15,
-    backgroundColor: COLORS.greyLight, // Warna latar belakang gambar
-  },
-  blogItemTextContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  blogItemTitle: {
-    fontSize: 16,
-    marginBottom: 8,
-    lineHeight: 21,
-  },
-  blogItemMetaContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between', // Author kiri, date kanan
-    alignItems: 'center', // Sejajarkan vertikal
-  },
-  blogItemAuthor: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  blogItemDate: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-
-  imagePlaceholder: {
-    backgroundColor: COLORS.greyLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 10,
-    color: COLORS.greyDark,
+    paddingBottom: 20, // Padding bawah agar footer/item terakhir tidak mepet
   },
   centerContainer: {
+    // Untuk loading/error/empty utama
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    minHeight: 200, // Beri tinggi minimum
   },
-  centerContainerShort: {
-    // Untuk loading/error di container kategori
-    alignItems: 'center',
-    paddingVertical: 10, // Sedikit padding vertikal
-    flexDirection: 'row', // Susun error dan tombol retry horizontal jika perlu
-    justifyContent: 'center',
-    paddingHorizontal: 15,
+  errorText: {
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 15,
+    fontFamily: 'Roboto-Regular',
+    fontSize: 16,
+  },
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: COLORS.white,
+    fontFamily: 'Roboto-Medium',
+    fontSize: 14,
+  },
+  infoText: {
+    fontFamily: 'Roboto-Regular',
+    color: COLORS.textSecondary,
+    fontSize: 16,
   },
 });
 

@@ -3,3 +3,7 @@ export const LOGIN_ENDPOINT = '/login';
 export const BLOG_LIST_ENDPOINT = '/blog';
 export const BLOG_CATEGORIES_ENDPOINT = '/blog/categories';
 export const GALLERY_LIST_ENDPOINT = '/gallery';
+
+export const RENTAL_CATEGORIES_ENDPOINT = '/rental/categories';
+export const RENTAL_ENDPOINT = '/rental';
+export const DEFAULT_RENTAL_LIMIT = 6;

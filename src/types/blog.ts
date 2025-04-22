@@ -29,6 +29,10 @@ export interface BlogPost {
 export interface BlogListApiResponse {
   status: number;
   message: string;
+  page: number;
+  limit: number;
+  total_pages: number;
+  total_data: number;
   data: BlogPost[];
 }
 

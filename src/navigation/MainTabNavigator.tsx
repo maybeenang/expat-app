@@ -3,7 +3,7 @@ import {
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 
-import {MainTabParamList} from './types'; // Import tipe params
+import {MainTabParamList, RootStackParamList} from './types'; // Import tipe params
 import COLORS from '../constants/colors';
 import ExploreScreen from '../screens/main/ExploreScreen';
 import Icon from '@react-native-vector-icons/ionicons';
@@ -18,7 +18,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-type Props = NativeStackScreenProps<MainTabParamList>;
+type Props = NativeStackScreenProps<RootStackParamList>;
 
 const MainTabNavigator = ({navigation}: Props) => {
   return (
@@ -26,7 +26,7 @@ const MainTabNavigator = ({navigation}: Props) => {
       <Tab.Screen
         name="Explore"
         component={ExploreScreen}
-        options={{tabBarLabel: 'Explore'}}
+        options={{tabBarLabel: 'Explore', headerShown: false}}
       />
 
       <Tab.Screen

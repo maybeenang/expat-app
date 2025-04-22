@@ -1,4 +1,4 @@
-import {useQuery} from '@tanstack/react-query';
+import {useInfiniteQuery, useQuery} from '@tanstack/react-query';
 import {
   fetchBlogCategoriesApi,
   fetchBlogPostDetailApi,
@@ -8,33 +8,63 @@ import {
 } from '../services/blogService';
 import type {
   BlogCategory,
+  BlogListApiResponse,
   BlogPost,
   ProcessedBlogDetail,
   ProcessedBlogDetailData,
   ProcessedBlogPost,
 } from '../types/blog';
+import {useMemo} from 'react';
 
 // Query key untuk blog posts
-export const blogPostsQueryKey = ['blogPosts'];
+export const blogPostsQueryKey = (categoryNames?: string[]) => [
+  'blogPosts',
+  categoryNames?.join(',') ?? 'all',
+];
 
-export const useBlogPosts = () => {
-  return useQuery<BlogPost[], Error, ProcessedBlogPost[]>({
-    queryKey: blogPostsQueryKey,
-    queryFn: fetchBlogPostsApi,
-    staleTime: 1000 * 60 * 5,
+export const useBlogPostsInfinite = (activeCategory: BlogCategory | null) => {
+  const categoryFilterNames = useMemo(() => {
+    if (!activeCategory || activeCategory.id === 'all') {
+      return [];
+    }
+    return [activeCategory.name];
+  }, [activeCategory]);
+
+  return useInfiniteQuery<
+    BlogListApiResponse,
+    Error,
+    ProcessedBlogPost[],
+    string[],
+    number
+  >({
+    queryKey: blogPostsQueryKey(categoryFilterNames),
+    queryFn: ({pageParam}) =>
+      fetchBlogPostsApi({pageParam}, categoryFilterNames),
+    initialPageParam: 1,
+    getNextPageParam: lastPage => {
+      return lastPage.page < lastPage.total_pages
+        ? lastPage.page + 1
+        : undefined;
+    },
     select: data => {
-      return data.map(post => ({
-        id: post.id,
-        title: post.blog_title,
-        author: post.created_by,
-        date: formatDate(post.created_date), // Format tanggal
-        categories: post.categories
-          .split(',')
-          .map(cat => cat.trim())
-          .filter(cat => cat), // Pisahkan kategori
-        imageUrl: post.image_feature?.img_url ?? null, // Ambil URL gambar
-        slug: post.blog_slug,
-      }));
+      const allPosts: ProcessedBlogPost[] = [];
+      data.pages.forEach(page => {
+        page.data.forEach(post => {
+          allPosts.push({
+            id: post.id,
+            title: post.blog_title,
+            author: post.created_by,
+            date: formatDate(post.created_date),
+            categories: post.categories
+              .split(',')
+              .map(cat => cat.trim())
+              .filter(cat => cat),
+            imageUrl: post.image_feature?.img_url ?? null,
+            slug: post.blog_slug,
+          });
+        });
+      });
+      return allPosts;
     },
   });
 };
@@ -55,7 +85,7 @@ export const useBlogCategoriesQuery = () => {
     select: data => {
       return [ALL_CATEGORY_PLACEHOLDER, ...data];
     },
-    placeholderData: [ALL_CATEGORY_PLACEHOLDER],
+    //placeholderData: [ALL_CATEGORY_PLACEHOLDER],
   });
 };
 

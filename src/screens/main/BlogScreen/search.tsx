@@ -18,7 +18,6 @@ import {
   StatusBar,
   Platform,
   ScrollView,
-  Image,
 } from 'react-native';
 import Icon from '@react-native-vector-icons/ionicons';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -33,6 +32,7 @@ import {
 import {BlogCategory} from '../../../types/blog';
 import LoadingScreen from '../../LoadingScreen';
 import {useDebounce} from '../../../hooks/useDebounce';
+import EmptyScreen from '../../EmptyScreen';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BlogSearch'>;
 
@@ -207,14 +207,7 @@ const BlogSearchScreen = ({navigation}: Props) => {
             style={styles.centerIndicator}
           />
         )}
-        {filteredPosts.length === 0 && !isFetching && (
-          <View style={styles.centerContainer}>
-            <Image
-              source={require('../../../assets/images/not-found-search.png')}
-            />
-            <Text style={styles.infoText}>Belum ada artikel</Text>
-          </View>
-        )}
+        {filteredPosts.length === 0 && !isFetching && <EmptyScreen />}
 
         {filteredPosts.length > 0 && !isFetching && (
           <FlatList
@@ -288,12 +281,6 @@ const styles = StyleSheet.create({
   },
   centerIndicator: {
     marginTop: 50, // Beri jarak dari header
-  },
-  infoText: {
-    fontFamily: 'Roboto-Regular',
-    color: COLORS.textSecondary,
-    fontSize: 16,
-    textAlign: 'center',
   },
 
   categoryContainer: {
