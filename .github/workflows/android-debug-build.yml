@@ -51,8 +51,7 @@ jobs:
         working-directory: ./android
       - name: Push to Releases
         uses: ncipollo/release-action@v1
-        working-directory: ./android/app
         with:
-          artifacts: 'build/app/outputs/apk/release/*'
+          artifacts: 'android/app/build/app/outputs/apk/release/*'
           tag: v0.0.${{github.run_number}}
           token: ${{secrets.DEPLOY_KEY}}
