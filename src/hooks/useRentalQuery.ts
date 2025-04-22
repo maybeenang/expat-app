@@ -1,5 +1,6 @@
 import {useInfiniteQuery, useQuery} from '@tanstack/react-query';
 import {
+  descExpandable,
   fetchRentalCategoriesApi,
   fetchRentalDetailApi,
   fetchRentalItemsApi,
@@ -52,6 +53,7 @@ export const useRentalItemsInfinite = (
     queryFn: ({pageParam}) =>
       fetchRentalItemsApi({pageParam}, categoryTypeFilter),
     initialPageParam: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {
       return lastPage.page < lastPage.total_pages
         ? lastPage.page + 1
@@ -127,6 +129,7 @@ export const useRentalDetailQuery = (rentalId: string) => {
         imageUrls: imageUrls,
         typeLabel: mapRentalTypeToLabel(data.type),
         contactNumber: '6281234567890', // <<< GANTI NOMOR CS
+        descExpandable: descExpandable(data.rent_descriptions),
       };
     },
   });

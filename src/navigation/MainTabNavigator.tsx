@@ -6,7 +6,6 @@ import {
 import {MainTabParamList, RootStackParamList} from './types'; // Import tipe params
 import COLORS from '../constants/colors';
 import ExploreScreen from '../screens/main/ExploreScreen';
-import Icon from '@react-native-vector-icons/ionicons';
 import {getTabBarIconName} from '../utils/helpers';
 import NoRippleTabBarButton from '../components/tabbar/NoRippleTabBarButton';
 import AccountStackNavigator from './AccountNavigator';
@@ -15,6 +14,7 @@ import GalleryScreen from '../screens/main/GalleryScreen';
 import BlogScreen from '../screens/main/BlogScreen';
 import EventScreen from '../screens/main/EventScreen';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {Icon} from '../components/common/CustomPhosporIcon';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -41,7 +41,7 @@ const MainTabNavigator = ({navigation}: Props) => {
                   navigation.navigate('BlogSearch');
                 }}>
                 <Icon
-                  name="search"
+                  name="MagnifyingGlass"
                   size={24}
                   color={COLORS.primary}
                   style={{marginRight: 15}}
@@ -69,9 +69,16 @@ const screenOptions = ({route}: any): BottomTabNavigationOptions => {
   return {
     headerShown: true,
     tabBarIcon: ({focused, color, size}) => {
-      const iconName = getTabBarIconName(route.name, focused);
+      const iconName = getTabBarIconName(route.name);
       // @ts-ignore
-      return <Icon name={iconName} size={size} color={color} />;
+      return (
+        <Icon
+          name={iconName}
+          size={size}
+          color={color}
+          type={focused ? 'fill' : 'regular'}
+        />
+      );
     },
     tabBarActiveTintColor: COLORS.primary,
     tabBarInactiveTintColor: 'gray',

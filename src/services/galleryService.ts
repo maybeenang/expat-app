@@ -20,6 +20,11 @@ export const fetchGalleryImagesApi = async ({
         },
       },
     );
+
+    if (!response.data?.data) {
+      throw new Error('No data found');
+    }
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

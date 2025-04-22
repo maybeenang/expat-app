@@ -167,22 +167,24 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
         </View>
       </ScrollView>
 
-      <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity
-          style={[styles.expandButotn, {backgroundColor: COLORS.white}]}
-          onPress={() => setIsDescExpanded(!isDescExpanded)}>
-          <StyledText style={styles.readMoreText}>
-            {isDescExpanded ? 'Lebih Sedikit' : 'Selengkapnya'}
-          </StyledText>
-          <Icon
-            name={
-              isDescExpanded ? 'chevron-up-outline' : 'chevron-down-outline'
-            }
-            size={16}
-            color={COLORS.primary}
-          />
-        </TouchableOpacity>
-      </View>
+      {rental.descExpandable && (
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity
+            style={[styles.expandButotn, {backgroundColor: COLORS.white}]}
+            onPress={() => setIsDescExpanded(!isDescExpanded)}>
+            <StyledText style={styles.readMoreText}>
+              {isDescExpanded ? 'Lebih Sedikit' : 'Selengkapnya'}
+            </StyledText>
+            <Icon
+              name={
+                isDescExpanded ? 'chevron-up-outline' : 'chevron-down-outline'
+              }
+              size={16}
+              color={COLORS.primary}
+            />
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.bottomButtonContainer}>
         <TouchableOpacity

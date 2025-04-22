@@ -1,21 +1,21 @@
+import {IconName} from '../components/common/CustomPhosporIcon';
 import {MainTabParamList} from '../navigation/types';
 
 export const getTabBarIconName = (
   routeName: keyof MainTabParamList,
-  focused: boolean,
-): string => {
+): IconName => {
   switch (routeName) {
     case 'Explore':
-      return focused ? 'compass' : 'compass-outline';
+      return 'Compass';
     case 'Blog':
-      return focused ? 'newspaper' : 'newspaper-outline';
+      return 'Newspaper';
     case 'Event':
-      return focused ? 'calendar' : 'calendar-outline'; // Contoh ikon Event
+      return 'Ticket';
     case 'Gallery':
-      return focused ? 'images' : 'images-outline'; // Contoh ikon Gallery
+      return 'Images';
     case 'AccountStack':
-      return focused ? 'person-circle' : 'person-circle-outline';
+      return 'UserCircle';
     default:
-      return 'ellipse-outline'; // Fallback icon
+      return 'Square';
   }
 };

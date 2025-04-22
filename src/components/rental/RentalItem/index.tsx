@@ -18,7 +18,6 @@ interface RentalItemCardProps {
 }
 
 const RentalItemCard = React.memo(({item}: RentalItemCardProps) => {
-  // Asumsi navigasi ke 'RentalDetail' di RootStack
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -66,12 +65,14 @@ const RentalItemCard = React.memo(({item}: RentalItemCardProps) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
+    marginTop: 10,
     marginBottom: 40,
   },
   imageBackground: {
     height: 240,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
+    borderRadius: 8,
   },
   imageStyle: {
     borderRadius: 8,

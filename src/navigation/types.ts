@@ -16,6 +16,9 @@ export type RootStackParamList = {
   RentalDetail: {
     rentalId: string;
   };
+  EventDetail: {
+    eventId: string;
+  };
 };
 
 export type MainTabParamList = {

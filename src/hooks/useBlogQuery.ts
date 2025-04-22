@@ -41,6 +41,7 @@ export const useBlogPostsInfinite = (activeCategory: BlogCategory | null) => {
     queryFn: ({pageParam}) =>
       fetchBlogPostsApi({pageParam}, categoryFilterNames),
     initialPageParam: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {
       return lastPage.page < lastPage.total_pages
         ? lastPage.page + 1

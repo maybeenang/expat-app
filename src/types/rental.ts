@@ -84,5 +84,6 @@ export interface ProcessedRentalDetail {
   description: string;
   imageUrls: string[];
   typeLabel: string;
+  descExpandable: boolean;
   contactNumber?: string;
 }

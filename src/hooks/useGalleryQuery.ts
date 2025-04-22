@@ -15,7 +15,8 @@ export const useGalleryImages = () => {
     queryKey: galleryImagesQueryKey,
     queryFn: ({pageParam = 1}) => fetchGalleryImagesApi({pageParam}),
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    getNextPageParam: lastPage => {
       if (lastPage.page < lastPage.total_pages) {
         return lastPage.page + 1;
       }

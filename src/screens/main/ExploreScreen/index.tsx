@@ -1,5 +1,4 @@
-// src/screens/ExploreScreen/index.tsx (Buat folder dan file baru)
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -23,6 +22,8 @@ import LoadingScreen, {LoadingFooter} from '../../LoadingScreen';
 import ErrorScreen from '../../ErrorScreen';
 import EmptyScreen from '../../EmptyScreen';
 import RentalItemCard from '../../../components/rental/RentalItem';
+import RentalCategoryIocn from '../../../components/rental/RentalCategoryIcon';
+import useManualRefresh from '../../../hooks/useManualRefresh';
 
 const ExploreScreen = () => {
   const {
@@ -40,12 +41,14 @@ const ExploreScreen = () => {
     hasNextPage,
     isFetchingNextPage,
     isLoading: isLoadingRentals,
-    isFetching: isFetchingRentals,
     error: errorRentals,
     refetch: refetchRentals,
   } = useRentalItemsInfinite(activeCategory);
 
-  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const {isManualRefreshing, handleManualRefresh} = useManualRefresh({
+    refetch: refetchRentals,
+    isFetching: isFetchingNextPage,
+  });
 
   useEffect(() => {
     if (categoriesData && !activeCategory) {
@@ -53,21 +56,12 @@ const ExploreScreen = () => {
     }
   }, [categoriesData, activeCategory]);
 
-  const handleManualRefresh = useCallback(async () => {
-    setIsManualRefreshing(true);
-    try {
-      await refetchRentals(); // Tunggu refetch selesai (opsional, tapi bisa lebih baik)
-    } catch (err) {
-      console.error('Manual refresh failed:', err);
-    } finally {
-      setIsManualRefreshing(false); // Akan dihandle oleh useEffect di bawah
-    }
-  }, [refetchRentals]);
-
   const renderCategoryFilter = () => {
     if (isLoadingCategories && !categoriesData) {
+      return null;
     }
     if (errorCategories && !categoriesData) {
+      return null;
     }
     if (categoriesData) {
       return (
@@ -78,36 +72,6 @@ const ExploreScreen = () => {
             contentContainerStyle={styles.categoryScroll}>
             {categoriesData.map(category => {
               const isActive = activeCategory?.value === category.value;
-              // TODO: Map category.value ke nama ikon yang sesuai
-              let iconName = 'help-circle-outline'; // Default icon
-              switch (category.value) {
-                case 'all':
-                  iconName = 'thumbs-up-outline';
-                  break;
-                case 'SHARED-ROOM':
-                  iconName = 'albums-outline';
-                  break; // Ganti dengan ikon window/apps
-                case 'ROOM':
-                  iconName = 'bed-outline';
-                  break;
-                case 'UNIT':
-                  iconName = 'car-sport-outline';
-                  break; // Ganti dengan ikon car
-                case 'APARTMENT':
-                  iconName = 'business-outline';
-                  break; // Ganti dengan ikon apartment
-                case 'HOUSE':
-                  iconName = 'home-outline';
-                  break;
-                case 'OFFICE-SPACE':
-                  iconName = 'desktop-outline';
-                  break; // Ganti dengan ikon briefacase
-                case 'WAREHOUSE':
-                  iconName = 'cube-outline';
-                  break; // Ganti dengan ikon archive
-                default:
-                  iconName = 'help-circle-outline'; // Default icon
-              }
 
               return (
                 <TouchableOpacity
@@ -117,11 +81,9 @@ const ExploreScreen = () => {
                   activeOpacity={0.7}
                   disabled={isManualRefreshing} // Disable saat loading
                 >
-                  <Icon
-                    // @ts-ignore
-                    name={iconName}
-                    size={24}
-                    color={isActive ? COLORS.textPrimary : COLORS.textSecondary}
+                  <RentalCategoryIocn
+                    categoryName={category.value}
+                    isActive={isActive}
                   />
                   <Text
                     style={[
@@ -144,10 +106,10 @@ const ExploreScreen = () => {
 
   // --- Render List Rental ---
   const renderRentalList = () => {
-    if (isLoadingRentals && !rentalItems) {
+    if (isLoadingRentals) {
       return <LoadingScreen />;
     }
-    if (errorRentals && !rentalItems) {
+    if (errorRentals) {
       return (
         <ErrorScreen
           error={errorRentals}
@@ -248,6 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   categoryScroll: {
+    zIndex: 10,
     paddingHorizontal: 15,
     paddingTop: 12,
     paddingBottom: 0, // Indicator akan menutupi area ini
@@ -290,20 +253,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  errorText: {
-    color: COLORS.primary,
-    textAlign: 'center',
-    marginBottom: 15,
-    fontSize: 16,
-    fontFamily: 'Roboto-Regular',
-  },
-  retryButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 5,
-  },
-  retryButtonText: {color: COLORS.white, fontFamily: 'Roboto-Medium'},
   infoText: {
     fontFamily: 'Roboto-Regular',
     color: COLORS.textSecondary,

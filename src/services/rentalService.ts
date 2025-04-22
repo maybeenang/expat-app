@@ -57,19 +57,18 @@ export const fetchRentalItemsApi = async (
       RENTAL_ENDPOINT,
       {params},
     );
+
+    if (!response.data?.data) {
+      throw new Error('No data found');
+    }
+
     return response.data;
   } catch (error) {
-    console.error('Error fetching rental items:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.message || 'Failed to fetch data');
+    }
+    throw new Error('Network error or failed to connect');
   }
-  return {
-    status: 500,
-    message: 'Error',
-    page: pageParam,
-    limit: DEFAULT_RENTAL_LIMIT,
-    total_pages: pageParam,
-    total_data: 0,
-    data: [],
-  };
 };
 
 export const formatPrice = (price: string | number, type: string): string[] => {
@@ -163,4 +162,10 @@ export const fetchRentalDetailApi = async (
     }
     throw new Error('Network error or failed to connect');
   }
+};
+
+export const descExpandable = (desc: string): boolean => {
+  const descLength = desc.length;
+  const descWordCount = desc.split(' ').length;
+  return descLength > 150 || descWordCount > 30;
 };
