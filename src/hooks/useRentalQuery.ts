@@ -14,6 +14,7 @@ import type {
   RentalItemApi,
   ProcessedRentalDetail,
 } from '../types/rental';
+import NUMBER from '../constants/number';
 
 export const rentalCategoriesQueryKey = ['rentalCategories'];
 export const RECOMMENDATION_CATEGORY: RentalCategory = {
@@ -128,7 +129,7 @@ export const useRentalDetailQuery = (rentalId: string) => {
         description: data.rent_descriptions,
         imageUrls: imageUrls,
         typeLabel: mapRentalTypeToLabel(data.type),
-        contactNumber: '6281234567890', // <<< GANTI NOMOR CS
+        contactNumber: NUMBER.defaultWhatsAppNumber, // <<< GANTI NOMOR CS
         descExpandable: descExpandable(data.rent_descriptions),
       };
     },

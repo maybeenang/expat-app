@@ -1,21 +1,27 @@
 import {IconName} from '../components/common/CustomPhosporIcon';
 import {MainTabParamList} from '../navigation/types';
 
-export const getTabBarIconName = (
-  routeName: keyof MainTabParamList,
-): IconName => {
+export const getTabBarIconName = (routeName: keyof MainTabParamList) => {
+  let iconName: IconName;
   switch (routeName) {
     case 'Explore':
-      return 'Compass';
+      iconName = 'Compass';
+      break;
     case 'Blog':
-      return 'Newspaper';
+      iconName = 'Newspaper';
+      break;
     case 'Event':
-      return 'Ticket';
+      iconName = 'Ticket';
+      break;
     case 'Gallery':
-      return 'Images';
+      iconName = 'Images';
+      break;
     case 'AccountStack':
-      return 'UserCircle';
+      iconName = 'UserCircle';
+      break;
     default:
-      return 'Square';
+      iconName = 'Warning';
   }
+
+  return iconName;
 };

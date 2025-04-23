@@ -1,6 +1,6 @@
 import React from 'react';
 import COLORS from '../../../constants/colors';
-import {Icon, IconName} from '../../common/CustomPhosporIcon';
+import {CustomIcon, IconName} from '../../common/CustomPhosporIcon';
 
 const RentalCategoryIocn = ({
   categoryName,
@@ -25,7 +25,7 @@ const RentalCategoryIocn = ({
       iconName = 'Bicycle';
       break;
     case 'APARTMENT':
-      iconName = 'BuildingApartment';
+      iconName = 'Buildings';
       break;
     case 'HOUSE':
       iconName = 'House';
@@ -41,7 +41,7 @@ const RentalCategoryIocn = ({
       break;
   }
 
-  return <Icon name={iconName} size={24} color={color} />;
+  return <CustomIcon name={iconName} size={24} color={color} />;
 };
 
 export default RentalCategoryIocn;

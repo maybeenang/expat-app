@@ -22,6 +22,7 @@ import COLORS from '../../../constants/colors';
 import LoadingScreen from '../../LoadingScreen';
 import ErrorScreen from '../../ErrorScreen';
 import StyledText from '../../../components/common/StyledText';
+import {CustomIcon} from '../../../components/common/CustomPhosporIcon';
 type Props = NativeStackScreenProps<RootStackParamList, 'RentalDetail'>;
 
 const {width} = Dimensions.get('window');
@@ -73,15 +74,15 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
     }
     const whatsappUrl = `whatsapp://send?phone=${rental.contactNumber}`;
     try {
-      const supported = await Linking.canOpenURL(whatsappUrl);
-      if (supported) {
-        await Linking.openURL(whatsappUrl);
-      } else {
-        Alert.alert(
-          'WhatsApp Tidak Terinstall',
-          'Silakan install WhatsApp untuk menghubungi CS.',
-        );
-      }
+      await Linking.openURL(whatsappUrl);
+      //const supported = await Linking.canOpenURL(whatsappUrl);
+      //if (supported) {
+      //} else {
+      //  Alert.alert(
+      //    'WhatsApp Tidak Terinstall',
+      //    'Silakan install WhatsApp untuk menghubungi CS.',
+      //  );
+      //}
     } catch (err) {
       Alert.alert('Gagal Membuka WhatsApp');
     }
@@ -192,8 +193,8 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
           onPress={handleContactCS}
           activeOpacity={0.8}
           disabled={!rental.contactNumber}>
-          <Icon
-            name="ban"
+          <CustomIcon
+            name="WhatsappLogo"
             size={22}
             color={COLORS.white}
             style={styles.contactIcon}

@@ -14,7 +14,7 @@ import GalleryScreen from '../screens/main/GalleryScreen';
 import BlogScreen from '../screens/main/BlogScreen';
 import EventScreen from '../screens/main/EventScreen';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {Icon} from '../components/common/CustomPhosporIcon';
+import {CustomIcon} from '../components/common/CustomPhosporIcon';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -40,7 +40,7 @@ const MainTabNavigator = ({navigation}: Props) => {
                   // @ts-ignore
                   navigation.navigate('BlogSearch');
                 }}>
-                <Icon
+                <CustomIcon
                   name="MagnifyingGlass"
                   size={24}
                   color={COLORS.primary}
@@ -70,9 +70,8 @@ const screenOptions = ({route}: any): BottomTabNavigationOptions => {
     headerShown: true,
     tabBarIcon: ({focused, color, size}) => {
       const iconName = getTabBarIconName(route.name);
-      // @ts-ignore
       return (
-        <Icon
+        <CustomIcon
           name={iconName}
           size={size}
           color={color}
@@ -89,7 +88,6 @@ const screenOptions = ({route}: any): BottomTabNavigationOptions => {
     tabBarItemStyle: {
       padding: 10,
     },
-
     animation: 'shift',
     tabBarButton: props => <NoRippleTabBarButton {...props} />,
     tabBarStyle: styles.tabBarStyleBase,
