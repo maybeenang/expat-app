@@ -1,5 +1,6 @@
 const COLORS = {
   primary: '#E3425B', // Warna tombol pink/merah dari desain
+  primaryLight: '#FDE6E8', // Warna tombol pink/merah dari desain
   primaryDisabled: '#FFB2C1', // Warna tombol pink/merah dari desain
   white: '#FFFFFF',
   black: '#000000',

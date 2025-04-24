@@ -5,7 +5,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import LoginScreenV1 from '../screens/LoginScreenV1'; // Sesuaikan path jika perlu
 import {RootStackParamList} from './types';
 // import LoginScreenV2 from '../screens/LoginScreenV2';
-import MainTabNavigator from './MainTabNavigator';
 import {useAuthStore} from '../store/useAuthStore';
 import LoadingScreen from '../screens/LoadingScreen';
 import {useShallow} from 'zustand/react/shallow';
@@ -15,10 +14,42 @@ import BlogDetailScreen from '../screens/main/BlogScreen/detail';
 import BlogSearchScreen from '../screens/main/BlogScreen/search';
 import RentalDetailScreen from '../screens/main/ExploreScreen/detail';
 import EventDetailScreen from '../screens/main/EventScreen/detail';
+import {AppDrawer} from './AppDrawer';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
+  const initialState = {
+    routes: [
+      {
+        name: 'AppDrawer',
+        state: {
+          index: 0,
+          routeNames: ['MainTabsDrawer'],
+          routes: [
+            {
+              name: 'MainTabsDrawer',
+              state: {
+                index: 0,
+                routeNames: [
+                  'Home',
+                  'Event',
+                  'Rental',
+                  'Forum',
+                  'AccountStack',
+                ],
+                routes: [
+                  {
+                    name: 'Home',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ],
+  };
   const {isLoading, isLoggedIn} = useAuthStore(
     useShallow(state => ({
       isLoggedIn: state.isLoggedIn,
@@ -30,11 +61,11 @@ const AppNavigator = () => {
     return <LoadingScreen />;
   }
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="MainTabs">
+    <NavigationContainer initialState={initialState}>
+      <Stack.Navigator>
         <Stack.Screen
-          name="MainTabs"
-          component={MainTabNavigator}
+          name="AppDrawer"
+          component={AppDrawer}
           options={{headerShown: false}}
         />
         <Stack.Screen

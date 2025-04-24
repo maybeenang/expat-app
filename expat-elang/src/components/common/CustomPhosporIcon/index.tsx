@@ -1,4 +1,6 @@
 import Check from 'phosphor-react-native/src/icons/Check';
+import SignOut from 'phosphor-react-native/src/icons/SignOut';
+import SignIn from 'phosphor-react-native/src/icons/SignIn';
 import Question from 'phosphor-react-native/src/icons/Question';
 import Warning from 'phosphor-react-native/src/icons/Warning';
 import Bed from 'phosphor-react-native/src/icons/Bed';
@@ -19,6 +21,9 @@ import MagnifyingGlass from 'phosphor-react-native/src/icons/MagnifyingGlass';
 import WhatsappLogo from 'phosphor-react-native/src/icons/WhatsappLogo';
 import Handshake from 'phosphor-react-native/src/icons/Handshake';
 import Chat from 'phosphor-react-native/src/icons/Chat';
+import List from 'phosphor-react-native/src/icons/List';
+import ForkKnife from 'phosphor-react-native/src/icons/ForkKnife';
+import Scales from 'phosphor-react-native/src/icons/Scales';
 import React, {FC} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 
@@ -54,6 +59,11 @@ export const SupportedIconsList = {
   WhatsappLogo,
   Handshake,
   Chat,
+  List,
+  ForkKnife,
+  Scales,
+  SignOut,
+  SignIn,
 } as const;
 
 export type IconName = keyof typeof SupportedIconsList;

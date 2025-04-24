@@ -11,7 +11,7 @@ export const getTabBarIconName = (routeName: keyof MainTabParamList) => {
       iconName = 'Ticket';
       break;
     case 'Rental':
-      iconName = 'Handshake';
+      iconName = 'Compass';
       break;
     case 'Forum':
       iconName = 'Chat';

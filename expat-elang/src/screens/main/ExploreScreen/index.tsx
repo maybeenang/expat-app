@@ -287,4 +287,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ExploreScreen;
+export default React.memo(ExploreScreen);

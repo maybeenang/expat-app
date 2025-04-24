@@ -3,7 +3,7 @@ import {NavigatorScreenParams} from '@react-navigation/native';
 // src/navigation/types.ts
 export type RootStackParamList = {
   LoginV1: undefined;
-  MainTabs: undefined;
+  AppDrawer: undefined;
   GalleryDetail: {
     selectedImageId: string;
   };
@@ -19,6 +19,17 @@ export type RootStackParamList = {
   EventDetail: {
     eventId: string;
   };
+};
+
+export type DrawerParamList = {
+  MainTabsDrawer: undefined;
+  Blog: undefined;
+  Rental: undefined;
+  Forum: undefined;
+  Gallery: undefined;
+  Events: undefined;
+  Restaurant: undefined;
+  Lawyers: undefined;
 };
 
 export type MainTabParamList = {

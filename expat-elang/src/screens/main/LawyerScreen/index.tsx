@@ -3,7 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import StyledText from '../../../components/common/StyledText';
 import {ScrollView} from 'react-native-gesture-handler';
 
-const ForumScreen = () => {
+const LawyerScreen = () => {
   return (
     <ScrollView style={style.container}>
       <StyledText style={style.title}>Lawyer</StyledText>
@@ -22,4 +22,4 @@ const style = StyleSheet.create({
   },
 });
 
-export default ForumScreen;
+export default LawyerScreen;

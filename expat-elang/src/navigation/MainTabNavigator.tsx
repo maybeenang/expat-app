@@ -10,35 +10,42 @@ import {getTabBarIconName} from '../utils/helpers';
 import NoRippleTabBarButton from '../components/tabbar/NoRippleTabBarButton';
 import AccountStackNavigator from './AccountNavigator';
 import {StyleSheet, TouchableOpacity} from 'react-native';
-import GalleryScreen from '../screens/main/GalleryScreen';
-import BlogScreen from '../screens/main/BlogScreen';
 import EventScreen from '../screens/main/EventScreen';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {CustomIcon} from '../components/common/CustomPhosporIcon';
 import HomeScreen from '../screens/main/HomeScreen';
 import ForumScreen from '../screens/main/ForumScreen';
+import {DRAWERICONOPTIONS} from '../constants/sidebarItem';
+import {useAuthStore} from '../store/useAuthStore';
+import {useShallow} from 'zustand/react/shallow';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 type Props = NativeStackScreenProps<RootStackParamList>;
 
 const MainTabNavigator = ({navigation}: Props) => {
+  const {isLoggedIn} = useAuthStore(
+    useShallow(state => ({
+      isLoggedIn: state.isLoggedIn,
+      isLoading: state.isLoading,
+    })),
+  );
   return (
-    <Tab.Navigator screenOptions={screenOptions}>
+    <Tab.Navigator screenOptions={screenOptions} initialRouteName="Home">
       <Tab.Screen name="Home" component={HomeScreen} />
 
       <Tab.Screen name="Event" component={EventScreen} />
       <Tab.Screen
         name="Rental"
         component={ExploreScreen}
-        options={{tabBarLabel: 'Rental', headerShown: false}}
+        options={{tabBarLabel: 'Rental'}}
       />
 
       <Tab.Screen name="Forum" component={ForumScreen} />
       {/*
       <Tab.Screen
         name="Blog"
-        component={BlogScreen}
+        component={BlogScHandshakereen}
         options={{
           headerRight: () => {
             return (
@@ -64,13 +71,19 @@ const MainTabNavigator = ({navigation}: Props) => {
       <Tab.Screen
         name="AccountStack"
         component={AccountStackNavigator}
-        options={{tabBarLabel: 'Login', title: 'Account'}}
+        options={{
+          tabBarLabel: isLoggedIn ? 'Account' : 'Login',
+          title: 'Account',
+        }}
       />
     </Tab.Navigator>
   );
 };
 
-const screenOptions = ({route}: any): BottomTabNavigationOptions => {
+const screenOptions = ({
+  route,
+  navigation,
+}: any): BottomTabNavigationOptions => {
   return {
     headerShown: true,
     tabBarIcon: ({focused, color, size}) => {
@@ -84,6 +97,24 @@ const screenOptions = ({route}: any): BottomTabNavigationOptions => {
         />
       );
     },
+
+    headerLeft: () => {
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            navigation.openDrawer();
+          }}
+          style={{marginRight: 8}}>
+          <CustomIcon
+            name="List"
+            size={DRAWERICONOPTIONS.size}
+            type="bold"
+            color={DRAWERICONOPTIONS.color}
+            style={{marginLeft: 15}}
+          />
+        </TouchableOpacity>
+      );
+    },
     tabBarActiveTintColor: COLORS.primary,
     tabBarInactiveTintColor: 'gray',
     tabBarLabelStyle: {
@@ -93,7 +124,6 @@ const screenOptions = ({route}: any): BottomTabNavigationOptions => {
     tabBarItemStyle: {
       padding: 10,
     },
-    animation: 'shift',
     tabBarButton: props => <NoRippleTabBarButton {...props} />,
     tabBarStyle: styles.tabBarStyleBase,
     headerShadowVisible: false,
@@ -102,6 +132,7 @@ const screenOptions = ({route}: any): BottomTabNavigationOptions => {
       fontWeight: '600',
       fontSize: 24,
     },
+    animation: 'shift',
     headerStyle: {
       borderBottomWidth: 1,
       borderBottomColor: COLORS.greyLight,

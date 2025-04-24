@@ -169,4 +169,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GalleryScreen;
+export default React.memo(GalleryScreen);

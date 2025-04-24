@@ -7,7 +7,6 @@ import {useShallow} from 'zustand/react/shallow';
 import AccountScreen from '../screens/main/AccountScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 import LoggedInScreen from '../screens/main/AccountScreen/LoggedInScreen';
-import COLORS from '../constants/colors';
 
 const AccountStack = createNativeStackNavigator<AccountStackParamList>(); // Stack untuk Tab Akun
 function AccountStackNavigator() {
