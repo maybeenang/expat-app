@@ -1,4 +1,4 @@
-import React, {useState, useLayoutEffect} from 'react';
+import React, {useState, useLayoutEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import {
   Alert,
   Share,
 } from 'react-native';
-import Swiper from 'react-native-swiper';
 import Icon from '@react-native-vector-icons/ionicons';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../navigation/types';
@@ -22,7 +21,6 @@ import COLORS from '../../../constants/colors';
 import LoadingScreen from '../../LoadingScreen';
 import ErrorScreen from '../../ErrorScreen';
 import StyledText from '../../../components/common/StyledText';
-import {CustomIcon} from '../../../components/common/CustomPhosporIcon';
 type Props = NativeStackScreenProps<RootStackParamList, 'RentalDetail'>;
 
 const {width} = Dimensions.get('window');
@@ -38,9 +36,8 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
   } = useRentalDetailQuery(rentalId);
 
   const [isDescExpanded, setIsDescExpanded] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (!rental) {
       return;
     }
@@ -54,7 +51,7 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
     } catch (shareError: any) {
       Alert.alert('Gagal Membagikan', shareError.message);
     }
-  };
+  }, [rental]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -101,46 +98,19 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
     );
   }
 
-  // Custom pagination untuk Swiper
-  const renderPagination = (index: number, total: number) => (
-    <View style={styles.paginationStyle}>
-      <Text style={styles.paginationText}>
-        {index + 1}/{total}
-      </Text>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}>
-        {rental.imageUrls.length > 0 ? (
-          <Swiper
-            style={styles.swiperWrapper}
-            height={IMAGE_HEIGHT}
-            showsButtons={false}
-            loop={false}
-            renderPagination={renderPagination}
-            onIndexChanged={index => setCurrentImageIndex(index)} // Update index saat ini jika perlu
-            loadMinimal
-            loadMinimalSize={1}>
-            {rental.imageUrls.map((url, index) => (
-              <View style={styles.slide} key={`${rental.id}-img-${index}`}>
-                <Image
-                  source={{uri: url}}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-              </View>
-            ))}
-          </Swiper>
-        ) : (
-          <View style={[styles.slide, {height: IMAGE_HEIGHT}]}>
-            <Text style={{color: COLORS.greyDark}}>Gambar tidak tersedia</Text>
-          </View>
-        )}
+        <View style={styles.slide}>
+          <Image
+            source={{uri: rental.imageUrls[0]}}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </View>
 
         {/* Info Section */}
         <View style={styles.infoSection}>
@@ -166,6 +136,21 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
             {rental.description || 'Tidak ada deskripsi tersedia.'}
           </Text>
         </View>
+
+        <View style={styles.separator} />
+        {rental.imageUrls.length - 1 > 0 && isDescExpanded && (
+          <View style={styles.imageDetailContainer}>
+            {rental.imageUrls.map((url, index) => (
+              <View style={styles.slide} key={`${rental.id}-img-${index}`}>
+                <Image
+                  source={{uri: url}}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       {rental.descExpandable && (
@@ -187,6 +172,7 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
         </View>
       )}
 
+      {/*
       <View style={styles.bottomButtonContainer}>
         <TouchableOpacity
           style={styles.contactButton}
@@ -202,6 +188,7 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
           <Text style={styles.contactButtonText}>Kontak CS</Text>
         </TouchableOpacity>
       </View>
+            */}
     </SafeAreaView>
   );
 };
@@ -212,7 +199,9 @@ const styles = StyleSheet.create({
   scrollView: {flex: 1},
   headerButton: {padding: 10, marginRight: 5}, // Padding untuk tombol header
   // Swiper & Image
-  swiperWrapper: {}, // Tidak perlu style height jika sudah di Swiper prop
+  imageDetailContainer: {
+    paddingVertical: 20,
+  },
   slide: {
     width: width,
     height: IMAGE_HEIGHT,

@@ -4,17 +4,17 @@ import {MainTabParamList} from '../navigation/types';
 export const getTabBarIconName = (routeName: keyof MainTabParamList) => {
   let iconName: IconName;
   switch (routeName) {
-    case 'Explore':
-      iconName = 'Compass';
-      break;
-    case 'Blog':
-      iconName = 'Newspaper';
+    case 'Home':
+      iconName = 'House';
       break;
     case 'Event':
       iconName = 'Ticket';
       break;
-    case 'Gallery':
-      iconName = 'Images';
+    case 'Rental':
+      iconName = 'Handshake';
+      break;
+    case 'Forum':
+      iconName = 'Chat';
       break;
     case 'AccountStack':
       iconName = 'UserCircle';

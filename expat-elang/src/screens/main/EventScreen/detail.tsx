@@ -25,49 +25,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EventDetail'>;
 const {width} = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.6;
 
-//const useMockData = (eventId: string) => {
-//  return {
-//    data: {
-//      mainEvent: {
-//        id: eventId,
-//        title: 'Sample Event Title',
-//        location: 'Sample Location',
-//        dateTimeFormatted: '2023-10-01 10:00 AM',
-//        description: 'Sample event description.',
-//        imageUrls: [
-//          'https://picsum.photos/200/300.jpg',
-//          'https://picsum.photos/200/300.jpg',
-//          'https://picsum.photos/200/300.jpg',
-//          'https://picsum.photos/200/300.jpg',
-//          'https://picsum.photos/200/300.jpg',
-//        ],
-//      },
-//      recentEvents: [
-//        {
-//          id: '1',
-//          title: 'Recent Event 1',
-//          location: 'Location 1',
-//          dateFormatted: '2023-09-01',
-//          imageUrl: 'https://picsum.photos/200/300.jpg',
-//        },
-//      ],
-//    },
-//    isLoading: false,
-//    error: null,
-//    refetch: () => {},
-//  };
-//};
-
 const EventDetailScreen = ({route, navigation}: Props) => {
   const {eventId} = route.params;
   const {data, isLoading, error, refetch} = useEventDetailQuery(eventId);
-  //const {data, isLoading, error, refetch} = useMockData(eventId);
-
-  //useLayoutEffect(() => {
-  //  navigation.setOptions({
-  //    title: 'Event Detail',
-  //  });
-  //}, [navigation]);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -85,7 +45,7 @@ const EventDetailScreen = ({route, navigation}: Props) => {
   const {mainEvent, recentEvents} = data;
 
   const renderRecentEvent = ({item}: {item: ProcessedEventItem}) => {
-    return <EventItemCard item={item} navigation={navigation} usePush />;
+    return <EventItemCard item={item} navigation={navigation} />;
   };
 
   const renderPagination = (index: number, total: number) => (

@@ -17,6 +17,8 @@ import Ticket from 'phosphor-react-native/src/icons/Ticket';
 import UserCircle from 'phosphor-react-native/src/icons/UserCircle';
 import MagnifyingGlass from 'phosphor-react-native/src/icons/MagnifyingGlass';
 import WhatsappLogo from 'phosphor-react-native/src/icons/WhatsappLogo';
+import Handshake from 'phosphor-react-native/src/icons/Handshake';
+import Chat from 'phosphor-react-native/src/icons/Chat';
 import React, {FC} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 
@@ -50,6 +52,8 @@ export const SupportedIconsList = {
   UserCircle,
   MagnifyingGlass,
   WhatsappLogo,
+  Handshake,
+  Chat,
 } as const;
 
 export type IconName = keyof typeof SupportedIconsList;

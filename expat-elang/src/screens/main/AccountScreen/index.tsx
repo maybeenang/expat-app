@@ -7,7 +7,7 @@ import StyledButton from '../../../components/common/StyledButton';
 import StyledText from '../../../components/common/StyledText';
 
 // Sesuaikan nama 'Account' jika berbeda di types.ts
-type Props = NativeStackScreenProps<RootStackParamList, 'Account'>;
+type Props = NativeStackScreenProps<RootStackParamList>;
 
 const AccountScreen = ({navigation}: Props) => {
   const handleLoginPress = () => {

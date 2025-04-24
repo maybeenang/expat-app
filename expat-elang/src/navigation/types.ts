@@ -22,11 +22,11 @@ export type RootStackParamList = {
 };
 
 export type MainTabParamList = {
-  Explore: undefined;
+  Home: undefined;
   Event: undefined;
-  Gallery: undefined;
+  Rental: undefined;
+  Forum: undefined;
   AccountStack: NavigatorScreenParams<AccountStackParamList>;
-  Blog: undefined;
 };
 
 export type AccountStackParamList = {

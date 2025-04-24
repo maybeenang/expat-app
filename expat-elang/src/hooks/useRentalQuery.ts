@@ -28,7 +28,8 @@ export const useRentalCategoriesQuery = () => {
     queryFn: fetchRentalCategoriesApi,
     staleTime: Infinity,
     select: data => {
-      return [RECOMMENDATION_CATEGORY, ...data];
+      //return [RECOMMENDATION_CATEGORY, ...data];
+      return [...data];
     },
   });
 };
@@ -121,7 +122,7 @@ export const useRentalDetailQuery = (rentalId: string) => {
       return {
         id: data.id,
         title: data.rent_title,
-        location: data.rent_city, // Atau gabungkan address
+        location: data.rent_city,
         priceFormatted: formatPrice(
           data.rent_price_number,
           data.rent_price_type,
@@ -130,7 +131,10 @@ export const useRentalDetailQuery = (rentalId: string) => {
         imageUrls: imageUrls,
         typeLabel: mapRentalTypeToLabel(data.type),
         contactNumber: NUMBER.defaultWhatsAppNumber, // <<< GANTI NOMOR CS
-        descExpandable: descExpandable(data.rent_descriptions),
+        descExpandable: descExpandable(
+          data.rent_descriptions,
+          imageUrls.length,
+        ),
       };
     },
   });

@@ -164,8 +164,8 @@ export const fetchRentalDetailApi = async (
   }
 };
 
-export const descExpandable = (desc: string): boolean => {
+export const descExpandable = (desc: string, imgLenght): boolean => {
   const descLength = desc.length;
   const descWordCount = desc.split(' ').length;
-  return descLength > 150 || descWordCount > 30;
+  return descLength > 150 || descWordCount > 30 || imgLenght - 1 > 0;
 };

@@ -15,6 +15,8 @@ import BlogScreen from '../screens/main/BlogScreen';
 import EventScreen from '../screens/main/EventScreen';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {CustomIcon} from '../components/common/CustomPhosporIcon';
+import HomeScreen from '../screens/main/HomeScreen';
+import ForumScreen from '../screens/main/ForumScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -23,12 +25,17 @@ type Props = NativeStackScreenProps<RootStackParamList>;
 const MainTabNavigator = ({navigation}: Props) => {
   return (
     <Tab.Navigator screenOptions={screenOptions}>
+      <Tab.Screen name="Home" component={HomeScreen} />
+
+      <Tab.Screen name="Event" component={EventScreen} />
       <Tab.Screen
-        name="Explore"
+        name="Rental"
         component={ExploreScreen}
-        options={{tabBarLabel: 'Explore', headerShown: false}}
+        options={{tabBarLabel: 'Rental', headerShown: false}}
       />
 
+      <Tab.Screen name="Forum" component={ForumScreen} />
+      {/*
       <Tab.Screen
         name="Blog"
         component={BlogScreen}
@@ -51,10 +58,8 @@ const MainTabNavigator = ({navigation}: Props) => {
           },
         }}
       />
-
-      <Tab.Screen name="Event" component={EventScreen} />
-
       <Tab.Screen name="Gallery" component={GalleryScreen} />
+      */}
 
       <Tab.Screen
         name="AccountStack"

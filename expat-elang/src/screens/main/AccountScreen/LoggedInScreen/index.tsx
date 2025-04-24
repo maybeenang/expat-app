@@ -4,9 +4,17 @@ import StyledText from '../../../../components/common/StyledText';
 import COLORS from '../../../../constants/colors';
 import StyledButton from '../../../../components/common/StyledButton';
 import {useAuthMutations} from '../../../../hooks/useAuthMutations';
+import {CustomIcon} from '../../../../components/common/CustomPhosporIcon';
+import {useAuthStore} from '../../../../store/useAuthStore';
+import {useShallow} from 'zustand/react/shallow';
 
 const LoggedInScreen = () => {
   const {logout, isLoading} = useAuthMutations();
+  const {userSession} = useAuthStore(
+    useShallow(state => ({
+      userSession: state.userSession,
+    })),
+  );
 
   const handleLoginPress = () => {
     logout();
@@ -27,7 +35,18 @@ const LoggedInScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.container}>
-        <StyledText style={styles.title}>Anda Sudah Masuk</StyledText>
+        <View style={styles.profileContainer}>
+          <View>
+            <CustomIcon name="UserCircle" size={64} type="thin" />
+          </View>
+
+          <StyledText style={styles.profileName} weight="bold">
+            {userSession?.nama}
+          </StyledText>
+          <StyledText style={styles.profileEmail}>
+            {userSession?.email}
+          </StyledText>
+        </View>
 
         <StyledButton onPress={handleLoginPress} activeOpacity={0.8}>
           <StyledText weight="medium" style={styles.loginButtonText}>
@@ -46,17 +65,29 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginTop: 50,
+    padding: 20,
   },
   title: {
-    fontFamily: 'Roboto-Bold',
     fontSize: 24,
     color: COLORS.textPrimary,
     textAlign: 'center',
     marginBottom: 10,
+  },
+
+  profileContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  profileName: {
+    fontSize: 20,
+  },
+  profileEmail: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
   },
 
   loginButtonText: {
