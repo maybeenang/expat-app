@@ -9,6 +9,8 @@ const COLORS = {
   greyDark: '#A9A9A9', // Warna placeholder
   textPrimary: '#262626', // Warna teks utama
   textSecondary: '#888888', // Warna subtitle abu-abu
+  greyDrawerItem: '#ECEFF3',
+  neutralLight: '#F5F5F5',
 
   // debug
   red: '#FF0000',

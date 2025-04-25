@@ -234,15 +234,16 @@ const styles = StyleSheet.create({
   drawerItem: {
     borderRadius: 0,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.greyLight,
+    paddingVertical: 6,
+    borderBottomColor: COLORS.greyDrawerItem,
   },
   drawerLabel: {
     fontSize: 14,
   },
   groupContainer: {
     overflow: 'hidden',
-    borderWidth: 2,
-    borderRadius: 12,
+    borderWidth: 0,
+    borderRadius: 0,
     borderColor: COLORS.greyLight,
   },
 });

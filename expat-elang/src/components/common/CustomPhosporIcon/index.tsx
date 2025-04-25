@@ -1,4 +1,9 @@
 import Check from 'phosphor-react-native/src/icons/Check';
+import Plus from 'phosphor-react-native/src/icons/Plus';
+import Car from 'phosphor-react-native/src/icons/Car';
+import CarSimple from 'phosphor-react-native/src/icons/CarSimple';
+import SquresFour from 'phosphor-react-native/src/icons/SquaresFour';
+import ChatsTeardrop from 'phosphor-react-native/src/icons/ChatsTeardrop';
 import SignOut from 'phosphor-react-native/src/icons/SignOut';
 import SignIn from 'phosphor-react-native/src/icons/SignIn';
 import Question from 'phosphor-react-native/src/icons/Question';
@@ -38,6 +43,7 @@ interface PhosphorIconProps {
 }
 
 export const SupportedIconsList = {
+  Plus,
   Check,
   Question,
   Warning,
@@ -64,6 +70,10 @@ export const SupportedIconsList = {
   Scales,
   SignOut,
   SignIn,
+  Car,
+  CarSimple,
+  SquresFour,
+  ChatsTeardrop,
 } as const;
 
 export type IconName = keyof typeof SupportedIconsList;
