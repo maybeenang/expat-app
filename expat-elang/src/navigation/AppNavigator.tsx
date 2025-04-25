@@ -15,41 +15,11 @@ import BlogSearchScreen from '../screens/main/BlogScreen/search';
 import RentalDetailScreen from '../screens/main/ExploreScreen/detail';
 import EventDetailScreen from '../screens/main/EventScreen/detail';
 import {AppDrawer} from './AppDrawer';
+import {Text, View} from 'react-native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
-  const initialState = {
-    routes: [
-      {
-        name: 'AppDrawer',
-        state: {
-          index: 0,
-          routeNames: ['MainTabsDrawer'],
-          routes: [
-            {
-              name: 'MainTabsDrawer',
-              state: {
-                index: 0,
-                routeNames: [
-                  'Home',
-                  'Event',
-                  'Rental',
-                  'Forum',
-                  'AccountStack',
-                ],
-                routes: [
-                  {
-                    name: 'Home',
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      },
-    ],
-  };
   const {isLoading, isLoggedIn} = useAuthStore(
     useShallow(state => ({
       isLoggedIn: state.isLoggedIn,
@@ -61,7 +31,7 @@ const AppNavigator = () => {
     return <LoadingScreen />;
   }
   return (
-    <NavigationContainer initialState={initialState}>
+    <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
           name="AppDrawer"

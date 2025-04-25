@@ -6,7 +6,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 const ForumScreen = () => {
   return (
     <ScrollView style={style.container}>
-      <StyledText style={style.title}>Lawyer</StyledText>
+      <StyledText style={style.title}>Forum</StyledText>
     </ScrollView>
   );
 };

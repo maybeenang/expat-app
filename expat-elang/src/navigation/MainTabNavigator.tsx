@@ -21,9 +21,7 @@ import {useShallow} from 'zustand/react/shallow';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-type Props = NativeStackScreenProps<RootStackParamList>;
-
-const MainTabNavigator = ({navigation}: Props) => {
+const MainTabNavigator = () => {
   const {isLoggedIn} = useAuthStore(
     useShallow(state => ({
       isLoggedIn: state.isLoggedIn,
@@ -116,7 +114,6 @@ const screenOptions = ({
       );
     },
     tabBarActiveTintColor: COLORS.primary,
-    tabBarInactiveTintColor: 'gray',
     tabBarLabelStyle: {
       fontSize: 12,
       marginBottom: 5,
@@ -132,7 +129,7 @@ const screenOptions = ({
       fontWeight: '600',
       fontSize: 24,
     },
-    animation: 'shift',
+    animation: 'none',
     headerStyle: {
       borderBottomWidth: 1,
       borderBottomColor: COLORS.greyLight,

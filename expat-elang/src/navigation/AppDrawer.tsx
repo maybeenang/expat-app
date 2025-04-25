@@ -10,6 +10,7 @@ import {CustomIcon} from '../components/common/CustomPhosporIcon';
 import COLORS from '../constants/colors';
 import {TouchableOpacity} from 'react-native';
 import {DRAWERICONOPTIONS} from '../constants/sidebarItem';
+import LawyerScreen from '../screens/main/LawyerScreen';
 // Import tipe jika perlu
 // import type { RootStackParamList } from './types'; // Jika drawer bagian dari RootStack
 
@@ -21,6 +22,7 @@ export function AppDrawer() {
   return (
     <Drawer.Navigator
       drawerContent={props => <CustomDrawerContent {...props} />}
+      detachInactiveScreens={true}
       initialRouteName="MainTabsDrawer"
       screenOptions={({navigation}) => ({
         headerShown: true,
@@ -68,7 +70,7 @@ export function AppDrawer() {
       <Drawer.Screen name="Blog" component={BlogScreen} />
       <Drawer.Screen name="Gallery" component={GalleryScreen} />
       <Drawer.Screen name="Restaurant" component={RestaurantScreen} />
-      <Drawer.Screen name="Lawyers" component={RestaurantScreen} />
+      <Drawer.Screen name="Lawyers" component={LawyerScreen} />
     </Drawer.Navigator>
   );
 }
