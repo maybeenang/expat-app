@@ -124,7 +124,7 @@ const HomeScreen = () => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <HomeMenuList />
         <HomeBannerList />
-        <EventList events={events} />
+        <EventList />
         <ForumTopicList forumTopics={forumTopics} />
         <RestaurantList restaurants={restaurants} />
         <LawyerList lawyers={lawyers} />

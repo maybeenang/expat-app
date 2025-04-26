@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Image,
   StyleSheet,
@@ -62,10 +61,11 @@ const LawyerList = ({lawyers}: LawyerListProps) => {
       <HeaderSection
         title="Lawyers"
         subtitle="Temukan konsultan hukum"
-        goto="lawyers"
+        goto="Lawyers"
       />
       <FlatList
         data={lawyers}
+        scrollEnabled={false}
         renderItem={renderLawyerCard}
         numColumns={2}
         keyExtractor={item => item.id}
@@ -138,4 +138,3 @@ const styles = StyleSheet.create({
 });
 
 export default LawyerList;
-

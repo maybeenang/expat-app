@@ -3,7 +3,7 @@ import {
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 
-import {MainTabParamList, RootStackParamList} from './types'; // Import tipe params
+import {MainTabParamList} from './types';
 import COLORS from '../constants/colors';
 import ExploreScreen from '../screens/main/ExploreScreen';
 import {getTabBarIconName} from '../utils/helpers';
@@ -11,7 +11,6 @@ import NoRippleTabBarButton from '../components/tabbar/NoRippleTabBarButton';
 import AccountStackNavigator from './AccountNavigator';
 import {StyleSheet, TouchableOpacity} from 'react-native';
 import EventScreen from '../screens/main/EventScreen';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {CustomIcon} from '../components/common/CustomPhosporIcon';
 import HomeScreen from '../screens/main/HomeScreen';
 import ForumScreen from '../screens/main/ForumScreen';
@@ -129,7 +128,7 @@ const screenOptions = ({
       fontWeight: '600',
       fontSize: 24,
     },
-    animation: 'none',
+    animation: 'shift',
     headerStyle: {
       borderBottomWidth: 1,
       borderBottomColor: COLORS.greyLight,

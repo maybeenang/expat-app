@@ -4,22 +4,92 @@ import COLORS from '../../constants/colors';
 import {FlatList} from 'react-native-gesture-handler';
 import {CustomIcon} from '../common/CustomPhosporIcon';
 import {IconName} from '../common/CustomPhosporIcon';
+import {useNavigation} from '@react-navigation/native';
 
 type MenuItemType = {
   id: string;
   label: string;
   icon: IconName;
+  navigationType: 'drawer' | 'stack';
+  screenName?:
+    | never
+    | 'Rental'
+    | 'Event'
+    | 'Restaurant'
+    | 'Forum'
+    | 'Blog'
+    | 'Lawyers';
+  params?: object;
 };
 
 const quickActions: MenuItemType[] = [
-  {id: '1', label: 'Sewa Kamar', icon: 'Bed'},
-  {id: '2', label: 'Sewa Kendaraan', icon: 'Car'},
-  {id: '3', label: 'Event Terdekat', icon: 'Ticket'},
-  {id: '4', label: 'Restaurant', icon: 'ForkKnife'},
-  {id: '5', label: 'Forum', icon: 'ChatsTeardrop'},
-  {id: '6', label: 'Blog', icon: 'Newspaper'},
-  {id: '7', label: 'Lawyers', icon: 'Scales'},
-  {id: '8', label: 'Lainnya', icon: 'SquresFour'},
+  {
+    id: '1',
+    label: 'Sewa Kamar',
+    icon: 'Bed',
+    navigationType: 'drawer',
+    screenName: 'Rental',
+    params: {
+      category: {
+        value: 'SHARED-ROOM',
+        label: 'SHARED ROOM',
+      },
+    },
+  },
+  {
+    id: '2',
+    label: 'Sewa Kendaraan',
+    icon: 'Car',
+    navigationType: 'drawer',
+    screenName: 'Rental',
+    params: {
+      category: {
+        value: 'UNIT',
+        label: 'UNIT',
+      },
+    },
+  },
+  {
+    id: '3',
+    label: 'Event Terdekat',
+    icon: 'Ticket',
+    navigationType: 'drawer',
+    screenName: 'Event',
+  },
+  {
+    id: '4',
+    label: 'Restaurant',
+    icon: 'ForkKnife',
+    navigationType: 'drawer',
+    screenName: 'Restaurant',
+  },
+  {
+    id: '5',
+    label: 'Forum',
+    icon: 'ChatsTeardrop',
+    navigationType: 'drawer',
+    screenName: 'Forum',
+  },
+  {
+    id: '6',
+    label: 'Blog',
+    icon: 'Newspaper',
+    navigationType: 'drawer',
+    screenName: 'Blog',
+  },
+  {
+    id: '7',
+    label: 'Lawyers',
+    icon: 'Scales',
+    navigationType: 'drawer',
+    screenName: 'Lawyers',
+  },
+  {
+    id: '8',
+    label: 'Lainnya',
+    icon: 'SquresFour',
+    navigationType: 'drawer',
+  },
 ];
 
 interface HomeMenuItemProps {
@@ -27,8 +97,24 @@ interface HomeMenuItemProps {
 }
 
 const HomeMenuItem = ({item}: HomeMenuItemProps) => {
+  const navigation = useNavigation();
+
+  const handleNavigation = () => {
+    if (!item.screenName) {
+      return;
+    }
+    try {
+      navigation.navigate(item.screenName as never, item.params as never);
+    } catch (error) {
+      console.warn('Navigation error:', error);
+    }
+  };
+
   return (
-    <TouchableOpacity style={styles.quickActionItem} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.quickActionItem}
+      activeOpacity={0.7}
+      onPress={handleNavigation}>
       <View style={styles.quickActionIconCircle}>
         <CustomIcon
           name={item.icon}

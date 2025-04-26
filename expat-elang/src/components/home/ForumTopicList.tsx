@@ -4,29 +4,41 @@ import COLORS from '../../constants/colors';
 import StyledText from '../common/StyledText';
 import {CustomIcon} from '../common/CustomPhosporIcon';
 import HeaderSection from './HeaderSection';
+import {ForumCategoryApi} from '../../types/forum';
+import {useForumCategoriesQuery} from '../../hooks/useForumQuery';
 
-type ForumTopicType = {
-  id: string;
-  label: string;
-};
-
-interface ForumTopicListProps {
-  forumTopics: ForumTopicType[];
-}
-
-const renderForumTopic = ({item}: {item: ForumTopicType}) => (
-  <TouchableOpacity style={styles.forumChip} activeOpacity={0.7}>
+const renderForumTopic = ({item}: {item: ForumCategoryApi}) => (
+  <TouchableOpacity style={styles.forumChip} activeOpacity={0.7} key={item.id}>
     <CustomIcon
       name="ChatsTeardrop"
       size={24}
       color={COLORS.primary}
       style={styles.forumChipIcon}
     />
-    <StyledText style={styles.forumChipText}>{item.label}</StyledText>
+    <StyledText style={styles.forumChipText}>{item.name}</StyledText>
   </TouchableOpacity>
 );
 
-const ForumTopicList = ({forumTopics}: ForumTopicListProps) => {
+const ForumTopicList = () => {
+  const {
+    data: forumTopics = [],
+    isLoading,
+    isError,
+    error,
+  } = useForumCategoriesQuery();
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isError) {
+    return <StyledText>Error: {error.message}</StyledText>;
+  }
+
+  if (!forumTopics || forumTopics.length === 0) {
+    return <StyledText>No topics available</StyledText>;
+  }
+
   return (
     <View style={[styles.sectionContainer, styles.forumBackground]}>
       <HeaderSection
@@ -36,15 +48,6 @@ const ForumTopicList = ({forumTopics}: ForumTopicListProps) => {
       />
       <View style={styles.forumChipsContainer}>
         {forumTopics.map(item => renderForumTopic({item}))}
-        <TouchableOpacity style={styles.forumChip} activeOpacity={0.7}>
-          <CustomIcon
-            name="Plus"
-            size={18}
-            color={COLORS.textPrimary}
-            style={styles.forumChipIcon}
-          />
-          <StyledText style={styles.forumChipText}>10 Topik Lainnya</StyledText>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -87,4 +90,3 @@ const styles = StyleSheet.create({
 });
 
 export default ForumTopicList;
-

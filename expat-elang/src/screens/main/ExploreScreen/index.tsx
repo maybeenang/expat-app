@@ -24,8 +24,13 @@ import EmptyScreen from '../../EmptyScreen';
 import RentalItemCard from '../../../components/rental/RentalItem';
 import RentalCategoryIocn from '../../../components/rental/RentalCategoryIcon';
 import useManualRefresh from '../../../hooks/useManualRefresh';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {MainTabParamList} from '../../../navigation/types';
 
-const ExploreScreen = () => {
+interface ExploreScreenProps
+  extends NativeStackScreenProps<MainTabParamList, 'Rental'> {}
+
+const ExploreScreen = ({navigation, route}: ExploreScreenProps) => {
   const {
     data: categoriesData,
     isLoading: isLoadingCategories,
@@ -51,10 +56,21 @@ const ExploreScreen = () => {
   });
 
   useEffect(() => {
-    if (categoriesData && !activeCategory) {
-      setActiveCategory(categoriesData[0]); // categoriesData[0] is 'Rekomendasi'
+    if (categoriesData) {
+      if (route.params?.category) {
+        const initialCategory = categoriesData.find(
+          category => category.value === route.params.category?.value,
+        );
+        if (initialCategory) {
+          setActiveCategory(initialCategory);
+        } else {
+          setActiveCategory(categoriesData[0]);
+        }
+      }
     }
-  }, [categoriesData, activeCategory]);
+
+    return () => {};
+  }, [categoriesData, activeCategory, route.params?.category]);
 
   const renderCategoryFilter = () => {
     if (isLoadingCategories && !categoriesData) {

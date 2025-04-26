@@ -14,7 +14,7 @@ export const getTabBarIconName = (routeName: keyof MainTabParamList) => {
       iconName = 'Compass';
       break;
     case 'Forum':
-      iconName = 'Chat';
+      iconName = 'ChatsTeardrop';
       break;
     case 'AccountStack':
       iconName = 'UserCircle';

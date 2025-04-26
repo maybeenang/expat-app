@@ -5,6 +5,8 @@ import COLORS from '../../constants/colors';
 import {CustomIcon, IconName} from '../common/CustomPhosporIcon';
 import {FlatList} from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
+import {MainTabParamList} from '../../navigation/types';
+import {useNavigation} from '@react-navigation/native';
 
 const {width} = Dimensions.get('window');
 const BANNER_WIDTH = width - 30;
@@ -16,6 +18,8 @@ type BannerItemType = {
   subtitle: string;
   icon: IconName;
   rotate: string;
+  screenName: string;
+  params?: object;
 };
 
 const bannerItem: BannerItemType[] = [
@@ -25,6 +29,7 @@ const bannerItem: BannerItemType[] = [
     subtitle: 'Lihat event seru di bulan ini',
     icon: 'Ticket',
     rotate: '-30deg',
+    screenName: 'Event',
   },
   {
     id: '2',
@@ -32,6 +37,7 @@ const bannerItem: BannerItemType[] = [
     subtitle: 'Explore rekomendasi penginapan dari kami',
     icon: 'Compass',
     rotate: '0deg',
+    screenName: 'Rental',
   },
 ];
 
@@ -40,8 +46,20 @@ interface HomeBannerItemProps {
 }
 
 const HomeBannerItem = ({item}: HomeBannerItemProps) => {
+  const navigation = useNavigation();
+  const handleNavigation = () => {
+    if (!item.screenName) {
+      return;
+    }
+    try {
+      navigation.navigate(item.screenName as never, item.params as never);
+    } catch (error) {
+      console.warn('Navigation error:', error);
+    }
+  };
+
   return (
-    <TouchableOpacity activeOpacity={0.9}>
+    <View>
       <LinearGradient
         colors={['#4166F7', '#AF3B93', '#CD774D']}
         start={{x: 0, y: 0}}
@@ -54,7 +72,10 @@ const HomeBannerItem = ({item}: HomeBannerItemProps) => {
               {item.subtitle}
             </StyledText>
           </View>
-          <TouchableOpacity style={styles.bannerButton} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.bannerButton}
+            activeOpacity={0.7}
+            onPress={handleNavigation}>
             <StyledText style={styles.bannerButtonText}>
               Klik untuk baca selengkapnya
             </StyledText>
@@ -80,7 +101,7 @@ const HomeBannerItem = ({item}: HomeBannerItemProps) => {
           />
         </View>
       </LinearGradient>
-    </TouchableOpacity>
+    </View>
   );
 };
 

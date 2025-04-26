@@ -2,6 +2,7 @@ import React from 'react';
 import StyledText from '../common/StyledText';
 import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import COLORS from '../../constants/colors';
+import {useNavigation} from '@react-navigation/native';
 
 interface HeaderProps {
   title: string;
@@ -10,13 +11,26 @@ interface HeaderProps {
 }
 
 const HeaderSection = ({title, subtitle, goto}: HeaderProps) => {
+  const navigation = useNavigation();
+
+  const handleNavigation = () => {
+    if (!goto) {
+      return;
+    }
+    try {
+      navigation.navigate(goto);
+    } catch (error) {
+      console.warn('Navigation error:', error);
+    }
+  };
+
   return (
     <>
       <View style={styles.sectionHeader}>
         <StyledText style={styles.sectionTitle} weight="bold">
           {title}
         </StyledText>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleNavigation}>
           <StyledText weight="medium" style={styles.seeAllText}>
             Lihat semua
           </StyledText>

@@ -1,4 +1,5 @@
 import {NavigatorScreenParams} from '@react-navigation/native';
+import {RentalCategory} from '../types/rental';
 
 // src/navigation/types.ts
 export type RootStackParamList = {
@@ -35,7 +36,9 @@ export type DrawerParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Event: undefined;
-  Rental: undefined;
+  Rental: {
+    category: RentalCategory | undefined;
+  };
   Forum: undefined;
   AccountStack: NavigatorScreenParams<AccountStackParamList>;
 };

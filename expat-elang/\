@@ -12,43 +12,24 @@ import StyledText from '../common/StyledText';
 import HeaderSection from './HeaderSection';
 import {useEventItemsInfinite} from '../../hooks/useEventQuery';
 import {ProcessedEventItem} from '../../types/event';
-import {useNavigation} from '@react-navigation/native';
-import {RootStackParamList} from '../../navigation/types';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 const {width} = Dimensions.get('window');
 const cardWidth = width * 0.4;
 
-const EventCard = ({item}: {item: ProcessedEventItem}) => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  const handlePress = () => {
-    navigation.navigate('EventDetail', {
-      eventId: item.id,
-    });
-  };
-
-  return (
-    <TouchableOpacity
-      style={[styles.card, styles.eventCard]}
-      activeOpacity={0.8}
-      onPress={handlePress}>
-      <Image source={{uri: item.imageUrl ?? ''}} style={styles.eventImage} />
-      <View style={styles.cardContent}>
-        <StyledText style={styles.eventTitle} numberOfLines={2}>
-          {item.title}
-        </StyledText>
-        <View>
-          <StyledText style={styles.eventLocation} numberOfLines={1}>
-            {item.location}
-          </StyledText>
-          <StyledText style={styles.eventDate}>{item.dateFormatted}</StyledText>
-        </View>
+const EventCard = ({item}: {item: ProcessedEventItem}) => (
+  <TouchableOpacity style={[styles.card, styles.eventCard]} activeOpacity={0.8}>
+    <Image source={{uri: item.imageUrl ?? ''}} style={styles.eventImage} />
+    <View style={styles.cardContent}>
+      <StyledText style={styles.eventTitle} numberOfLines={2}>
+        {item.title}
+      </StyledText>
+      <View>
+        <StyledText style={styles.eventLocation}>{item.location}</StyledText>
+        <StyledText style={styles.eventDate}>{item.dateFormatted}</StyledText>
       </View>
-    </TouchableOpacity>
-  );
-};
+    </View>
+  </TouchableOpacity>
+);
 
 const EventList = () => {
   const {
@@ -74,7 +55,7 @@ const EventList = () => {
       <HeaderSection
         subtitle="Rekomendasi event seru untukmu"
         title="Event"
-        goto="Event"
+        goto="event"
       />
       <FlatList
         horizontal
@@ -106,6 +87,7 @@ const styles = StyleSheet.create({
     width: cardWidth,
   },
   cardContent: {
+    backgroundColor: COLORS.red,
     flex: 1,
     justifyContent: 'space-between',
   },
