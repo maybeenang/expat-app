@@ -30,7 +30,7 @@ import {MainTabParamList} from '../../../navigation/types';
 interface ExploreScreenProps
   extends NativeStackScreenProps<MainTabParamList, 'Rental'> {}
 
-const ExploreScreen = ({navigation, route}: ExploreScreenProps) => {
+const ExploreScreen = ({route}: ExploreScreenProps) => {
   const {
     data: categoriesData,
     isLoading: isLoadingCategories,
@@ -56,21 +56,25 @@ const ExploreScreen = ({navigation, route}: ExploreScreenProps) => {
   });
 
   useEffect(() => {
-    if (categoriesData) {
-      if (route.params?.category) {
-        const initialCategory = categoriesData.find(
-          category => category.value === route.params.category?.value,
-        );
-        if (initialCategory) {
-          setActiveCategory(initialCategory);
-        } else {
-          setActiveCategory(categoriesData[0]);
-        }
+    if (categoriesData && !activeCategory) {
+      setActiveCategory(categoriesData[0]);
+    }
+
+    return () => {};
+  }, [categoriesData, activeCategory]);
+
+  useEffect(() => {
+    if (route.params?.category && categoriesData) {
+      const initialCategory = categoriesData.find(
+        category => category.value === route.params.category?.value,
+      );
+      if (initialCategory) {
+        setActiveCategory(initialCategory);
       }
     }
 
     return () => {};
-  }, [categoriesData, activeCategory, route.params?.category]);
+  }, [route.params?.category, categoriesData]);
 
   const renderCategoryFilter = () => {
     if (isLoadingCategories && !categoriesData) {

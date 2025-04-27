@@ -1,5 +1,6 @@
-import axios from 'axios';
+import axios, {AxiosResponse} from 'axios';
 import {
+  ADMIN_FORUM_CREATE_ENDPOINT,
   DEFAULT_FORUM_LIMIT,
   FORUM_CATEGORIES_ENDPOINT,
   FORUM_LIST_ENDPOINT,
@@ -9,8 +10,10 @@ import type {
   ForumCategoryApi,
   ForumListApiResponse,
   ForumDetailApiResponse,
+  CreateForumPayload,
 } from '../types/forum';
 import apiClient from './authService';
+import {ALL_FORUM_CATEGORY_PLACEHOLDER} from '../hooks/useForumQuery';
 
 // Fetch Kategori Forum
 export const fetchForumCategoriesApi = async (): Promise<
@@ -47,8 +50,8 @@ export const fetchForumTopicsApi = async (
     page: pageParam,
     limit: DEFAULT_FORUM_LIMIT,
   };
-  if (categoryId && categoryId !== 'all') {
-    params.category_id = categoryId;
+  if (categoryId && categoryId !== ALL_FORUM_CATEGORY_PLACEHOLDER.name) {
+    params.categories = categoryId;
   }
   try {
     const response = await apiClient.get<ForumListApiResponse>(
@@ -95,6 +98,30 @@ export const fetchForumDetailApi = async (
 
     throw new Error('Network error or failed to connect');
   }
+};
+
+export const adminCreateForumApi = (
+  payload: CreateForumPayload,
+): Promise<AxiosResponse> => {
+  const formData = new FormData();
+  formData.append('forum_title', payload.forum_title);
+  formData.append('forum_content', payload.forum_content);
+
+  payload.images.forEach(image => {
+    formData.append('images[]', {
+      name: image.name,
+      type: image.type,
+      uri: image.uri,
+    });
+  });
+
+  payload.category.forEach(catId => {
+    formData.append('category[]', catId);
+  });
+
+  return apiClient.post(ADMIN_FORUM_CREATE_ENDPOINT, formData, {
+    headers: {'Content-Type': 'multipart/form-data'},
+  });
 };
 
 export const formatForumDate = (dateString: string): string => {

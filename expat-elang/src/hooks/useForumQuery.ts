@@ -1,9 +1,15 @@
-import {useInfiniteQuery, useQuery} from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   fetchForumCategoriesApi,
   fetchForumTopicsApi,
   fetchForumDetailApi,
   formatForumDate,
+  adminCreateForumApi,
 } from '../services/forumService';
 import type {
   ForumCategoryApi,
@@ -13,7 +19,9 @@ import type {
   ProcessedForumDetailData,
   ProcessedForumDetail,
   ProcessedForumReply,
+  CreateForumPayload,
 } from '../types/forum';
+import {AxiosError} from 'axios';
 
 export const forumCategoriesQueryKey = ['forumCategories'];
 export const ALL_FORUM_CATEGORY_PLACEHOLDER: ForumCategoryApi = {
@@ -33,13 +41,13 @@ export const useForumCategoriesQuery = () => {
 
 export const forumTopicsQueryKey = (categoryId?: string) => [
   'forumTopics',
-  categoryId ?? 'all',
+  categoryId ?? ALL_FORUM_CATEGORY_PLACEHOLDER.name,
 ];
 
 export const useForumTopicsInfinite = (
   activeCategory: ForumCategoryApi | null,
 ) => {
-  const categoryIdFilter = activeCategory?.id;
+  const categoryIdFilter = activeCategory?.name;
 
   return useInfiniteQuery<
     ForumListApiResponse,
@@ -149,6 +157,24 @@ export const useForumDetailQuery = (forumId: string) => {
         replies: repliesProcessed,
         ads: ads,
       };
+    },
+  });
+};
+
+export const useCreateForumMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateForumPayload) => adminCreateForumApi(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: forumTopicsQueryKey()});
+    },
+    onError: error => {
+      if (error instanceof AxiosError) {
+        console.error('Error creating forum:', error.response);
+      }
+
+      console.error('Error creating forum:', error.message);
     },
   });
 };

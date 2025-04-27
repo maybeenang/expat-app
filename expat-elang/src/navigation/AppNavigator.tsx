@@ -15,7 +15,9 @@ import BlogSearchScreen from '../screens/main/BlogScreen/search';
 import RentalDetailScreen from '../screens/main/ExploreScreen/detail';
 import EventDetailScreen from '../screens/main/EventScreen/detail';
 import {AppDrawer} from './AppDrawer';
-import {Text, View} from 'react-native';
+import CustomHeader from '../components/header/CustomHeader';
+import ForumDetailScreen from '../screens/main/ForumScreen/detail';
+import ForumCreateScreen from '../screens/main/ForumScreen/create';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,7 +34,10 @@ const AppNavigator = () => {
   }
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          header: CustomHeader,
+        }}>
         <Stack.Screen
           name="AppDrawer"
           component={AppDrawer}
@@ -62,7 +67,6 @@ const AppNavigator = () => {
           component={BlogSearchScreen}
           options={{
             headerShown: true,
-            title: '',
             headerTintColor: COLORS.primary,
           }}
         />
@@ -89,6 +93,31 @@ const AppNavigator = () => {
             headerTintColor: COLORS.primary,
           }}
         />
+
+        <Stack.Screen
+          name="ForumDetail"
+          component={ForumDetailScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="ForumCreate"
+          component={ForumCreateScreen}
+          options={{
+            headerShown: true,
+            title: 'Buat Forum',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
         {!isLoggedIn && (
           <Stack.Screen
             name="LoginV1"

@@ -20,6 +20,10 @@ export type RootStackParamList = {
   EventDetail: {
     eventId: string;
   };
+  ForumDetail: {
+    forumId: string;
+  };
+  ForumCreate: undefined;
 };
 
 export type DrawerParamList = {

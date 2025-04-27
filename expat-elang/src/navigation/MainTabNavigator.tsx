@@ -17,6 +17,8 @@ import ForumScreen from '../screens/main/ForumScreen';
 import {DRAWERICONOPTIONS} from '../constants/sidebarItem';
 import {useAuthStore} from '../store/useAuthStore';
 import {useShallow} from 'zustand/react/shallow';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import SearchAndCreate from '../components/common/RightHeaderButton/SearchAndCreate';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -38,32 +40,24 @@ const MainTabNavigator = () => {
         options={{tabBarLabel: 'Rental'}}
       />
 
-      <Tab.Screen name="Forum" component={ForumScreen} />
-      {/*
       <Tab.Screen
-        name="Blog"
-        component={BlogScHandshakereen}
-        options={{
-          headerRight: () => {
-            return (
-              <TouchableOpacity
-                onPress={() => {
+        name="Forum"
+        component={ForumScreen}
+        options={({navigation}) => {
+          return {
+            headerRight: () => {
+              return (
+                <SearchAndCreate
                   // @ts-ignore
-                  navigation.navigate('BlogSearch');
-                }}>
-                <CustomIcon
-                  name="MagnifyingGlass"
-                  size={24}
-                  color={COLORS.primary}
-                  style={{marginRight: 15}}
+                  navigation={navigation}
+                  isLoggedIn={isLoggedIn}
+                  createScreen="ForumCreate"
                 />
-              </TouchableOpacity>
-            );
-          },
+              );
+            },
+          };
         }}
       />
-      <Tab.Screen name="Gallery" component={GalleryScreen} />
-      */}
 
       <Tab.Screen
         name="AccountStack"
@@ -128,7 +122,6 @@ const screenOptions = ({
       fontWeight: '600',
       fontSize: 24,
     },
-    animation: 'shift',
     headerStyle: {
       borderBottomWidth: 1,
       borderBottomColor: COLORS.greyLight,

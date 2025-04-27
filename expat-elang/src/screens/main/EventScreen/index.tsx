@@ -119,7 +119,7 @@ const EventScreen = ({
       <FlatList
         data={eventItems}
         renderItem={({item}) => (
-          <EventItemCard item={item} navigation={navigation} />
+          <EventItemCard item={item} navigation={navigation} key={item.id} />
         )}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}

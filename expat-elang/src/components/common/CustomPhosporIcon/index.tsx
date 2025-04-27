@@ -1,4 +1,5 @@
 import Check from 'phosphor-react-native/src/icons/Check';
+import ArrowLeft from 'phosphor-react-native/src/icons/ArrowLeft';
 import Plus from 'phosphor-react-native/src/icons/Plus';
 import Car from 'phosphor-react-native/src/icons/Car';
 import CarSimple from 'phosphor-react-native/src/icons/CarSimple';
@@ -43,6 +44,7 @@ interface PhosphorIconProps {
 }
 
 export const SupportedIconsList = {
+  ArrowLeft,
   Plus,
   Check,
   Question,

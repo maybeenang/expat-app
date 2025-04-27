@@ -117,3 +117,14 @@ export interface ProcessedForumDetail
   contentHTML: string; // Konten HTML asli
   imageUrls: string[]; // Semua gambar topic (feature + lists)
 }
+
+export interface CreateForumPayload {
+  forum_title: string;
+  forum_content: string;
+  images: {
+    uri: string;
+    type: string;
+    name: string;
+  }[];
+  category: string[];
+}

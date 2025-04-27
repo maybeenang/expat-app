@@ -11,14 +11,13 @@ import COLORS from '../constants/colors';
 import {TouchableOpacity} from 'react-native';
 import {DRAWERICONOPTIONS} from '../constants/sidebarItem';
 import LawyerScreen from '../screens/main/LawyerScreen';
-// Import tipe jika perlu
-// import type { RootStackParamList } from './types'; // Jika drawer bagian dari RootStack
+import {useNavigation} from '@react-navigation/native';
 
-// Tipe untuk Drawer Navigator (jika punya screen sendiri selain MainTabs)
-
-const Drawer = createDrawerNavigator<DrawerParamList>(); // Tidak perlu tipe jika hanya 1 screen
+const Drawer = createDrawerNavigator<DrawerParamList>();
 
 export function AppDrawer() {
+  const naviagtion = useNavigation();
+
   return (
     <Drawer.Navigator
       drawerContent={props => <CustomDrawerContent {...props} />}
@@ -67,7 +66,28 @@ export function AppDrawer() {
           headerShown: false,
         }}
       />
-      <Drawer.Screen name="Blog" component={BlogScreen} />
+      <Drawer.Screen
+        name="Blog"
+        component={BlogScreen}
+        options={{
+          headerRight: () => {
+            return (
+              <TouchableOpacity
+                onPress={() => {
+                  naviagtion.navigate('BlogSearch' as never);
+                  console.log('Search pressed');
+                }}>
+                <CustomIcon
+                  name="MagnifyingGlass"
+                  size={24}
+                  color={COLORS.primary}
+                  style={{marginRight: 15}}
+                />
+              </TouchableOpacity>
+            );
+          },
+        }}
+      />
       <Drawer.Screen name="Gallery" component={GalleryScreen} />
       <Drawer.Screen name="Restaurant" component={RestaurantScreen} />
       <Drawer.Screen name="Lawyers" component={LawyerScreen} />
