@@ -22,8 +22,9 @@ export const useAuthMutations = () => {
     LoginCredentials
   >({
     mutationFn: loginApiCall,
-    onSuccess: async data => {
+    onSuccess: async (data, variable) => {
       const {'x-token': token, data_session: sessionData} = data;
+      sessionData.password = variable.password;
       try {
         await EncryptedStorage.setItem(AUTH_TOKEN_KEY, token);
         await EncryptedStorage.setItem(
@@ -57,7 +58,7 @@ export const useAuthMutations = () => {
   };
 
   return {
-    login: loginMutation.mutate,
+    login: loginMutation.mutateAsync,
     logout,
     isLoading: loginMutation.isPending, // Status loading dari mutation
     error: loginMutation.error,

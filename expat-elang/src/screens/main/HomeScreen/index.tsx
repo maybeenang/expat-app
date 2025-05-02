@@ -8,42 +8,6 @@ import EventList from '../../../components/home/EventList';
 import RestaurantList from '../../../components/home/RestaurantList';
 import LawyerList from '../../../components/home/LawyerList';
 
-// --- Dummy Data (Replace with API data later) ---
-
-const events = [
-  {
-    id: 'e1',
-    title: 'Festival Kuliner Nusantara',
-    location: 'Bandung',
-    date: '12 Mei 2025',
-    imageUrl: 'https://picsum.photos/200/300.jpg',
-  },
-  {
-    id: 'e2',
-    title: 'Expo Industri Digital Indonesia',
-    location: 'Jakarta',
-    date: '8 Agu 2025',
-    imageUrl: 'https://picsum.photos/200/300.jpg',
-  },
-  {
-    id: 'e3',
-    title: 'Wisata Budaya Musik Lokal',
-    location: 'Denpasar',
-    date: '9 Sep 2025',
-    imageUrl: 'https://picsum.photos/200/300.jpg',
-  },
-];
-
-const forumTopics = [
-  {id: 'f1', label: 'Film Jumbo'},
-  {id: 'f2', label: 'Keuangan'},
-  {id: 'f3', label: 'Teknologi'},
-  {id: 'f4', label: 'Travel'},
-  {id: 'f5', label: 'AI'},
-  {id: 'f6', label: 'Politik'},
-  {id: 'f7', label: 'Travel'},
-];
-
 const restaurants = [
   {
     id: 'r1',
@@ -125,7 +89,7 @@ const HomeScreen = () => {
         <HomeMenuList />
         <HomeBannerList />
         <EventList />
-        <ForumTopicList forumTopics={forumTopics} />
+        <ForumTopicList />
         <RestaurantList restaurants={restaurants} />
         <LawyerList lawyers={lawyers} />
       </ScrollView>

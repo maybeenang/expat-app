@@ -1,12 +1,13 @@
-import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+import React, {useEffect, useLayoutEffect} from 'react';
+import {
+  NavigationContainer,
+  useNavigationContainerRef,
+} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import LoginScreenV1 from '../screens/LoginScreenV1'; // Sesuaikan path jika perlu
 import {RootStackParamList} from './types';
-// import LoginScreenV2 from '../screens/LoginScreenV2';
 import {useAuthStore} from '../store/useAuthStore';
-import LoadingScreen from '../screens/LoadingScreen';
 import {useShallow} from 'zustand/react/shallow';
 import GalleryDetailScreen from '../screens/main/GalleryScreen/detail';
 import COLORS from '../constants/colors';
@@ -18,6 +19,11 @@ import {AppDrawer} from './AppDrawer';
 import CustomHeader from '../components/header/CustomHeader';
 import ForumDetailScreen from '../screens/main/ForumScreen/detail';
 import ForumCreateScreen from '../screens/main/ForumScreen/create';
+import ForumUpdateScreen from '../screens/main/ForumScreen/update';
+import ForumSearchScreen from '../screens/main/ForumScreen/search';
+import LoadingOverlay from '../components/common/LoadingOverlay';
+import {useLoadingOverlayStore} from '../store/useLoadingOverlayStore';
+import {useRedirectStore} from '../store/useRedirectStore';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,12 +34,39 @@ const AppNavigator = () => {
       isLoading: state.isLoading,
     })),
   );
+  const {show, hide} = useLoadingOverlayStore();
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
+  useLayoutEffect(() => {
+    if (isLoading) {
+      show();
+    } else {
+      hide();
+    }
+
+    return () => {
+      hide();
+    };
+  }, [isLoading, show, hide]);
+
+  const {targetScreen, params, clearRedirect} = useRedirectStore();
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (isLoggedIn && targetScreen && navigationRef.isReady()) {
+      navigationRef.navigate(targetScreen as never, params as never);
+      clearRedirect();
+    }
+
+    return () => {
+      if (targetScreen) {
+        clearRedirect();
+      }
+    };
+  }, [isLoggedIn, targetScreen, params, navigationRef, clearRedirect]);
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
+      <LoadingOverlay />
       <Stack.Navigator
         screenOptions={{
           header: CustomHeader,
@@ -110,6 +143,33 @@ const AppNavigator = () => {
           options={{
             headerShown: true,
             title: 'Buat Forum',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="ForumUpdate"
+          component={ForumUpdateScreen}
+          options={{
+            headerShown: true,
+            title: 'Edit Forum',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+        <Stack.Screen
+          name="ForumSearch"
+          component={ForumSearchScreen}
+          options={{
+            headerShown: true,
+            title: '',
             headerTitleStyle: {
               color: COLORS.textPrimary,
               fontWeight: '600',

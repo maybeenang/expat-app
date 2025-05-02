@@ -46,7 +46,15 @@ export const checkAuthStatus = async () => {
 
     if (storedToken && storedSessionString) {
       const storedSession: UserSession = JSON.parse(storedSessionString);
-      // TODO: Tambahkan validasi token expiry jika perlu
+
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      const isExpired = storedSession.exp && storedSession.exp < nowInSeconds;
+      if (isExpired) {
+        console.warn('Session expired. Clearing auth state.');
+        clearAuthState();
+        return;
+      }
+
       setAuthState(storedToken, storedSession);
     } else {
       clearAuthState(); // Pastikan state bersih jika tidak ada data valid

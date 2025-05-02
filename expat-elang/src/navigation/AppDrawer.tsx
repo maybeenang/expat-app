@@ -12,6 +12,8 @@ import {TouchableOpacity} from 'react-native';
 import {DRAWERICONOPTIONS} from '../constants/sidebarItem';
 import LawyerScreen from '../screens/main/LawyerScreen';
 import {useNavigation} from '@react-navigation/native';
+import AccountStackNavigator from './AccountNavigator';
+import JobsScreen from '../screens/main/JobsScreen';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
@@ -91,6 +93,8 @@ export function AppDrawer() {
       <Drawer.Screen name="Gallery" component={GalleryScreen} />
       <Drawer.Screen name="Restaurant" component={RestaurantScreen} />
       <Drawer.Screen name="Lawyers" component={LawyerScreen} />
+      <Drawer.Screen name="Jobs" component={JobsScreen} />
+      <Drawer.Screen name="Profile" component={AccountStackNavigator} />
     </Drawer.Navigator>
   );
 }

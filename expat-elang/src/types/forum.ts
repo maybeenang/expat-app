@@ -46,7 +46,7 @@ export interface ForumTopicApi {
   created_by: string;
   del_date: string | null;
   del_by: string | null;
-  categories: string; // Comma-separated string
+  categories: string | null; // Comma-separated string
   nama_ref_global: string; // Nama kategori utama?
   image_feature: ForumImageFeature | null;
   image_lists: any[]; // Tipe spesifik jika diketahui
@@ -67,11 +67,11 @@ export interface ForumListApiResponse {
 // Tipe untuk Ad (dari detail response)
 export interface ForumAd {
   id: string;
-  ads_location: string;
-  x_order: string;
-  slug: string;
-  external_url: string | null;
-  img_url: string;
+  title: string;
+  description: string;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ForumDetailApiResponse {
@@ -95,6 +95,7 @@ export interface ProcessedForumTopic {
   replyCount: number;
   // Konten excerpt mungkin perlu di-decode/strip HTML jika ingin ditampilkan di list
   excerpt?: string;
+  content: string; // Konten HTML asli
 }
 
 // Tipe untuk detail UI
@@ -127,4 +128,9 @@ export interface CreateForumPayload {
     name: string;
   }[];
   category: string[];
+  key?: string[];
+}
+
+export interface UpdateForumPayload extends CreateForumPayload {
+  id: string;
 }

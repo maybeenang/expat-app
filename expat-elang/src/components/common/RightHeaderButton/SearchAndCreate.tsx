@@ -10,6 +10,8 @@ import {
   MainTabParamList,
   RootStackParamList,
 } from '../../../navigation/types';
+import {useRedirectStore} from '../../../store/useRedirectStore';
+import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore';
 
 interface SearchAndCreateProps extends NativeStackHeaderRightProps {
   navigation: NativeStackNavigationProp<any, any>;
@@ -24,25 +26,26 @@ const SearchAndCreate = ({
   searchScreen,
   createScreen,
 }: SearchAndCreateProps) => {
+  const {setRedirect} = useRedirectStore();
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate(searchScreen as any);
+          if (!isLoggedIn) {
+            setRedirect(createScreen as any);
+            navigation.navigate('LoginV1', {
+              params: {
+                goto: createScreen,
+              },
+            });
+            return;
+          }
+          navigation.navigate(createScreen as any);
         }}
         style={styles.centerContainerShort}>
-        <CustomIcon name="MagnifyingGlass" size={25} color={COLORS.primary} />
+        <CustomIcon name="Plus" size={25} color={COLORS.primary} />
       </TouchableOpacity>
-
-      {isLoggedIn && (
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate(createScreen as any);
-          }}
-          style={styles.centerContainerShort}>
-          <CustomIcon name="Plus" size={25} color={COLORS.primary} />
-        </TouchableOpacity>
-      )}
     </View>
   );
 };

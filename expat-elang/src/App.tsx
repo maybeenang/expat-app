@@ -6,6 +6,7 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {checkAuthStatus} from './store/useAuthStore';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {enableScreens} from 'react-native-screens';
+import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 
 enableScreens();
 
@@ -13,6 +14,7 @@ const queryClient = new QueryClient();
 
 function App(): React.JSX.Element {
   useEffect(() => {
+    console.log('App mounted');
     checkAuthStatus();
     return () => {};
   }, []);
@@ -20,9 +22,11 @@ function App(): React.JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{flex: 1}}>
-        <SafeAreaProvider>
-          <AppNavigator />
-        </SafeAreaProvider>
+        <BottomSheetModalProvider>
+          <SafeAreaProvider>
+            <AppNavigator />
+          </SafeAreaProvider>
+        </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
   );

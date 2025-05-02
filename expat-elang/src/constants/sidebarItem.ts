@@ -67,4 +67,10 @@ export const drawerButtons: DrawerItemProps[] = [
     type: 'drawer',
     navigateTo: 'Lawyers',
   },
+  {
+    label: 'Jobs',
+    icon: 'BriefCase',
+    type: 'drawer',
+    navigateTo: 'Jobs',
+  },
 ];

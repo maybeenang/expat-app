@@ -30,6 +30,12 @@ import Chat from 'phosphor-react-native/src/icons/Chat';
 import List from 'phosphor-react-native/src/icons/List';
 import ForkKnife from 'phosphor-react-native/src/icons/ForkKnife';
 import Scales from 'phosphor-react-native/src/icons/Scales';
+import X from 'phosphor-react-native/src/icons/X';
+import DotsThree from 'phosphor-react-native/src/icons/DotsThree';
+import DotsThreeVertical from 'phosphor-react-native/src/icons/DotsThreeVertical';
+import PaperPlaneRight from 'phosphor-react-native/src/icons/PaperPlaneRight';
+import Bell from 'phosphor-react-native/src/icons/Bell';
+import BriefCase from 'phosphor-react-native/src/icons/Briefcase';
 import React, {FC} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 
@@ -44,6 +50,12 @@ interface PhosphorIconProps {
 }
 
 export const SupportedIconsList = {
+  BriefCase,
+  DotsThree,
+  Bell,
+  DotsThreeVertical,
+  PaperPlaneRight,
+  X,
   ArrowLeft,
   Plus,
   Check,

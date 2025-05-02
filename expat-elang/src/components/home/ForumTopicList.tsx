@@ -28,15 +28,60 @@ const ForumTopicList = () => {
   } = useForumCategoriesQuery();
 
   if (isLoading) {
-    return null;
+    return (
+      <View style={[styles.sectionContainer, styles.forumBackground]}>
+        <HeaderSection
+          title="Forum"
+          subtitle="Gabung diskusi seru sesuai topik favoritmu"
+          goto="Forum"
+        />
+        <View
+          style={[
+            styles.forumChipsContainer,
+            {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+          ]}>
+          <StyledText>Loading...</StyledText>
+        </View>
+      </View>
+    );
   }
 
   if (isError) {
-    return <StyledText>Error: {error.message}</StyledText>;
+    return (
+      <View style={[styles.sectionContainer, styles.forumBackground]}>
+        <HeaderSection
+          title="Forum"
+          subtitle="Gabung diskusi seru sesuai topik favoritmu"
+          goto="Forum"
+        />
+        <View
+          style={[
+            styles.forumChipsContainer,
+            {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+          ]}>
+          <StyledText style={{color: COLORS.red}}>
+            {error?.message || 'Gagal memuat data forum.'}
+          </StyledText>
+        </View>
+      </View>
+    );
   }
 
   if (!forumTopics || forumTopics.length === 0) {
-    return <StyledText>No topics available</StyledText>;
+    <View style={[styles.sectionContainer, styles.forumBackground]}>
+      <HeaderSection
+        title="Forum"
+        subtitle="Gabung diskusi seru sesuai topik favoritmu"
+        goto="Forum"
+      />
+      <View
+        style={[
+          styles.forumChipsContainer,
+          {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+        ]}>
+        <StyledText>Tidak ada topik forum yang tersedia.</StyledText>
+      </View>
+    </View>;
   }
 
   return (

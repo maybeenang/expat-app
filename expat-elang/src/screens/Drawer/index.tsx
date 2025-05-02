@@ -142,7 +142,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           focused={isDrawerItemActive('AccountStack', 'tab')}
           onPress={() => {
             //props.navigation.dispatch(DrawerActions.closeDrawer());
-            navigateToScreen('AccountStack' ?? '', 'tab');
+            navigateToScreen('Profile' ?? '', 'drawer');
           }}
         />
 

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Alert,
+  Keyboard,
 } from 'react-native';
 
 import Icon from '@react-native-vector-icons/ionicons';
@@ -16,10 +17,16 @@ import COLORS from '../../constants/colors';
 import StyledText from '../../components/common/StyledText';
 import StyledButton from '../../components/common/StyledButton';
 import {useAuthMutations} from '../../hooks/useAuthMutations';
-import {useNavigation} from '@react-navigation/native';
+import {useLoadingOverlayStore} from '../../store/useLoadingOverlayStore';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../navigation/types';
+import {useRedirectStore} from '../../store/useRedirectStore';
 
-const LoginScreenV1 = () => {
-  const navigation = useNavigation();
+interface LoginScreenV1Props
+  extends NativeStackScreenProps<RootStackParamList, 'LoginV1'> {}
+
+const LoginScreenV1 = ({navigation, route}: LoginScreenV1Props) => {
+  const {show, hide} = useLoadingOverlayStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,13 +36,22 @@ const LoginScreenV1 = () => {
 
   const isValid = email && password && isLoading === false;
 
-  const handleLoginPress = () => {
+  const handleLoginPress = async () => {
+    Keyboard.dismiss();
     if (!isValid) {
-      console.log('Email and password are required.');
       return;
     }
 
-    login({email, password});
+    try {
+      show();
+      await login({email, password});
+      if (route.params?.goto) {
+      }
+    } catch (e: any) {
+      console.log('Login Error:', e);
+    }
+
+    hide();
   };
 
   const handleEyePress = () => {
@@ -51,7 +67,7 @@ const LoginScreenV1 = () => {
     return () => {};
   }, [error]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions({
       headerRight() {
         return (

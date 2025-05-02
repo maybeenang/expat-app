@@ -58,13 +58,41 @@ const EventList = () => {
   } = useEventItemsInfinite(null);
 
   if (isLoadingEvents) {
-    return null;
+    return (
+      <View style={styles.sectionContainer}>
+        <HeaderSection
+          subtitle="Rekomendasi event seru untukmu"
+          title="Event"
+          goto="Event"
+        />
+        <View
+          style={[
+            styles.horizontalListPadding,
+            {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+          ]}>
+          <StyledText>Loading...</StyledText>
+        </View>
+      </View>
+    );
   }
 
   if (errorEvents) {
     return (
       <View style={styles.sectionContainer}>
-        <StyledText>Error: {errorEvents.message}</StyledText>
+        <HeaderSection
+          subtitle="Rekomendasi event seru untukmu"
+          title="Event"
+          goto="Event"
+        />
+        <View
+          style={[
+            styles.horizontalListPadding,
+            {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+          ]}>
+          <StyledText>
+            {errorEvents.message || 'Gagal memuat data event.'}
+          </StyledText>
+        </View>
       </View>
     );
   }

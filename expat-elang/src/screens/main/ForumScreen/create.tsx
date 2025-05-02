@@ -18,10 +18,13 @@ import {CustomIcon} from '../../../components/common/CustomPhosporIcon';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
+  ALL_FORUM_CATEGORY_PLACEHOLDER,
+  MY_FORUM_CATEGORY_PLACEHOLDER,
   useCreateForumMutation,
   useForumCategoriesQuery,
 } from '../../../hooks/useForumQuery';
 import {CreateForumPayload} from '../../../types/forum';
+import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ForumCreate'>;
 
@@ -42,6 +45,8 @@ const ForumCreateScreen = ({navigation}: Props) => {
 
   const createForumMutation = useCreateForumMutation();
   const {data: categories = []} = useForumCategoriesQuery();
+
+  const {show, hide} = useLoadingOverlayStore();
 
   const handleImagePick = async () => {
     try {
@@ -105,7 +110,9 @@ const ForumCreateScreen = ({navigation}: Props) => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       const imageFiles = formData.images.map((uri, index) => ({
@@ -121,7 +128,15 @@ const ForumCreateScreen = ({navigation}: Props) => {
         category: formData.categories,
       };
 
-      await createForumMutation.mutateAsync(payload);
+      show();
+      try {
+        await createForumMutation.mutateAsync(payload);
+      } catch (e) {
+        console.log('Error creating forum:', e);
+      } finally {
+        hide();
+      }
+
       Alert.alert('Success', 'Forum berhasil dibuat', [
         {
           text: 'OK',
@@ -129,6 +144,7 @@ const ForumCreateScreen = ({navigation}: Props) => {
         },
       ]);
     } catch (error) {
+      console.log('Error creating forum:', error);
       Alert.alert('Error', 'Gagal membuat forum. Silakan coba lagi.');
     }
   };
@@ -142,6 +158,7 @@ const ForumCreateScreen = ({navigation}: Props) => {
           <StyledText style={styles.label}>Judul Forum</StyledText>
           <TextInput
             style={styles.input}
+            readOnly={createForumMutation.isPending}
             placeholder="Masukkan judul forum"
             placeholderTextColor={COLORS.greyDark}
             value={formData.title}
@@ -156,6 +173,7 @@ const ForumCreateScreen = ({navigation}: Props) => {
             style={[styles.input, styles.contentInput]}
             placeholder="Tulis konten forum di sini"
             placeholderTextColor={COLORS.greyDark}
+            readOnly={createForumMutation.isPending}
             value={formData.content}
             onChangeText={text =>
               setFormData(prev => ({...prev, content: text}))
@@ -174,14 +192,16 @@ const ForumCreateScreen = ({navigation}: Props) => {
               <View key={index} style={styles.imageWrapper}>
                 <Image source={{uri}} style={styles.image} />
                 <TouchableOpacity
+                  disabled={createForumMutation.isPending}
                   style={styles.removeImageButton}
                   onPress={() => removeImage(index)}>
-                  <CustomIcon name="Square" color={COLORS.white} size={16} />
+                  <CustomIcon name="X" color={COLORS.white} size={16} />
                 </TouchableOpacity>
               </View>
             ))}
             {formData.images.length < 5 && (
               <TouchableOpacity
+                disabled={createForumMutation.isPending}
                 style={styles.addImageButton}
                 onPress={handleImagePick}>
                 <CustomIcon name="Plus" color={COLORS.primary} size={24} />
@@ -195,11 +215,17 @@ const ForumCreateScreen = ({navigation}: Props) => {
           <StyledText style={styles.label}>Kategori</StyledText>
           <View style={styles.categoriesContainer}>
             {categories.map(category => {
-              if (category.id === 'all') return null; // Skip "Semua Topik" category
+              if (
+                category.id === ALL_FORUM_CATEGORY_PLACEHOLDER.id ||
+                category.id === MY_FORUM_CATEGORY_PLACEHOLDER.id
+              ) {
+                return null;
+              }
               const isSelected = formData.categories.includes(category.id);
               return (
                 <TouchableOpacity
                   key={category.id}
+                  disabled={createForumMutation.isPending}
                   style={[
                     styles.categoryCheckbox,
                     isSelected && styles.categoryCheckboxSelected,

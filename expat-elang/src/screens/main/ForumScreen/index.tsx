@@ -1,196 +1,188 @@
-import React, {useState, useEffect} from 'react';
+import React, {
+  useRef,
+  useCallback,
+  useState,
+  useEffect,
+  useLayoutEffect,
+} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  ScrollView,
   StatusBar,
+  Dimensions,
 } from 'react-native';
 import {ForumCategoryApi, ProcessedForumTopic} from '../../../types/forum';
 import {
+  MY_FORUM_CATEGORY_PLACEHOLDER,
+  useDeleteForumMutation,
   useForumCategoriesQuery,
   useForumTopicsInfinite,
 } from '../../../hooks/useForumQuery';
-import LoadingScreen, {LoadingFooter} from '../../LoadingScreen';
-import ErrorScreen from '../../ErrorScreen';
-import EmptyScreen from '../../EmptyScreen';
 import COLORS from '../../../constants/colors';
 import useManualRefresh from '../../../hooks/useManualRefresh';
-import ForumItemCard from '../../../components/forum/ForumItemCard';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../navigation/types';
+import {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetModal,
+  BottomSheetView,
+} from '@gorhom/bottom-sheet';
+import ForumCategoryList from '../../../components/forum/ForumCategoryList';
+import {useAuthStore} from '../../../store/useAuthStore';
+import ForumItemList from '../../../components/forum/ForumItemList';
+import ForumItemCard from '../../../components/forum/ForumItemCard';
+import BottomSheetForum from '../../../components/forum/BottomSheetForum';
+import SearchBarButton from '../../../components/common/SearchBarButton';
+import SearchAndCreate from '../../../components/common/RightHeaderButton/SearchAndCreate';
+
+const {width} = Dimensions.get('window');
 
 interface ForumScreenProps extends NativeStackScreenProps<RootStackParamList> {}
 
-const ForumScreen = ({}: ForumScreenProps) => {
-  const {
-    data: categoriesData,
-    isLoading: isLoadingCategories,
-    error: errorCategories,
-  } = useForumCategoriesQuery();
+const ForumScreen = ({navigation}: ForumScreenProps) => {
+  const {isLoggedIn} = useAuthStore();
 
+  const categoryQuery = useForumCategoriesQuery();
   const [activeCategory, setActiveCategory] = useState<ForumCategoryApi | null>(
     null,
   );
 
-  const {
-    data: forumTopics,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading: isLoadingTopics,
-    isFetching: isFetchingTopics,
-    error: errorTopics,
-    refetch: refetchTopics,
-  } = useForumTopicsInfinite(activeCategory);
+  const forumQuery = useForumTopicsInfinite(activeCategory);
+  const [activeItem, setActiveItem] = useState<ProcessedForumTopic | null>(
+    null,
+  );
 
+  const mutateDeleteForum = useDeleteForumMutation(activeCategory?.name);
   const {handleManualRefresh, isManualRefreshing} = useManualRefresh({
-    refetch: refetchTopics,
-    isFetching: isFetchingTopics,
+    refetch: forumQuery.refetch,
+    isFetching: forumQuery.isFetching,
   });
 
-  useEffect(() => {
-    if (categoriesData && !activeCategory) {
-      setActiveCategory(categoriesData[0]);
-    }
-  }, [categoriesData, activeCategory]);
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
 
-  const renderCategoryFilter = () => {
-    if (isLoadingCategories && !categoriesData) {
-      return null;
-    }
-    if (errorCategories && !categoriesData) {
-      return null;
-    }
-    if (categoriesData) {
-      return (
-        <View style={styles.categoryContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryScroll}>
-            {categoriesData.map(category => {
-              const isActive = activeCategory?.id === category.id;
-              return (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[styles.categoryButton]}
-                  onPress={() => setActiveCategory(category)}
-                  activeOpacity={0.7}
-                  disabled={isManualRefreshing}>
-                  <Text
-                    style={[
-                      styles.categoryText,
-                      isActive && styles.categoryTextActive,
-                    ]}>
-                    {category.name}
-                  </Text>
-                  {isActive && <View style={styles.activeIndicator} />}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-      );
-    }
-    return <View style={styles.categoryContainer} />;
+  const handleDismissModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.dismiss();
+  }, []);
+
+  const handleSheetChanges = useCallback(
+    (index: number) => {
+      if (index === -1) {
+        setActiveItem(null);
+        mutateDeleteForum.reset();
+      }
+    },
+    [mutateDeleteForum],
+  );
+
+  const handleNavigateDetail = useCallback(
+    (id: string, screen: 'ForumDetail' | 'ForumUpdate') => {
+      navigation.navigate(screen, {
+        forumId: id,
+      });
+    },
+    [navigation],
+  );
+
+  const handlePress = (item: ProcessedForumTopic) => {
+    setActiveItem(item);
+    handlePresentModalPress();
   };
 
-  const renderForumList = () => {
-    if (isLoadingTopics && !forumTopics) {
-      return <LoadingScreen />;
-    }
-    if (errorTopics && !forumTopics) {
-      return (
-        <ErrorScreen
-          error={errorTopics}
-          refetch={refetchTopics}
-          placeholder="Gagal memuat data forum."
-        />
-      );
-    }
-    if (!forumTopics || forumTopics.length === 0) {
-      return <EmptyScreen />;
-    }
-
-    return (
-      <FlatList
-        data={forumTopics}
-        renderItem={({item}) => (
-          <ForumItemCard item={item as ProcessedForumTopic} key={item.id} />
-        )}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
-        onEndReachedThreshold={0.7}
-        ListFooterComponent={isFetchingNextPage ? <LoadingFooter /> : null}
-        onRefresh={handleManualRefresh}
-        refreshing={isManualRefreshing && !isFetchingNextPage}
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        pressBehavior={'close'}
       />
-    );
-  };
+    ),
+    [],
+  );
+
+  useEffect(() => {
+    if (categoryQuery.data && !activeCategory) {
+      setActiveCategory(categoryQuery.data[0]);
+    }
+
+    if (!isLoggedIn) {
+      if (
+        activeCategory?.id === MY_FORUM_CATEGORY_PLACEHOLDER.id &&
+        categoryQuery.data
+      ) {
+        setActiveCategory(categoryQuery.data[0]);
+      }
+    }
+
+    return () => {};
+  }, [categoryQuery.data, activeCategory, isLoggedIn]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      {renderCategoryFilter()}
-      <View style={styles.listArea}>{renderForumList()}</View>
+      <ForumCategoryList
+        isManualRefreshing={isManualRefreshing}
+        query={categoryQuery}
+        state={activeCategory}
+        setState={setActiveCategory}
+      />
+
+      <View style={styles.listArea}>
+        <ForumItemList
+          query={forumQuery}
+          isManualRefreshing={isManualRefreshing}
+          handleManualRefresh={handleManualRefresh}
+          renderItem={({item}) => (
+            <ForumItemCard
+              item={item}
+              handlePress={() => handlePress(item)}
+              isInOwnCategory={
+                activeCategory?.id === MY_FORUM_CATEGORY_PLACEHOLDER.id
+              }
+              key={
+                activeCategory?.id === MY_FORUM_CATEGORY_PLACEHOLDER.id
+                  ? item.id
+                  : `forum-${item.id}`
+              }
+            />
+          )}
+        />
+      </View>
+
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        onChange={handleSheetChanges}
+        $modal={true}
+        backdropComponent={renderBackdrop}>
+        <BottomSheetView style={styles.bottomSheetContainer}>
+          <BottomSheetForum
+            mutateDeleteForum={mutateDeleteForum}
+            activeItem={activeItem}
+            handleNavigateDetail={handleNavigateDetail}
+            handleDismissModalPress={handleDismissModalPress}
+          />
+        </BottomSheetView>
+      </BottomSheetModal>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: COLORS.white},
+  safeArea: {flex: 1},
   container: {flex: 1},
-  categoryContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.greyLight,
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-  },
-  centerContainerShort: {
-    alignItems: 'center',
-    paddingVertical: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingHorizontal: 15,
-  },
-  categoryScroll: {paddingHorizontal: 15},
-  categoryButton: {
-    marginRight: 20,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  categoryText: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-  },
-  categoryTextActive: {fontFamily: 'Roboto-Medium', color: COLORS.textPrimary},
-  activeIndicator: {
-    height: 3,
-    width: '120%',
-    alignSelf: 'center',
-    backgroundColor: COLORS.textPrimary,
-    position: 'absolute',
-    bottom: 0,
-    borderRadius: 2,
-  },
-  // List Area & Content Styles
   listArea: {flex: 1},
-  listContainer: {padding: 15},
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  bottomSheetContainer: {
+    minHeight: width * 0.7,
+    backgroundColor: COLORS.white,
     padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    gap: 10,
   },
 });
 

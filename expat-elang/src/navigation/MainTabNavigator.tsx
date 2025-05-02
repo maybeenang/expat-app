@@ -9,7 +9,7 @@ import ExploreScreen from '../screens/main/ExploreScreen';
 import {getTabBarIconName} from '../utils/helpers';
 import NoRippleTabBarButton from '../components/tabbar/NoRippleTabBarButton';
 import AccountStackNavigator from './AccountNavigator';
-import {StyleSheet, TouchableOpacity} from 'react-native';
+import {Dimensions, StyleSheet, TouchableOpacity} from 'react-native';
 import EventScreen from '../screens/main/EventScreen';
 import {CustomIcon} from '../components/common/CustomPhosporIcon';
 import HomeScreen from '../screens/main/HomeScreen';
@@ -17,10 +17,14 @@ import ForumScreen from '../screens/main/ForumScreen';
 import {DRAWERICONOPTIONS} from '../constants/sidebarItem';
 import {useAuthStore} from '../store/useAuthStore';
 import {useShallow} from 'zustand/react/shallow';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import SearchAndCreate from '../components/common/RightHeaderButton/SearchAndCreate';
+import SearchBarButton from '../components/common/SearchBarButton';
+import ForumHeaderRight from '../components/forum/ForumHeaderRight';
+import NotificationScreen from '../screens/main/NotificationScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const {width} = Dimensions.get('window');
 
 const MainTabNavigator = () => {
   const {isLoggedIn} = useAuthStore(
@@ -31,27 +35,50 @@ const MainTabNavigator = () => {
   );
   return (
     <Tab.Navigator screenOptions={screenOptions} initialRouteName="Home">
-      <Tab.Screen name="Home" component={HomeScreen} />
-
-      <Tab.Screen name="Event" component={EventScreen} />
       <Tab.Screen
-        name="Rental"
-        component={ExploreScreen}
-        options={{tabBarLabel: 'Rental'}}
+        name="Home"
+        component={HomeScreen}
+        options={({navigation}) => {
+          return {
+            headerTitleContainerStyle: {
+              flex: 2,
+            },
+            headerTitle: () => {
+              return <SearchBarButton placeholder="Cari" onPress={() => {}} />;
+            },
+          };
+        }}
       />
 
       <Tab.Screen
-        name="Forum"
-        component={ForumScreen}
+        name="Event"
+        component={EventScreen}
         options={({navigation}) => {
           return {
-            headerRight: () => {
+            headerTitleContainerStyle: {
+              flex: 2,
+            },
+            headerTitle: () => {
               return (
-                <SearchAndCreate
-                  // @ts-ignore
-                  navigation={navigation}
-                  isLoggedIn={isLoggedIn}
-                  createScreen="ForumCreate"
+                <SearchBarButton placeholder="Cari Event" onPress={() => {}} />
+              );
+            },
+          };
+        }}
+      />
+      <Tab.Screen
+        name="Rental"
+        component={ExploreScreen}
+        options={({navigation}) => {
+          return {
+            headerTitleContainerStyle: {
+              flex: 2,
+            },
+            headerTitle: () => {
+              return (
+                <SearchBarButton
+                  placeholder="Mau Cari apa?"
+                  onPress={() => {}}
                 />
               );
             },
@@ -60,13 +87,29 @@ const MainTabNavigator = () => {
       />
 
       <Tab.Screen
-        name="AccountStack"
-        component={AccountStackNavigator}
-        options={{
-          tabBarLabel: isLoggedIn ? 'Account' : 'Login',
-          title: 'Account',
+        name="Forum"
+        component={ForumScreen}
+        options={({navigation}) => {
+          return {
+            headerTitleContainerStyle: {
+              flex: 2,
+            },
+            headerTitle: () => {
+              return (
+                <SearchBarButton
+                  placeholder="Cari Forum"
+                  onPress={() => navigation.navigate('ForumSearch' as never)}
+                />
+              );
+            },
+            headerRight: () => {
+              return <ForumHeaderRight />;
+            },
+          };
         }}
       />
+
+      <Tab.Screen name="Notification" component={NotificationScreen} />
     </Tab.Navigator>
   );
 };

@@ -19,6 +19,9 @@ export const getTabBarIconName = (routeName: keyof MainTabParamList) => {
     case 'AccountStack':
       iconName = 'UserCircle';
       break;
+    case 'Notification':
+      iconName = 'Bell';
+      break;
     default:
       iconName = 'Warning';
   }

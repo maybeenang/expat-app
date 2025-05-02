@@ -9,6 +9,7 @@ export interface UserSession {
   is_ranap: boolean;
   is_rajal: boolean;
   redirect: string;
+  password: string;
 }
 
 export interface LoginCredentials {

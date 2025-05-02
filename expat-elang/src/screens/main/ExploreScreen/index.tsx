@@ -166,24 +166,6 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      {/* Search Bar Area */}
-      <View style={styles.searchBarContainer}>
-        <View style={styles.searchBar}>
-          <Icon
-            name="search-outline"
-            size={20}
-            color={COLORS.primary}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            placeholder="Mau cari apa?"
-            placeholderTextColor={COLORS.greyDark}
-            style={styles.searchInput}
-            readOnly
-            // onPressIn={() => navigation.navigate('RentalSearch')} // Navigasi ke layar search terpisah
-          />
-        </View>
-      </View>
 
       {/* Category Filter */}
       {renderCategoryFilter()}

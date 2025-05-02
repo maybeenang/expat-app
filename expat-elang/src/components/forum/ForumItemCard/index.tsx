@@ -9,111 +9,147 @@ import {
 import {ProcessedForumTopic} from '../../../types/forum';
 import COLORS from '../../../constants/colors';
 import StyledText from '../../common/StyledText';
+import {CustomIcon} from '../../common/CustomPhosporIcon';
+import RenderHTML, {MixedStyleDeclaration} from 'react-native-render-html';
 import {useNavigation} from '@react-navigation/native';
 
 interface ForumItemCardProps {
   item: ProcessedForumTopic;
+  isInOwnCategory?: boolean;
+  handlePress: () => void;
 }
 
 const {width} = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.6;
 
-const ForumItemCard = React.memo(({item}: ForumItemCardProps) => {
-  const navigation = useNavigation();
+const ForumItemCard = React.memo(
+  ({item, handlePress, isInOwnCategory = false}: ForumItemCardProps) => {
+    const navigation = useNavigation();
 
-  const defaultImageUrl =
-    'https://via.placeholder.com/300x150/cccccc/969696?text=No+Image';
-
-  const handlePress = () => {
-    try {
-      navigation.navigate('ForumDetail' as never, {forumId: item.id} as never);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  return (
-    <TouchableOpacity
-      style={styles.cardContainer}
-      onPress={handlePress}
-      activeOpacity={0.8}>
-      {item.imageUrl ? (
-        <ImageBackground
-          source={{uri: item.imageUrl ?? defaultImageUrl}}
-          style={styles.imageBackground}
-          imageStyle={styles.imageStyle}
-          resizeMode="cover"
-        />
-      ) : (
-        <View
-          style={[
-            styles.imageStyle,
-            {
-              height: IMAGE_HEIGHT,
-              backgroundColor: COLORS.greyLight,
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-          ]}>
-          <StyledText style={{color: COLORS.greyDark}}>
-            Gambar tidak tersedia
-          </StyledText>
-        </View>
-      )}
-      <View style={styles.infoContainer}>
-        <StyledText style={styles.title} weight="medium" numberOfLines={2}>
-          {item.title}
-        </StyledText>
+    return (
+      <TouchableOpacity
+        style={styles.cardContainer}
+        onPress={() =>
+          navigation.navigate(
+            'ForumDetail' as never,
+            {forumId: item.id} as never,
+          )
+        }
+        activeOpacity={0.8}>
         <View style={styles.metaContainer}>
-          <StyledText style={styles.author} numberOfLines={1}>
-            {item.author}
-          </StyledText>
-          <StyledText style={styles.date}>{item.dateFormatted}</StyledText>
+          <View style={styles.authorContainer}>
+            <CustomIcon
+              name="UserCircle"
+              size={48}
+              type="fill"
+              color={COLORS.greyMedium}
+            />
+            <View>
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+                <StyledText
+                  style={[styles.author]}
+                  numberOfLines={1}
+                  weight="medium">
+                  {item.author}
+                </StyledText>
+                {item.firstCategory && (
+                  <StyledText style={styles.category} numberOfLines={1}>
+                    {item.firstCategory}{' '}
+                  </StyledText>
+                )}
+              </View>
+              <StyledText style={styles.date}>{item.dateFormatted}</StyledText>
+            </View>
+          </View>
+
+          {isInOwnCategory && (
+            <TouchableOpacity
+              style={{alignSelf: 'flex-start'}}
+              onPress={() => handlePress()}>
+              <CustomIcon
+                name="DotsThreeVertical"
+                size={24}
+                color={COLORS.textPrimary}
+              />
+            </TouchableOpacity>
+          )}
         </View>
-        <View style={styles.metaContainer}>
-          <StyledText style={styles.category} numberOfLines={1}>
-            {item.firstCategory}
+
+        <View style={styles.infoContainer}>
+          <StyledText style={styles.title} weight="bold" numberOfLines={2}>
+            {item.title}
           </StyledText>
-          <StyledText style={styles.replyCount}>
-            {item.replyCount} Balasan
-          </StyledText>
+          <RenderHTML
+            source={{html: item.content}}
+            tagsStyles={htmlStyles}
+            contentWidth={width - 30}
+          />
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-});
+
+        {item.imageUrl ? (
+          <ImageBackground
+            source={{uri: item.imageUrl}}
+            style={styles.imageBackground}
+            imageStyle={styles.imageStyle}
+            resizeMode="cover"
+          />
+        ) : null}
+
+        <View style={styles.bubbleContainer}>
+          <CustomIcon
+            name="ChatsTeardrop"
+            color={COLORS.textSecondary}
+            size={20}
+          />
+          <StyledText style={styles.replyCount}>{item.replyCount}</StyledText>
+        </View>
+      </TouchableOpacity>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: COLORS.white,
-    marginBottom: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderTopWidth: 0.5,
+    borderBottomWidth: 0.5,
+    borderColor: COLORS.greyMedium,
+    gap: 10,
   },
   imageBackground: {
     height: IMAGE_HEIGHT,
     justifyContent: 'flex-end',
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+    borderColor: COLORS.greyMedium,
+    backgroundColor: COLORS.greyLight,
   },
   imageStyle: {
     borderRadius: 8,
   },
   infoContainer: {
-    padding: 12,
+    padding: 0,
   },
   title: {
-    fontSize: 16,
+    fontSize: 20,
     color: COLORS.textPrimary,
     marginBottom: 8,
+  },
+  content: {
+    fontSize: 16,
+    color: COLORS.textPrimary,
   },
   metaContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
   },
   author: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    flex: 1,
-    marginRight: 8,
+    fontSize: 16,
+    color: COLORS.textPrimary,
   },
   date: {
     fontSize: 14,
@@ -123,13 +159,77 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.primary,
     flex: 1,
-    marginRight: 8,
   },
   replyCount: {
     fontSize: 13,
     color: COLORS.textSecondary,
   },
+  authorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bubbleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
 });
 
-export default ForumItemCard;
+const htmlStyles: Readonly<Record<string, MixedStyleDeclaration>> = {
+  p: {
+    fontFamily: 'Roboto-Regular',
+    fontSize: 16,
+    lineHeight: 26,
+    color: COLORS.textPrimary,
+    marginBottom: 16, // Jarak antar paragraf
+  },
+  strong: {
+    fontFamily: 'Roboto-Bold',
+  },
+  a: {
+    color: COLORS.primary,
+    textDecorationLine: 'none',
+    fontFamily: 'Roboto-Regular',
+  },
+  ul: {
+    marginBottom: 16,
+  },
+  li: {
+    fontFamily: 'Roboto-Regular',
+    fontSize: 16,
+    lineHeight: 26,
+    color: COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  h1: {
+    fontFamily: 'Roboto-Bold',
+    fontSize: 20,
+    lineHeight: 30,
+    color: COLORS.textPrimary,
+  },
+  h2: {
+    fontFamily: 'Roboto-Bold',
+    fontSize: 18,
+    lineHeight: 26,
+    color: COLORS.textPrimary,
+  },
+  blockquote: {
+    fontFamily: 'Roboto-Italic',
+    fontSize: 14,
+    lineHeight: 26,
+    color: COLORS.textSecondary,
+    marginBottom: 16,
+    paddingLeft: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+  },
+  h3: {
+    fontFamily: 'Roboto-Bold',
+    fontSize: 14,
+    lineHeight: 26,
+    color: COLORS.textPrimary,
+  },
+};
 
+export default ForumItemCard;

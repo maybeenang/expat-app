@@ -16,6 +16,13 @@ export const DEFAULT_EVENT_LIMIT = 6;
 
 export const FORUM_LIST_ENDPOINT = '/forum';
 export const FORUM_CATEGORIES_ENDPOINT = '/forum/categories';
+export const USER_FORUM_CATEGORIES_ENDPOINT = '/admin_forum/categories';
 export const DEFAULT_FORUM_LIMIT = 6;
 
 export const ADMIN_FORUM_CREATE_ENDPOINT = '/admin_forum/create';
+export const ADMIN_FORUM_UPDATE_ENDPOINT = '/admin_forum/update';
+export const ADMIN_FORUM_DELETE_ENDPOINT = '/admin_forum';
+export const ADMIN_FORUM_LIST_ENDPOINT = '/admin_forum';
+
+export const JOBS_ENDPOINT = '/jobs';
+export const DEFAULT_JOBS_LIMIT = 10;
