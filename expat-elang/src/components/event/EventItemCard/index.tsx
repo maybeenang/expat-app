@@ -10,21 +10,35 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../navigation/types';
 import COLORS from '../../../constants/colors';
 import StyledText from '../../common/StyledText';
+import {CustomIcon} from '../../common/CustomPhosporIcon';
 
 interface EventItemCardProps {
   item: ProcessedEventItem;
   navigation: NativeStackNavigationProp<RootStackParamList>;
   usePush?: boolean;
+  showActionMenu: boolean;
+  onPressActionMenu?: (item: ProcessedEventItem) => void;
+  catId?: string;
 }
 
 const EventItemCard = React.memo(
-  ({item, navigation, usePush}: EventItemCardProps) => {
+  ({
+    item,
+    navigation,
+    usePush,
+    showActionMenu = false,
+    onPressActionMenu,
+    catId,
+  }: EventItemCardProps) => {
     const handlePress = () => {
       if (navigation) {
         if (usePush) {
-          navigation.push('EventDetail', {eventId: item.id});
+          navigation.push('EventDetail', {eventId: item.id, categoryId: catId});
         } else {
-          navigation.navigate('EventDetail', {eventId: item.id});
+          navigation.navigate('EventDetail', {
+            eventId: item.id,
+            categoryId: catId,
+          });
         }
       } else {
         console.warn('Navigation prop is not provided');
@@ -36,9 +50,30 @@ const EventItemCard = React.memo(
 
     return (
       <TouchableOpacity
+        key={item.id}
         style={styles.cardContainer}
         onPress={handlePress}
         activeOpacity={0.8}>
+        {showActionMenu && (
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              backgroundColor: COLORS.primary,
+              zIndex: 1,
+              borderRadius: 50,
+            }}
+            onPress={() => onPressActionMenu && onPressActionMenu(item)}
+            activeOpacity={0.8}>
+            <CustomIcon
+              name="DotsThreeVertical"
+              size={28}
+              color={COLORS.white}
+              type="bold"
+            />
+          </TouchableOpacity>
+        )}
         <ImageBackground
           source={{uri: item.imageUrl ?? defaultImageUrl}}
           style={styles.imageBackground}

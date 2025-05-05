@@ -36,7 +36,7 @@ export const drawerButtons: DrawerItemProps[] = [
   },
   {
     label: 'Forum',
-    icon: 'Chat',
+    icon: 'ChatsTeardrop',
     type: 'tab',
     navigateTo: 'Forum',
   },

@@ -256,6 +256,7 @@ export const useDeleteForumMutation = (
         console.error('Error deleting forum:', error.response?.data);
       }
       console.error('Error deleting forum:', error);
+      throw error;
     },
   });
 };

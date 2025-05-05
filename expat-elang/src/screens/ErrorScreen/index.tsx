@@ -7,7 +7,7 @@ import COLORS from '../../constants/colors';
 type Props = {
   placeholder: string;
   error: Error | null;
-  refetch: () => void;
+  refetch?: () => void;
 };
 
 const ErrorScreen = (props: Props) => {
@@ -17,11 +17,13 @@ const ErrorScreen = (props: Props) => {
         <StyledText style={styles.errorText}>
           {props.placeholder}: {props.error?.message || 'Data tidak ditemukan.'}
         </StyledText>
-        <TouchableOpacity
-          onPress={() => props.refetch()}
-          style={styles.retryButton}>
-          <StyledText style={styles.retryButtonText}>Coba Lagi</StyledText>
-        </TouchableOpacity>
+        {props.refetch !== undefined && (
+          <TouchableOpacity
+            onPress={() => props.refetch?.()}
+            style={styles.retryButton}>
+            <StyledText style={styles.retryButtonText}>Coba Lagi</StyledText>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );

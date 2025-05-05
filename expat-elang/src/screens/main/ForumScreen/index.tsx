@@ -1,10 +1,4 @@
-import React, {
-  useRef,
-  useCallback,
-  useState,
-  useEffect,
-  useLayoutEffect,
-} from 'react';
+import React, {useRef, useCallback, useState, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -34,8 +28,6 @@ import {useAuthStore} from '../../../store/useAuthStore';
 import ForumItemList from '../../../components/forum/ForumItemList';
 import ForumItemCard from '../../../components/forum/ForumItemCard';
 import BottomSheetForum from '../../../components/forum/BottomSheetForum';
-import SearchBarButton from '../../../components/common/SearchBarButton';
-import SearchAndCreate from '../../../components/common/RightHeaderButton/SearchAndCreate';
 
 const {width} = Dimensions.get('window');
 

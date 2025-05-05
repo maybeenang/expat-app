@@ -12,56 +12,84 @@ import {ProcessedRentalItem} from '../../../types/rental';
 import {RootStackParamList} from '../../../navigation/types';
 import COLORS from '../../../constants/colors';
 import StyledText from '../../common/StyledText';
+import {CustomIcon} from '../../common/CustomPhosporIcon';
+import {useAuthStore} from '../../../store/useAuthStore';
 
 interface RentalItemCardProps {
   item: ProcessedRentalItem;
+  onPressActionMenu?: (item: ProcessedRentalItem) => void;
 }
 
-const RentalItemCard = React.memo(({item}: RentalItemCardProps) => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+const RentalItemCard = React.memo(
+  ({item, onPressActionMenu}: RentalItemCardProps) => {
+    const navigation =
+      useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handlePress = () => {
-    navigation.navigate('RentalDetail', {rentalId: item.id});
-  };
+    const {isLoggedIn} = useAuthStore();
 
-  const defaultImageUrl =
-    'https://via.placeholder.com/300x200/cccccc/969696?text=No+Image';
+    const handlePress = () => {
+      navigation.navigate('RentalDetail', {rentalId: item.id});
+    };
 
-  return (
-    <TouchableOpacity
-      style={styles.cardContainer}
-      onPress={handlePress}
-      activeOpacity={0.8}>
-      <ImageBackground
-        source={{uri: item.imageUrl ?? defaultImageUrl}}
-        style={styles.imageBackground}
-        imageStyle={styles.imageStyle}
-        resizeMode="cover">
-        {/* Tag Tipe */}
-        <View style={styles.typeTagContainer}>
-          <StyledText weight="medium" style={styles.typeTagText}>
-            {item.typeLabel}
+    const defaultImageUrl =
+      'https://via.placeholder.com/300x200/cccccc/969696?text=No+Image';
+
+    return (
+      <TouchableOpacity
+        style={styles.cardContainer}
+        onPress={handlePress}
+        activeOpacity={0.8}>
+        {item.isMine && isLoggedIn && (
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              backgroundColor: COLORS.primary,
+              zIndex: 1,
+              borderRadius: 50,
+            }}
+            onPress={() => onPressActionMenu && onPressActionMenu(item)}
+            activeOpacity={0.8}>
+            <CustomIcon
+              name="DotsThreeVertical"
+              size={28}
+              color={COLORS.white}
+              type="bold"
+            />
+          </TouchableOpacity>
+        )}
+
+        <ImageBackground
+          source={{uri: item.imageUrl ?? defaultImageUrl}}
+          style={styles.imageBackground}
+          imageStyle={styles.imageStyle}
+          resizeMode="cover">
+          {/* Tag Tipe */}
+          <View style={styles.typeTagContainer}>
+            <StyledText weight="medium" style={styles.typeTagText}>
+              {item.typeLabel}
+            </StyledText>
+          </View>
+        </ImageBackground>
+        <View style={styles.infoContainer}>
+          <StyledText style={styles.title} numberOfLines={1}>
+            {item.title}
+          </StyledText>
+          <StyledText style={styles.location} numberOfLines={1}>
+            {item.location}
+          </StyledText>
+          <StyledText style={styles.price} weight="bold">
+            {item.priceFormatted[0]}
+            <StyledText style={styles.priceType}>
+              {item.priceFormatted[1]}
+            </StyledText>
           </StyledText>
         </View>
-      </ImageBackground>
-      <View style={styles.infoContainer}>
-        <StyledText style={styles.title} numberOfLines={1}>
-          {item.title}
-        </StyledText>
-        <StyledText style={styles.location} numberOfLines={1}>
-          {item.location}
-        </StyledText>
-        <StyledText style={styles.price} weight="bold">
-          {item.priceFormatted[0]}
-          <StyledText style={styles.priceType}>
-            {item.priceFormatted[1]}
-          </StyledText>
-        </StyledText>
-      </View>
-    </TouchableOpacity>
-  );
-});
+      </TouchableOpacity>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   cardContainer: {

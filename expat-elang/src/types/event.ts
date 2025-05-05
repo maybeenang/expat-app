@@ -38,8 +38,9 @@ export interface EventItemApi {
   organizer_email: string;
   organizer_phone: string;
   nama_ref_global: string;
-  image_feature: EventImageFeature | null;
-  image_lists: any[];
+  image_feature?: EventImageFeature | null;
+  image_lists?: EventImageFeature[] | null; // Array of image objects
+  images?: EventImageFeature[]; // Array of image objects
   event_description_excerpt: string;
 }
 
@@ -84,4 +85,40 @@ export interface ProcessedEventDetail {
   imageUrls: string[]; // Semua URL gambar
   categoryName: string;
   slug: string;
+}
+
+export interface CreateEventPayload {
+  event_title: string;
+  category: string; // ID Kategori
+  description: string;
+  event_start: string; // Format 'YYYY-MM-DD HH:mm'
+  event_end: string; // Format 'YYYY-MM-DD HH:mm'
+  location: string;
+  max_capacity: string; // API mungkin menerima string atau number
+  price: string; // Value dari price dropdown
+  organizer_name: string;
+  organizer_email: string;
+  organizer_phone: string;
+  images?: {uri: string; type: string; name: string}[]; // Array file gambar
+}
+
+export interface UpdateEventPayload extends CreateEventPayload {
+  id: string; // ID event yang akan diperbarui
+  event_url: string; // URL event jika ada
+}
+
+export interface CategoryOption {
+  label: string;
+  value: string;
+}
+
+export interface EventPriceOption {
+  id: string;
+  name: string;
+}
+
+export interface EventPriceApiResponse {
+  status: number;
+  message: string;
+  data: EventPriceOption[];
 }

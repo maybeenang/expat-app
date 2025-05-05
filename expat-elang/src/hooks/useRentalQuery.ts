@@ -1,11 +1,20 @@
-import {useInfiniteQuery, useQuery} from '@tanstack/react-query';
 import {
+  UseMutationResult,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import {
+  createRental,
+  deleteRental,
   descExpandable,
   fetchRentalCategoriesApi,
   fetchRentalDetailApi,
   fetchRentalItemsApi,
   formatPrice,
   mapRentalTypeToLabel,
+  updateRental,
 } from '../services/rentalService';
 import type {
   RentalCategory,
@@ -13,8 +22,13 @@ import type {
   ProcessedRentalItem,
   RentalItemApi,
   ProcessedRentalDetail,
+  CreateRentalFormData,
+  UpdateRentalFormData,
 } from '../types/rental';
 import NUMBER from '../constants/number';
+import {Asset} from 'react-native-image-picker';
+import {useAuthStore} from '../store/useAuthStore';
+import axios from 'axios';
 
 export const rentalCategoriesQueryKey = ['rentalCategories'];
 export const RECOMMENDATION_CATEGORY: RentalCategory = {
@@ -22,13 +36,23 @@ export const RECOMMENDATION_CATEGORY: RentalCategory = {
   label: 'Rekomendasi',
 };
 
+export const MY_RENTAL_CATEGORY: RentalCategory = {
+  value: 'my',
+  label: 'Rental Saya',
+};
+
 export const useRentalCategoriesQuery = () => {
+  //const isLoggedIn = useAuthStore.getState().isLoggedIn;
+
   return useQuery<RentalCategory[], Error, RentalCategory[]>({
     queryKey: rentalCategoriesQueryKey,
     queryFn: fetchRentalCategoriesApi,
     staleTime: Infinity,
     select: data => {
-      //return [RECOMMENDATION_CATEGORY, ...data];
+      //if (isLoggedIn) {
+      //  return [MY_RENTAL_CATEGORY, ...data];
+      //}
+
       return [...data];
     },
   });
@@ -76,6 +100,7 @@ export const useRentalItemsInfinite = (
             imageUrl: item.image_feature?.img_url ?? null,
             typeLabel: mapRentalTypeToLabel(item.type),
             slug: item.rent_slug,
+            isMine: item.id_users === useAuthStore.getState().userSession?.id,
           });
         });
       });
@@ -136,6 +161,113 @@ export const useRentalDetailQuery = (rentalId: string) => {
           imageUrls.length,
         ),
       };
+    },
+  });
+};
+
+export const rentalDetailUnprocessedQueryKey = (rentalId: string) => [
+  'rentalDetailUnprocessed',
+  rentalId,
+];
+
+export const useRentalDetailUnprocessedQuery = (rentalId: string) => {
+  return useQuery<RentalItemApi, Error>({
+    queryKey: rentalDetailUnprocessedQueryKey(rentalId),
+    queryFn: () => fetchRentalDetailApi(rentalId),
+    enabled: !!rentalId,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useRentalCreateMutation = (): UseMutationResult<
+  any, // Tipe sukses API
+  Error, // Tipe error
+  {formData: CreateRentalFormData; images: Asset[]} // Input untuk mutateAsync
+> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      formData,
+      images,
+    }: {
+      formData: CreateRentalFormData;
+      images: Asset[];
+    }) => {
+      return createRental(formData, images);
+    },
+    onSuccess: () => {
+      // Invalidate query list rental (jika ada) agar data baru muncul
+      queryClient.invalidateQueries({queryKey: ['rentalItems']});
+      console.log('Rental created successfully, cache invalidated.');
+    },
+    onError: error => {
+      console.error('Error creating rental:', error);
+    },
+  });
+};
+
+export const useRentalDeleteMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (eventId: string) => deleteRental(eventId),
+    onSuccess: (_data, deletedId) => {
+      queryClient.setQueryData<{
+        pages: RentalListApiResponse[];
+        pageParams: number[];
+      }>(['rentalItems'], oldData => {
+        if (!oldData) {
+          return oldData;
+        }
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map(page => ({
+            ...page,
+            data: page.data.filter(topic => topic.id !== deletedId),
+          })),
+        };
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['rentalItems'],
+      });
+    },
+    onError: (error: Error) => {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Error response:', error.response.data);
+      }
+      console.error('Error deleting job:', error.message);
+      throw new Error('Failed to delete job');
+    },
+  });
+};
+
+export const useRentalUpdateMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: UpdateRentalFormData) => updateRental(payload),
+    onSuccess: (data, variable) => {
+      queryClient.invalidateQueries({
+        queryKey: ['rentalItems'],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['rentalDetail', variable.id],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['rentalDetailUnprocessed', variable.id],
+      });
+    },
+    onError: (error: Error) => {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Error response:', error.response.data);
+      }
+
+      console.error('Error message:', error.message);
     },
   });
 };

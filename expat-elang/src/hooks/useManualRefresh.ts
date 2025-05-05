@@ -2,7 +2,7 @@ import {QueryObserverResult} from '@tanstack/react-query';
 import {useCallback, useEffect, useState} from 'react';
 
 type Props = {
-  refetch: () => Promise<QueryObserverResult<any[], Error>>;
+  refetch: () => Promise<QueryObserverResult<any[], Error>> | Promise<void>;
   isFetching?: boolean;
 };
 

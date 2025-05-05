@@ -53,7 +53,6 @@ const AdItemCard = React.memo(({item}: AdItemCardProps) => {
 
 const styles = StyleSheet.create({
   adContainer: {
-    marginBottom: 20, // Jarak antar item (termasuk job)
     borderRadius: 8,
     overflow: 'hidden', // Clip gambar
   },

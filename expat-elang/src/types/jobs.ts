@@ -1,3 +1,8 @@
+export type JobCategory = {
+  id: string;
+  name: string;
+};
+
 export type JobListItemBase = {
   id: string;
   type?: 'ads' | 'jobs';
@@ -82,4 +87,81 @@ export type ProcessedListItem =
   | {type: 'job'; data: ProcessedJobItem}
   | {type: 'ad'; data: ProcessedAdItem};
 
-// TODO: Tambahkan tipe untuk detail job jika endpoint dan responsenya berbeda
+export interface JobDetailApiResponse {
+  status: number;
+  message: string;
+  data: JobItemApi;
+}
+
+export interface ProcessedJobDetail {
+  id: string;
+  title: string;
+  companyName: string;
+  companyDescription: string;
+  companyWebsite: string | null;
+  jobDescription: string;
+  location: string;
+  postDateFormatted: string;
+  expiryDateFormatted: string;
+  salaryFormatted: string | null;
+  logoUrl: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactWeb: string | null;
+  slug: string;
+  isPaid: boolean;
+}
+
+export interface JobOptionApiResponse<T> {
+  status: number;
+  message: string;
+  data: T[];
+}
+
+export interface CompanyOptionApiResponse {
+  id: string;
+  company_logo_slug: string;
+  company_name: string;
+  company_address: string;
+  company_descriptions: string;
+  company_web: string;
+  company_email: string;
+  company_phone: string;
+}
+
+export interface PaidStatusOption {
+  value: string; // "0" atau "1"
+  label: string; // "Free" atau "Paid"
+}
+
+export interface CompanyOption {
+  value: string; // ID Perusahaan
+  label: string; // Nama Perusahaan
+}
+
+export interface CurrencyOption {
+  value: string; // "$" atau "Rp"
+  label: string; // "USD" atau "IDR"
+}
+
+export interface CreateJobPayload {
+  id_company: string;
+  status_paid: string;
+  jobs_title: string;
+  jobs_desc: string;
+  jobs_location_city: string;
+  jobs_location_state: string;
+  jobs_location_country: string;
+  jobs_post_exp_date: string;
+  contact_info_email: string;
+  contact_info_phone: string;
+  contact_info_web: string;
+  salary_range_start: string;
+  salary_range_end: string;
+  salary_currency: string;
+}
+
+export interface UpdateJobPayload extends CreateJobPayload {
+  id: string; // ID pekerjaan yang akan diperbarui
+  jobs_slug: string; // Slug pekerjaan yang akan diperbarui
+}

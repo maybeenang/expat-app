@@ -1,20 +1,31 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
   FlatList,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   StatusBar,
   Platform,
+  Alert,
+  ActivityIndicator, // Import Alert
 } from 'react-native';
-import Icon from '@react-native-vector-icons/ionicons';
-import {RentalCategory} from '../../../types/rental';
+import {BottomSheetModal} from '@gorhom/bottom-sheet'; // Import BottomSheetModal
+import {useNavigation} from '@react-navigation/native'; // Import useNavigation
+import {
+  NativeStackScreenProps,
+  NativeStackNavigationProp,
+} from '@react-navigation/native-stack';
+
+import {
+  RentalCategory,
+  ProcessedRentalItem, // Asumsi Anda punya tipe ini
+} from '../../../types/rental';
 import {
   useRentalCategoriesQuery,
+  useRentalDeleteMutation,
   useRentalItemsInfinite,
 } from '../../../hooks/useRentalQuery';
 import COLORS from '../../../constants/colors';
@@ -23,19 +34,29 @@ import ErrorScreen from '../../ErrorScreen';
 import EmptyScreen from '../../EmptyScreen';
 import RentalItemCard from '../../../components/rental/RentalItem';
 import RentalCategoryIocn from '../../../components/rental/RentalCategoryIcon';
+import BottomSheetAction, {
+  ActionItem,
+} from '../../../components/common/BottomSheetAction'; // Import BottomSheetAction
 import useManualRefresh from '../../../hooks/useManualRefresh';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {MainTabParamList} from '../../../navigation/types';
+import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore'; // Import loading store
+import {MainTabParamList, RootStackParamList} from '../../../navigation/types'; // Sesuaikan Path & Nama ParamList
 
 interface ExploreScreenProps
   extends NativeStackScreenProps<MainTabParamList, 'Rental'> {}
 
+type ExploreScreenNavigationProp =
+  NativeStackNavigationProp<RootStackParamList>; // Gunakan Root Stack jika navigasi ke luar Tab
+
 const ExploreScreen = ({route}: ExploreScreenProps) => {
+  const navigation = useNavigation<ExploreScreenNavigationProp>();
+
   const {
     data: categoriesData,
     isLoading: isLoadingCategories,
     error: errorCategories,
+    refetch: refetchCategories, // Tambahkan refetch jika perlu
   } = useRentalCategoriesQuery();
+
   const [activeCategory, setActiveCategory] = useState<RentalCategory | null>(
     null,
   );
@@ -48,21 +69,32 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
     isLoading: isLoadingRentals,
     error: errorRentals,
     refetch: refetchRentals,
-  } = useRentalItemsInfinite(activeCategory);
+  } = useRentalItemsInfinite(activeCategory); // Gunakan activeCategory?.value jika hook butuh ID
+
+  const deleteMutation = useRentalDeleteMutation(); // Hook mutasi hapus
+  const {show, hide} = useLoadingOverlayStore();
+
+  // --- State dan Ref untuk Bottom Sheet ---
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const [selectedRental, setSelectedRental] =
+    useState<ProcessedRentalItem | null>(null);
 
   const {isManualRefreshing, handleManualRefresh} = useManualRefresh({
-    refetch: refetchRentals,
-    isFetching: isFetchingNextPage,
+    refetch: async () => {
+      await refetchCategories();
+      await refetchRentals();
+    },
+    isFetching: isFetchingNextPage || isLoadingRentals || isLoadingCategories, // Gabungkan status fetching
   });
 
+  // Efek untuk set kategori aktif awal
   useEffect(() => {
-    if (categoriesData && !activeCategory) {
+    if (categoriesData && !activeCategory && categoriesData.length > 0) {
       setActiveCategory(categoriesData[0]);
     }
-
-    return () => {};
   }, [categoriesData, activeCategory]);
 
+  // Efek untuk set kategori dari parameter route
   useEffect(() => {
     if (route.params?.category && categoriesData) {
       const initialCategory = categoriesData.find(
@@ -72,18 +104,82 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
         setActiveCategory(initialCategory);
       }
     }
-
-    return () => {};
   }, [route.params?.category, categoriesData]);
+
+  // Fungsi untuk membuka Bottom Sheet
+  const openActionMenu = useCallback((rental: ProcessedRentalItem) => {
+    setSelectedRental(rental);
+    bottomSheetModalRef.current?.present();
+  }, []);
+
+  // Definisi aksi-aksi untuk Bottom Sheet
+  const rentalActions = useMemo((): ActionItem[] => {
+    if (!selectedRental) {
+      return [];
+    }
+
+    return [
+      {
+        label: 'Lihat Detail',
+        variant: 'primary',
+        onPress: () => {
+          navigation.navigate('RentalDetail', {rentalId: selectedRental.id});
+        },
+      },
+      {
+        label: 'Edit Rental',
+        variant: 'secondary',
+        onPress: () => {
+          navigation.navigate('RentalUpdate', {rentalId: selectedRental.id});
+        },
+      },
+      {
+        label: 'Hapus Rental',
+        destructive: true,
+        destructiveMessage: `Yakin ingin menghapus rental "${selectedRental.title}"?`,
+        onPress: async () => {
+          if (deleteMutation.isPending) {
+            return;
+          }
+          show(); // Tampilkan loading
+          try {
+            await deleteMutation.mutateAsync(selectedRental.id);
+            Alert.alert('Sukses', 'Rental berhasil dihapus.');
+            bottomSheetModalRef.current?.dismiss();
+          } catch (error: any) {
+            console.error('Delete error:', error);
+            Alert.alert('Error', error?.message || 'Gagal menghapus rental.');
+          } finally {
+            hide();
+          }
+        },
+        disabled: deleteMutation.isPending, // Disable tombol saat proses hapus
+      },
+    ];
+  }, [selectedRental, navigation, deleteMutation, show, hide]);
 
   const renderCategoryFilter = () => {
     if (isLoadingCategories && !categoriesData) {
-      return null;
+      return (
+        <View style={styles.categoryContainer}>
+          <ActivityIndicator />
+        </View>
+      ); // Tampilkan loading kecil
     }
     if (errorCategories && !categoriesData) {
-      return null;
+      // Tampilkan opsi retry kecil jika gagal load kategori
+      return (
+        <View style={styles.centerContainerShort}>
+          <Text style={styles.errorTextSmall}>Gagal memuat kategori.</Text>
+          <TouchableOpacity
+            onPress={() => refetchCategories()}
+            style={styles.retryButtonSmall}>
+            <Text style={styles.retryButtonTextSmall}>Coba Lagi</Text>
+          </TouchableOpacity>
+        </View>
+      );
     }
-    if (categoriesData) {
+    if (categoriesData && categoriesData.length > 0) {
       return (
         <View style={styles.categoryContainer}>
           <ScrollView
@@ -92,14 +188,13 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
             contentContainerStyle={styles.categoryScroll}>
             {categoriesData.map(category => {
               const isActive = activeCategory?.value === category.value;
-
               return (
                 <TouchableOpacity
-                  key={category.value} // Gunakan value unik
+                  key={category.value}
                   style={styles.categoryButton}
                   onPress={() => setActiveCategory(category)}
                   activeOpacity={0.7}
-                  disabled={isManualRefreshing} // Disable saat loading
+                  disabled={isManualRefreshing || isLoadingRentals} // Disable saat loading data list juga
                 >
                   <RentalCategoryIocn
                     categoryName={category.value}
@@ -112,7 +207,6 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
                     ]}>
                     {category.label}
                   </Text>
-                  {/* Indikator aktif di bawah teks */}
                   {isActive && <View style={styles.activeIndicator} />}
                 </TouchableOpacity>
               );
@@ -121,12 +215,12 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
         </View>
       );
     }
-    return <View style={styles.categoryContainer} />; // Placeholder
+    return <View style={styles.categoryContainer} />; // Kosong jika tidak ada kategori
   };
 
-  // --- Render List Rental ---
   const renderRentalList = () => {
-    if (isLoadingRentals) {
+    if ((isLoadingRentals && !rentalItems) || isLoadingCategories) {
+      // Tampilkan LoadingScreen hanya saat load awal
       return <LoadingScreen />;
     }
     if (errorRentals) {
@@ -138,16 +232,20 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
         />
       );
     }
-    if (!rentalItems || rentalItems.length === 0) {
-      return <EmptyScreen />;
-    }
 
+    // FlatList tetap dirender meskipun data kosong untuk fitur pull-to-refresh
     return (
       <FlatList
-        data={rentalItems}
-        renderItem={({item}) => <RentalItemCard item={item} />}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
+        data={rentalItems ?? []} // Berikan array kosong jika undefined
+        renderItem={({item}) => (
+          <RentalItemCard item={item} onPressActionMenu={openActionMenu} />
+        )}
+        keyExtractor={item => item.id.toString()} // Pastikan ID adalah string atau konversi
+        contentContainerStyle={
+          rentalItems && rentalItems.length > 0
+            ? styles.listContainer
+            : styles.centerContainer
+        } // Padding jika ada item, center jika kosong
         showsVerticalScrollIndicator={false}
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) {
@@ -156,7 +254,7 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
         }}
         onEndReachedThreshold={0.7}
         ListFooterComponent={isFetchingNextPage ? <LoadingFooter /> : null}
-        // Pull to Refresh
+        ListEmptyComponent={!isLoadingRentals ? <EmptyScreen /> : null}
         onRefresh={handleManualRefresh}
         refreshing={isManualRefreshing && !isFetchingNextPage}
       />
@@ -166,62 +264,53 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-
-      {/* Category Filter */}
       {renderCategoryFilter()}
-
-      {/* Rental List Area */}
       <View style={styles.listArea}>{renderRentalList()}</View>
+
+      <BottomSheetAction
+        bottomSheetModalRef={bottomSheetModalRef}
+        actions={rentalActions}
+        snapPoints={['30%', '45%']}
+      />
     </SafeAreaView>
   );
 };
 
-// --- Styles ---
 const styles = StyleSheet.create({
   safeArea: {flex: 1, backgroundColor: COLORS.white},
-  // Search Bar
   searchBarContainer: {
     paddingHorizontal: 15,
     paddingTop: Platform.OS === 'android' ? 15 : 10,
     paddingBottom: 10,
-    backgroundColor: COLORS.white, // Pastikan ada background
+    backgroundColor: COLORS.white,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.greyLight, // Background abu muda
+    backgroundColor: COLORS.greyLight,
     borderRadius: 8,
     paddingHorizontal: 12,
     height: 45,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
+  searchIcon: {marginRight: 8},
   searchInput: {
     flex: 1,
-    paddingVertical: 0, // Reset padding bawaan
+    paddingVertical: 0,
     fontSize: 15,
     fontFamily: 'Roboto-Regular',
     color: COLORS.textPrimary,
   },
-  // Category Filter
   categoryContainer: {
-    paddingBottom: 0, // Tidak perlu padding bawah jika indicator nempel
     borderBottomWidth: 1,
     borderBottomColor: COLORS.greyLight,
     backgroundColor: COLORS.white,
   },
-  categoryScroll: {
-    zIndex: 10,
-    paddingHorizontal: 15,
-    paddingTop: 12,
-    paddingBottom: 0, // Indicator akan menutupi area ini
-  },
+  categoryScroll: {paddingHorizontal: 15, paddingTop: 12, paddingBottom: 0},
   categoryButton: {
     alignItems: 'center',
-    paddingBottom: 12, // Ruang untuk indicator
-    marginRight: 25, // Jarak antar kategori
-    minWidth: 60, // Lebar minimum tombol
+    paddingBottom: 12,
+    marginRight: 25,
+    minWidth: 60,
   },
   categoryText: {
     fontFamily: 'Roboto-Regular',
@@ -229,9 +318,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: COLORS.textSecondary,
   },
-  categoryTextActive: {
-    color: COLORS.textPrimary,
-  },
+  categoryTextActive: {color: COLORS.textPrimary},
   activeIndicator: {
     height: 3,
     width: '120%',
@@ -241,27 +328,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 2,
   },
-  // List Area
-  listArea: {
-    flex: 1,
-  },
-  listContainer: {
-    padding: 15,
-  },
-  // Loading, Error, Empty States
+  listArea: {flex: 1},
+  listContainer: {padding: 15},
   centerContainer: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-  },
+  }, // Gunakan flexGrow untuk Empty state
   infoText: {
     fontFamily: 'Roboto-Regular',
     color: COLORS.textSecondary,
     fontSize: 16,
   },
   footerLoader: {paddingVertical: 20},
-  // Style untuk error/loading kategori (jika diperlukan)
   centerContainerShort: {
     alignItems: 'center',
     paddingVertical: 10,
@@ -269,7 +349,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 15,
     minHeight: 55,
-  },
+  }, // Untuk error kategori
   errorTextSmall: {
     color: COLORS.primary,
     fontSize: 14,

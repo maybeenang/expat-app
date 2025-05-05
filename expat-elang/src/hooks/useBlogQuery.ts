@@ -84,6 +84,11 @@ export const useBlogCategoriesQuery = () => {
     queryFn: fetchBlogCategoriesApi,
     staleTime: Infinity,
     select: data => {
+      // delete \n and \r form data
+      data = data.map(item => ({
+        ...item,
+        name: item.name.replace(/[\n\r]/g, ''),
+      }));
       return [ALL_CATEGORY_PLACEHOLDER, ...data];
     },
     //placeholderData: [ALL_CATEGORY_PLACEHOLDER],

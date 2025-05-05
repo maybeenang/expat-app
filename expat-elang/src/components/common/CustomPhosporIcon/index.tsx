@@ -36,6 +36,9 @@ import DotsThreeVertical from 'phosphor-react-native/src/icons/DotsThreeVertical
 import PaperPlaneRight from 'phosphor-react-native/src/icons/PaperPlaneRight';
 import Bell from 'phosphor-react-native/src/icons/Bell';
 import BriefCase from 'phosphor-react-native/src/icons/Briefcase';
+import Pencil from 'phosphor-react-native/src/icons/Pencil';
+import ChatCircleDots from 'phosphor-react-native/src/icons/ChatCircleDots';
+import Faders from 'phosphor-react-native/src/icons/Faders';
 import React, {FC} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 
@@ -50,8 +53,11 @@ interface PhosphorIconProps {
 }
 
 export const SupportedIconsList = {
+  Faders,
+  ChatCircleDots,
   BriefCase,
   DotsThree,
+  Pencil,
   Bell,
   DotsThreeVertical,
   PaperPlaneRight,

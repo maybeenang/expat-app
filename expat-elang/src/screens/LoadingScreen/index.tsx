@@ -1,11 +1,19 @@
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import COLORS from '../../constants/colors';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import StyledText from '../../components/common/StyledText';
 
-const LoadingScreen = () => (
+interface LoadingScreenProps {
+  text?: string;
+}
+
+const LoadingScreen = (props: LoadingScreenProps) => (
   <SafeAreaView style={styles.safeArea}>
     <View style={styles.centerContainer}>
       <ActivityIndicator size="large" color={COLORS.primary} />
+      {props.text && (
+        <StyledText style={{marginTop: 10}}>{props.text}</StyledText>
+      )}
     </View>
   </SafeAreaView>
 );

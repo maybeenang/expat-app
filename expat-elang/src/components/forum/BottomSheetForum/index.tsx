@@ -48,17 +48,6 @@ const BottomSheetForum = ({
     return null;
   }
 
-  //if (mutateDeleteForum.isPending) {
-  //  return (
-  //    <View style={styles.container}>
-  //      <ActivityIndicator size="large" color={COLORS.primary} />
-  //      <StyledText style={[styles.secondary, {textAlign: 'center'}]}>
-  //        Menghapus...
-  //      </StyledText>
-  //    </View>
-  //  );
-  //}
-
   if (mutateDeleteForum.isError) {
     return (
       <>

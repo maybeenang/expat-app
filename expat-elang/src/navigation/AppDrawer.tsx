@@ -14,6 +14,7 @@ import LawyerScreen from '../screens/main/LawyerScreen';
 import {useNavigation} from '@react-navigation/native';
 import AccountStackNavigator from './AccountNavigator';
 import JobsScreen from '../screens/main/JobsScreen';
+import DrawerSearchHeader from '../components/header/DrawerSearchHeader';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
@@ -72,28 +73,53 @@ export function AppDrawer() {
         name="Blog"
         component={BlogScreen}
         options={{
-          headerRight: () => {
-            return (
-              <TouchableOpacity
-                onPress={() => {
-                  naviagtion.navigate('BlogSearch' as never);
-                  console.log('Search pressed');
-                }}>
-                <CustomIcon
-                  name="MagnifyingGlass"
-                  size={24}
-                  color={COLORS.primary}
-                  style={{marginRight: 15}}
-                />
-              </TouchableOpacity>
-            );
-          },
+          headerTitle: () => (
+            <DrawerSearchHeader
+              searchPlaceholder="Search Blog"
+              searchScreen="BlogSearch"
+              showCreateButton={false}
+            />
+          ),
         }}
       />
       <Drawer.Screen name="Gallery" component={GalleryScreen} />
-      <Drawer.Screen name="Restaurant" component={RestaurantScreen} />
-      <Drawer.Screen name="Lawyers" component={LawyerScreen} />
-      <Drawer.Screen name="Jobs" component={JobsScreen} />
+      <Drawer.Screen
+        name="Restaurant"
+        component={RestaurantScreen}
+        options={{
+          headerTitle: () => (
+            <DrawerSearchHeader
+              searchPlaceholder="Search Restaurant"
+              showCreateButton={false}
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Lawyers"
+        component={LawyerScreen}
+        options={{
+          headerTitle: () => (
+            <DrawerSearchHeader
+              searchPlaceholder="Search Lawyers"
+              showCreateButton={false}
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Jobs"
+        component={JobsScreen}
+        options={{
+          headerTitle: () => (
+            <DrawerSearchHeader
+              searchPlaceholder="Search Jobs"
+              searchScreen="JobSearch"
+              createScreen="JobCreate"
+            />
+          ),
+        }}
+      />
       <Drawer.Screen name="Profile" component={AccountStackNavigator} />
     </Drawer.Navigator>
   );

@@ -1,3 +1,5 @@
+import {Asset} from 'react-native-image-picker';
+
 export interface RentalCategory {
   value: string;
   label: string;
@@ -24,6 +26,8 @@ export interface RentalImageFeature {
 export interface RentalItemApi {
   id: string;
   id_users: string;
+  is_paid: string;
+  is_paid_display: string;
   type: string;
   rent_title: string;
   rent_address: string;
@@ -68,6 +72,7 @@ export interface ProcessedRentalItem {
   imageUrl: string | null;
   typeLabel: string;
   slug: string;
+  isMine: boolean;
 }
 
 export interface RentalDetailApiResponse {
@@ -86,4 +91,47 @@ export interface ProcessedRentalDetail {
   typeLabel: string;
   descExpandable: boolean;
   contactNumber?: string;
+}
+
+export interface RentalOptionApiResponse<T> {
+  status: number;
+  message: string;
+  data: T[];
+}
+
+export interface RentalOption {
+  value: string;
+  label: string;
+}
+
+export interface KtDetailItem {
+  id?: string | null; // ID detail item ini
+  type_details: RentalOption | string | undefined; // Asumsi API kembalikan objek opsi
+  nama_details1: string | null; // Bisa null dari API
+  nama_details2: RentalOption | string | undefined; // Bisa objek opsi atau null
+  desc: string | null;
+}
+
+export interface CreateRentalFormData {
+  title: string;
+  status_paid: string;
+  type: string;
+  address: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  description: string;
+  availability: string;
+  price: string;
+  stay_min: string;
+  stay_max: string;
+  stay_type: string;
+  kt_details: KtDetailItem[];
+}
+
+export interface UpdateRentalFormData extends CreateRentalFormData {
+  id: string;
+  rent_slug: string;
+  images?: Asset[];
 }

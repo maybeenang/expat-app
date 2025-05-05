@@ -1,17 +1,29 @@
-import axios from 'axios';
+import axios, {AxiosResponse} from 'axios';
+// @ts-ignore
+import qs from 'qs';
 import {
   DEFAULT_EVENT_LIMIT,
+  EVENT_ADMIN_ENDPOINT,
   EVENT_CATEGORIES_ENDPOINT,
+  EVENT_CREATE_ENDPOINT,
   EVENT_ENDPOINT,
+  EVENT_PRICE_ENDPOINT,
+  EVENT_UPDATE_ENDPOINT,
 } from '../constants/api';
 import {
+  CreateEventPayload,
   EventCategoriesApiResponse,
   EventCategoryApi,
   EventDetailApiResponse,
   EventItemApi,
   EventListApiResponse,
+  EventPriceApiResponse,
+  EventPriceOption,
+  UpdateEventPayload,
 } from '../types/event';
 import apiClient from './authService';
+import {useAuthStore} from '../store/useAuthStore';
+import {MY_EVENT_CATEGORY} from '../hooks/useEventQuery';
 
 export const fetchEventCategoriesApi = async (): Promise<
   EventCategoryApi[]
@@ -45,16 +57,22 @@ export const fetchEventItemsApi = async (
   {pageParam = 1},
   categoryId?: string,
 ): Promise<EventListApiResponse> => {
+  const isLoggedIn = useAuthStore.getState().isLoggedIn;
+
   const params: Record<string, string | number> = {
     page: pageParam,
     limit: DEFAULT_EVENT_LIMIT,
+    categories: categoryId || '',
   };
-  if (categoryId && categoryId !== 'Semua Kategori') {
-    params.categories = categoryId;
+
+  let endpoint = EVENT_ENDPOINT;
+
+  if (categoryId === MY_EVENT_CATEGORY.name && isLoggedIn) {
+    endpoint = EVENT_ADMIN_ENDPOINT;
   }
 
   try {
-    const response = await apiClient.get<EventListApiResponse>(EVENT_ENDPOINT, {
+    const response = await apiClient.get<EventListApiResponse>(endpoint, {
       params,
     });
 
@@ -86,14 +104,20 @@ export const formatEventDate = (dateString: string): string => {
 
 export const fetchEventDetailApi = async (
   eventId: string,
+  categoryId?: string,
 ): Promise<{mainEvent: EventItemApi; recentEvents: EventItemApi[]}> => {
   try {
-    const response = await apiClient.get<EventDetailApiResponse>(
-      EVENT_ENDPOINT,
-      {
-        params: {id: eventId},
-      },
-    );
+    let endpoint = EVENT_ENDPOINT;
+
+    if (categoryId === MY_EVENT_CATEGORY.name) {
+      endpoint = EVENT_ADMIN_ENDPOINT;
+    }
+
+    console.log(endpoint);
+
+    const response = await apiClient.get<EventDetailApiResponse>(endpoint, {
+      params: {id: eventId},
+    });
 
     if (response.data && response.data.status === 200 && response.data.data) {
       return {
@@ -152,5 +176,129 @@ export const formatEventDateTime = (
   } catch (e) {
     console.error('Date formatting failed:', e);
     return startString; // Fallback
+  }
+};
+
+export const fetchPriceOptionsApi = async (): Promise<EventPriceOption[]> => {
+  try {
+    const response = await apiClient.get<EventPriceApiResponse>(
+      EVENT_PRICE_ENDPOINT,
+    );
+
+    if (response.data && response.data.status === 200) {
+      return response.data.data;
+    } else {
+      throw new Error('Failed to fetch price options');
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.message || 'Failed to fetch price');
+    }
+    throw new Error('Network error or failed to connect');
+  }
+};
+
+export const adminCreateEventApi = (
+  payload: CreateEventPayload,
+): Promise<AxiosResponse> => {
+  try {
+    const formdata = new FormData();
+
+    // Append each field to the FormData object
+    Object.entries(payload).forEach(([key, value]) => {
+      formdata.append(key, value);
+    });
+
+    // images
+    if (payload.images) {
+      payload.images.forEach(image => {
+        formdata.append('images[]', image);
+      });
+    }
+
+    console.log('FormData:', formdata);
+
+    return apiClient.post(EVENT_CREATE_ENDPOINT, formdata, {
+      headers: {'Content-Type': 'multipart/form-data'},
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data?.message || 'Failed to create job');
+    }
+    throw new Error('Network error or failed to connect');
+  }
+};
+
+export const getImageEventThumbnail = (item: EventItemApi): string | null => {
+  // check if image_feature is not null
+  if (item.image_feature) {
+    // check if image_feature is an object
+    if (typeof item.image_feature === 'object') {
+      return item.image_feature.img_url;
+    }
+  }
+
+  if (item.image_lists && item.image_lists.length > 0) {
+    const image = item.image_lists[0];
+    if (typeof image === 'object' && image.img_url) {
+      return image.img_url;
+    }
+  }
+
+  if (item.images && item.images.length > 0) {
+    const image = item.images[0];
+    if (typeof image === 'object' && image.img_url) {
+      return image.img_url;
+    }
+  }
+
+  return null;
+};
+
+export const adminDeleteEventApi = (
+  eventId: string,
+): Promise<AxiosResponse> => {
+  const data = qs.stringify({id: eventId});
+
+  return apiClient.request({
+    method: 'DELETE',
+    url: EVENT_ADMIN_ENDPOINT,
+    data,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+};
+
+export const adminUpdateEventApi = (
+  payload: UpdateEventPayload,
+): Promise<AxiosResponse> => {
+  try {
+    const formdata = new FormData();
+    // Append each field to the FormData Object
+    Object.entries(payload).forEach(([key, value]) => {
+      formdata.append(key, value);
+    });
+
+    // images
+    if (payload.images) {
+      payload.images.forEach(image => {
+        formdata.append('images[]', image);
+      });
+    }
+
+    console.log('FormData:', formdata);
+
+    return apiClient.post(EVENT_UPDATE_ENDPOINT, formdata, {
+      headers: {'Content-Type': ' multipart/form-data '},
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('Error response:', error.response.data);
+      throw new Error(error.response.data?.message || 'Failed to update event');
+    }
+
+    console.log('Error:', error);
+    throw new Error('Network error or failed to connect');
   }
 };

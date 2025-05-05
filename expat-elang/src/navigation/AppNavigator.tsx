@@ -24,6 +24,15 @@ import ForumSearchScreen from '../screens/main/ForumScreen/search';
 import LoadingOverlay from '../components/common/LoadingOverlay';
 import {useLoadingOverlayStore} from '../store/useLoadingOverlayStore';
 import {useRedirectStore} from '../store/useRedirectStore';
+import JobDetailScreen from '../screens/main/JobsScreen/detail';
+import JobsCreateScreen from '../screens/main/JobsScreen/create';
+import JobsSearchScreen from '../screens/main/JobsScreen/search';
+import ChatScreen from '../screens/main/ChatScreen';
+import JobUpdateScreen from '../screens/main/JobsScreen/update';
+import EventsCreateScreen from '../screens/main/EventScreen/create';
+import EventUpdateScreen from '../screens/main/EventScreen/update';
+import RentalsCreateScreen from '../screens/main/ExploreScreen/create';
+import RentalsUpdateScreen from '../screens/main/ExploreScreen/update';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -105,6 +114,26 @@ const AppNavigator = () => {
         />
 
         <Stack.Screen
+          name="EventCreate"
+          component={EventsCreateScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="EventUpdate"
+          component={EventUpdateScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
           name="EventDetail"
           component={EventDetailScreen}
           options={{
@@ -120,6 +149,26 @@ const AppNavigator = () => {
         <Stack.Screen
           name="RentalDetail"
           component={RentalDetailScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="RentalCreate"
+          component={RentalsCreateScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="RentalUpdate"
+          component={RentalsUpdateScreen}
           options={{
             headerShown: true,
             title: '',
@@ -164,9 +213,80 @@ const AppNavigator = () => {
             headerTintColor: COLORS.primary,
           }}
         />
+
         <Stack.Screen
           name="ForumSearch"
           component={ForumSearchScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="JobDetail"
+          component={JobDetailScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="JobCreate"
+          component={JobsCreateScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="JobUpdate"
+          component={JobUpdateScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="JobSearch"
+          component={JobsSearchScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="Chat"
+          component={ChatScreen}
           options={{
             headerShown: true,
             title: '',

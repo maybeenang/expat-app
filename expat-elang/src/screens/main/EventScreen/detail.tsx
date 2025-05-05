@@ -19,6 +19,8 @@ import {ProcessedEventItem} from '../../../types/event';
 import EventItemCard from '../../../components/event/EventItemCard';
 import COLORS from '../../../constants/colors';
 import StyledText from '../../../components/common/StyledText';
+import RenderHTML from 'react-native-render-html';
+import {htmlStyles} from '../../../constants/styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EventDetail'>;
 
@@ -26,8 +28,11 @@ const {width} = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.6;
 
 const EventDetailScreen = ({route, navigation}: Props) => {
-  const {eventId} = route.params;
-  const {data, isLoading, error, refetch} = useEventDetailQuery(eventId);
+  const {eventId, categoryId} = route.params;
+  const {data, isLoading, error, refetch} = useEventDetailQuery(
+    eventId,
+    categoryId,
+  );
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -45,7 +50,14 @@ const EventDetailScreen = ({route, navigation}: Props) => {
   const {mainEvent, recentEvents} = data;
 
   const renderRecentEvent = ({item}: {item: ProcessedEventItem}) => {
-    return <EventItemCard item={item} navigation={navigation} />;
+    return (
+      <EventItemCard
+        item={item}
+        navigation={navigation}
+        showActionMenu={false}
+        catId={categoryId}
+      />
+    );
   };
 
   const renderPagination = (index: number, total: number) => (
@@ -98,7 +110,6 @@ const EventDetailScreen = ({route, navigation}: Props) => {
             <StyledText style={styles.metaText}>
               {mainEvent.location}
             </StyledText>
-            <StyledText style={styles.metaSeparator}>|</StyledText>
             <StyledText style={styles.metaText}>
               {mainEvent.dateTimeFormatted}
             </StyledText>
@@ -106,9 +117,12 @@ const EventDetailScreen = ({route, navigation}: Props) => {
         </View>
 
         <View style={styles.descriptionSection}>
-          <Text style={styles.descriptionText}>
-            {mainEvent.description || 'Tidak ada deskripsi.'}
-          </Text>
+          <RenderHTML
+            contentWidth={width}
+            source={{html: mainEvent.description}}
+            tagsStyles={htmlStyles}
+            enableExperimentalMarginCollapsing={true}
+          />
         </View>
 
         {recentEvents && recentEvents.length > 0 && (
@@ -176,9 +190,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   metaContainer: {
-    flexDirection: 'row',
     gap: 4,
-    alignItems: 'center',
     marginBottom: 8,
   },
   metaIcon: {

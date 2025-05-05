@@ -171,6 +171,8 @@ export const adminCreateForumApi = (
     formData.append('category[]', catId);
   });
 
+  console.log(formData);
+
   return apiClient.post(ADMIN_FORUM_CREATE_ENDPOINT, formData, {
     headers: {'Content-Type': 'multipart/form-data'},
   });

@@ -1,5 +1,7 @@
 import {IconName} from '../components/common/CustomPhosporIcon';
 import {MainTabParamList} from '../navigation/types';
+// @ts-ignore
+import qs from 'qs';
 
 export const getTabBarIconName = (routeName: keyof MainTabParamList) => {
   let iconName: IconName;
@@ -28,3 +30,11 @@ export const getTabBarIconName = (routeName: keyof MainTabParamList) => {
 
   return iconName;
 };
+
+// function to capitalize first char string
+export const capitalizeFirstChar = (str: string) => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+export const qss = qs;

@@ -43,7 +43,6 @@ export const useAuthMutations = () => {
     },
   });
 
-  // --- Logout Function ---
   const logout = async () => {
     try {
       await EncryptedStorage.removeItem(AUTH_TOKEN_KEY);

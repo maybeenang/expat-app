@@ -7,90 +7,101 @@ import {ProcessedJobItem} from '../../../types/jobs';
 import {RootStackParamList} from '../../../navigation/types';
 import COLORS from '../../../constants/colors';
 import Icon from '@react-native-vector-icons/ionicons';
+import {CustomIcon} from '../../common/CustomPhosporIcon';
 
 interface JobItemCardProps {
   item: ProcessedJobItem;
+  categoryId?: string;
+  showActionButton?: boolean;
+  handleActionButtonPress: () => void;
 }
 
-const JobItemCard = React.memo(({item}: JobItemCardProps) => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>(); // Asumsi detail di RootStack
+const JobItemCard = React.memo(
+  ({
+    item,
+    categoryId,
+    showActionButton = false,
+    handleActionButtonPress,
+  }: JobItemCardProps) => {
+    const navigation =
+      useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handlePress = () => {
-    // TODO: Implementasi navigasi ke JobDetail
-    console.log('Navigate to job detail:', item.slug);
-    // navigation.navigate('JobDetail', { jobId: item.id });
-  };
+    const handlePress = () => {
+      navigation.navigate('JobDetail', {jobId: item.id, categoryId});
+    };
 
-  const defaultLogo = 'https://via.placeholder.com/50/cccccc/969696?text=L'; // Placeholder logo
-
-  return (
-    <TouchableOpacity
-      style={styles.cardContainer}
-      onPress={handlePress}
-      activeOpacity={0.8}>
-      <View style={styles.header}>
-        <Image
-          source={{uri: item.logoUrl ?? defaultLogo}}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <View style={styles.headerText}>
-          <Text style={styles.title} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.company} numberOfLines={1}>
-            {item.companyName}
-          </Text>
+    return (
+      <TouchableOpacity
+        style={styles.cardContainer}
+        onPress={handlePress}
+        activeOpacity={0.8}>
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={styles.title} numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text style={styles.company} numberOfLines={1}>
+              {item.companyName}
+            </Text>
+          </View>
+          {showActionButton && (
+            <TouchableOpacity
+              style={{alignSelf: 'flex-start'}}
+              onPress={() => handleActionButtonPress()}>
+              <CustomIcon
+                name="DotsThreeVertical"
+                size={24}
+                color={COLORS.textPrimary}
+              />
+            </TouchableOpacity>
+          )}
         </View>
-        {/* Tag Paid/Free (Opsional) */}
-        {/* <View style={[styles.paidTag, !item.isPaid && styles.freeTag]}>
-                    <Text style={styles.paidTagText}>{item.isPaid ? 'Paid' : 'Free'}</Text>
-                 </View> */}
-      </View>
-      <View style={styles.body}>
-        <View style={styles.infoRow}>
-          <Icon
-            name="location-outline"
-            size={14}
-            color={COLORS.textSecondary}
-            style={styles.infoIcon}
-          />
-          <Text style={styles.infoText} numberOfLines={1}>
-            {item.location}
-          </Text>
-        </View>
-        {item.salaryFormatted && (
+        <View style={styles.body}>
           <View style={styles.infoRow}>
             <Icon
-              name="cash-outline"
+              name="location-outline"
               size={14}
               color={COLORS.textSecondary}
               style={styles.infoIcon}
             />
-            <Text style={styles.infoText}>{item.salaryFormatted}</Text>
+            <Text style={styles.infoText} numberOfLines={1}>
+              {item.location}
+            </Text>
           </View>
-        )}
-      </View>
-      <View style={styles.footer}>
-        <Text style={styles.dateText}>{item.postDateFormatted}</Text>
-        {/* Bisa tambahkan tombol Apply atau Save di sini */}
-      </View>
-    </TouchableOpacity>
-  );
-});
+          <View
+            style={[
+              styles.infoRow,
+              {alignItems: 'center', justifyContent: 'space-between'},
+            ]}>
+            {item.salaryFormatted && (
+              <View style={styles.infoRow}>
+                <Icon
+                  name="cash-outline"
+                  size={14}
+                  color={COLORS.primary}
+                  style={styles.infoIcon}
+                />
+                <Text style={[styles.infoText, {color: COLORS.primary}]}>
+                  {item.salaryFormatted}
+                </Text>
+              </View>
+            )}
+
+            <Text style={styles.dateText}>{item.postDateFormatted}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: COLORS.white,
     borderRadius: 8,
-    marginBottom: 15,
     padding: 15,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    borderWidth: 0.5,
+    borderColor: COLORS.greyDrawerItem,
   },
   header: {
     flexDirection: 'row',
@@ -111,24 +122,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto-Bold',
     fontSize: 16,
     color: COLORS.textPrimary,
-    marginBottom: 2,
   },
   company: {
     fontFamily: 'Roboto-Regular',
     fontSize: 14,
     color: COLORS.textSecondary,
   },
-  // paidTag: { ... style untuk tag ... },
-  // freeTag: { ... style untuk tag ... },
-  // paidTagText: { ... style untuk tag ... },
-  body: {
-    marginBottom: 10,
-    paddingLeft: 5, // Sedikit indentasi untuk info
-  },
+  body: {},
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
   },
   infoIcon: {
     marginRight: 6,
@@ -138,12 +141,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textSecondary,
     flexShrink: 1, // Agar bisa wrap jika panjang
-  },
-  footer: {
-    borderTopWidth: 1,
-    borderTopColor: COLORS.greyLight,
-    paddingTop: 10,
-    alignItems: 'flex-end', // Tampilkan tanggal di kanan
   },
   dateText: {
     fontFamily: 'Roboto-Regular',

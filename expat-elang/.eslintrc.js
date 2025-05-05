@@ -8,6 +8,5 @@ module.exports = {
     'react-native/sort-styles': 'off',
     'react-native/no-raw-text': 'off',
     'react/no-unstable-nested-components': 'off',
-    'no-unused-vars': ['error', {argsIgnorePattern: '^_'}],
   },
 };

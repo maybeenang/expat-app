@@ -21,8 +21,19 @@ export type RootStackParamList = {
     rentalId: string;
   };
 
+  RentalCreate: undefined;
+  RentalUpdate: {
+    rentalId: string;
+  };
+
   EventDetail: {
     eventId: string;
+    categoryId?: string;
+  };
+  EventCreate: undefined;
+  EventUpdate: {
+    eventId: string;
+    categoryId?: string;
   };
 
   ForumDetail: {
@@ -33,6 +44,19 @@ export type RootStackParamList = {
     forumId: string;
   };
   ForumSearch: undefined;
+
+  JobDetail: {
+    jobId: string;
+    categoryId?: string;
+  };
+  JobCreate: undefined;
+  JobUpdate: {
+    jobId: string;
+    categoryId?: string;
+  };
+  JobSearch: undefined;
+
+  Chat: undefined;
 };
 
 export type DrawerParamList = {

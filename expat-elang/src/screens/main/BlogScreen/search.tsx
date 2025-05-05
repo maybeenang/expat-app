@@ -179,7 +179,7 @@ const BlogSearchScreen = ({navigation}: Props) => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryScroll}>
-            {categories.map(category => {
+            {categories?.map(category => {
               const isActive = category === activeCategory;
               return (
                 <TouchableOpacity
