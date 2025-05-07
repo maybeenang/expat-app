@@ -120,7 +120,11 @@ export function AppDrawer() {
           ),
         }}
       />
-      <Drawer.Screen name="Profile" component={AccountStackNavigator} />
+      <Drawer.Screen
+        name="Profile"
+        component={AccountStackNavigator}
+        options={{headerShown: false}}
+      />
     </Drawer.Navigator>
   );
 }

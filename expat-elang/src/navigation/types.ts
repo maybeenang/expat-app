@@ -57,6 +57,11 @@ export type RootStackParamList = {
   JobSearch: undefined;
 
   Chat: undefined;
+  ChatDetail: {
+    chatId: string;
+    participantName: string;
+    participantAvatarUrl: string;
+  };
 };
 
 export type DrawerParamList = {

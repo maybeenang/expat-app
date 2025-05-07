@@ -33,6 +33,7 @@ import EventsCreateScreen from '../screens/main/EventScreen/create';
 import EventUpdateScreen from '../screens/main/EventScreen/update';
 import RentalsCreateScreen from '../screens/main/ExploreScreen/create';
 import RentalsUpdateScreen from '../screens/main/ExploreScreen/update';
+import ChatDetailScreen from '../screens/main/ChatScreen/detail';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -287,6 +288,20 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Chat"
           component={ChatScreen}
+          options={{
+            headerShown: true,
+            title: '',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="ChatDetail"
+          component={ChatDetailScreen}
           options={{
             headerShown: true,
             title: '',
