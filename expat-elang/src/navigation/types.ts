@@ -72,6 +72,7 @@ export type DrawerParamList = {
   Lawyers: undefined;
   Jobs: undefined;
   Profile: undefined;
+  ChangePassword: undefined;
 };
 
 export type MainTabParamList = {

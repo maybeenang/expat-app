@@ -15,11 +15,13 @@ import {useNavigation} from '@react-navigation/native';
 import AccountStackNavigator from './AccountNavigator';
 import JobsScreen from '../screens/main/JobsScreen';
 import DrawerSearchHeader from '../components/header/DrawerSearchHeader';
+import {useAuthStore} from '../store/useAuthStore';
+import ChangePasswordScreen from '../screens/main/AccountScreen/ChangePassword';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
 export function AppDrawer() {
-  const naviagtion = useNavigation();
+  const {isLoggedIn} = useAuthStore();
 
   return (
     <Drawer.Navigator
@@ -125,6 +127,16 @@ export function AppDrawer() {
         component={AccountStackNavigator}
         options={{headerShown: false}}
       />
+
+      {isLoggedIn && (
+        <Drawer.Screen
+          name="ChangePassword"
+          component={ChangePasswordScreen}
+          options={{
+            title: 'Ubah Password',
+          }}
+        />
+      )}
     </Drawer.Navigator>
   );
 }

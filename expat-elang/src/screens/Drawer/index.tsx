@@ -23,6 +23,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
       return route.name === 'AppDrawer';
     });
 
+    // @ts-ignore
     const mainTabsRoute = appDrawer?.state?.routes?.find((route: any) => {
       return route.name === 'MainTabsDrawer';
     });
@@ -37,6 +38,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
   const isDrawerItemActive = (
     targetRouteName: string,
     type: DrawerItemType,
+    key?: string,
   ): boolean => {
     if (type === 'tab') {
       return (
@@ -47,7 +49,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
     const index = props.state.index;
     const routes = props.state.routes;
     const route = routes[index];
-    return route.name === targetRouteName;
+    return route.name === targetRouteName || route.name === key;
   };
 
   const navigateToScreen = (screenName: string, type: DrawerItemType) => {
@@ -69,7 +71,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         <ProfileCard />
 
         <View style={styles.groupContainer}>
-          {drawerButtons.map((item, index) => (
+          {drawerButtons().map((item, index) => (
             <DrawerItem
               style={styles.drawerItem}
               pressColor={COLORS.greyLight}
@@ -86,7 +88,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
               )}
               activeTintColor={COLORS.primary}
               activeBackgroundColor={'transparent'}
-              focused={isDrawerItemActive(item.label, item.type)}
+              focused={isDrawerItemActive(item.label, item.type, item?.key)}
               onPress={() => {
                 props.navigation.dispatch(DrawerActions.closeDrawer());
                 navigateToScreen(item.navigateTo ?? '', item.type);
