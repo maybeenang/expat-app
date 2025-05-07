@@ -1,0 +1,21 @@
+export const columns = [
+  {label: 'No', field: 'no', width: 50},
+  {label: 'Jenis Kegiatan', field: 'jenisKegiatan'},
+  {label: 'Rujukan Medis Rumah Sakit', field: 'rujukanMedisRumahSakit'},
+  {label: 'Rujukan Medis Bidan', field: 'rujukanMedisBidan'},
+  {label: 'Rujukan Medis Puskesmas', field: 'rujukanMedisPuskesmas'},
+  {label: 'Rujukan Medis Faskes Lainnya', field: 'rujukanMedisFaskesLainnya'},
+  {label: 'Rujukan Medis Jumlah Hidup', field: 'rujukanMedisJumlahHidup'},
+  {label: 'Rujukan Medis Jumlah Mati', field: 'rujukanMedisJumlahMati'},
+  {label: 'Total Rujukan Medis', field: 'totalRujukanMedis'},
+  {
+    label: 'Rujukan Non Medis Jumlah Hidup',
+    field: 'rujukanNonMedisJumlahHidup',
+  },
+  {label: 'Rujukan Non Medis Jumlah Mati', field: 'rujukanNonMedisJumlahMati'},
+  {label: 'Total Rujukan Non Medis', field: 'totalRujukanNonMedis'},
+  {label: 'Non Rujukan Jumlah Hidup', field: 'nonRujukanJumlahHidup'},
+  {label: 'Non Rujukan Jumlah Mati', field: 'nonRujukanJumlahMati'},
+  {label: 'Total Non Rujukan', field: 'totalNonRujukan'},
+  {label: 'Dirujuk', field: 'dirujuk'},
+];
