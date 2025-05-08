@@ -1,4 +1,4 @@
-package com.cpdev
+package com.cpportal
 
 import android.app.Application
 import com.facebook.react.PackageList
