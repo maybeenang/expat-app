@@ -11,7 +11,6 @@ import COLORS from '../constants/colors';
 import {TouchableOpacity} from 'react-native';
 import {DRAWERICONOPTIONS} from '../constants/sidebarItem';
 import LawyerScreen from '../screens/main/LawyerScreen';
-import {useNavigation} from '@react-navigation/native';
 import AccountStackNavigator from './AccountNavigator';
 import JobsScreen from '../screens/main/JobsScreen';
 import DrawerSearchHeader from '../components/header/DrawerSearchHeader';
