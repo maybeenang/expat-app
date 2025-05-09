@@ -22,6 +22,7 @@ apiClient.interceptors.request.use(
     const token = useAuthStore.getState().token; // Ambil token dari Zustand store
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      config.headers['x-token'] = token;
     }
     // Anda bisa menambahkan logging di sini untuk dev
     // console.log('Starting Request', JSON.stringify(config, null, 2));

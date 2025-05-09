@@ -4,6 +4,7 @@ import {DrawerParamList} from './types';
 import BottomTabNavigation from './BottomTabNavigation';
 import {CustomDrawerContent} from '../components/layout/CustomDrawer';
 import {colors} from '../contants/styles';
+import AdminCrewsScreen from '../screens/Main/AdminCrews';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
@@ -37,6 +38,12 @@ const DraweNavigation = () => {
         options={{
           headerShown: false,
         }}
+      />
+
+      <Drawer.Screen
+        name="AdminCrew"
+        component={AdminCrewsScreen}
+        options={{}}
       />
     </Drawer.Navigator>
   );

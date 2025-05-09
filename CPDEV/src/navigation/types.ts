@@ -5,6 +5,7 @@ export type RootStackParamList = {
 
 export type DrawerParamList = {
   BottomTab: undefined;
+  AdminCrew: undefined;
 };
 
 export type BottomTabParamList = {

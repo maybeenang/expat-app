@@ -27,12 +27,13 @@ export const drawerButtons = (): DrawerItemProps[] => {
       type: 'tab',
       navigateTo: 'Home',
     },
-    // {
-    //   label: 'Blog',
-    //   icon: 'Newspaper',
-    //   type: 'drawer',
-    //   navigateTo: 'Blog',
-    // },
+    {
+      label: 'Admin Crew',
+      icon: 'Newspaper',
+      type: 'drawer',
+      navigateTo: 'AdminCrew',
+      key: 'AdminCrew',
+    },
     // {
     //   label: 'Rental',
     //   icon: 'Compass',
