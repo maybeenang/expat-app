@@ -6,7 +6,10 @@ import {
   QueryKey,
 } from '@tanstack/react-query';
 import {AxiosError} from 'axios';
-import {fetchAdminCrews} from '../services/adminCrewsService';
+import {
+  fetchAdminCrewById,
+  fetchAdminCrews,
+} from '../services/adminCrewsService';
 import type {
   AdminCrewsApiResponse,
   GetAdminCrewsParams,
@@ -63,6 +66,21 @@ export const useInfiniteAdminCrewsQuery = (
 
       return allItems;
     },
+  });
+};
+
+export const useAdminCrewDetailQuery = (
+  crewId: string | undefined,
+): UseQueryResult<AdminCrew, AxiosError> => {
+  return useQuery<
+    AdminCrew,
+    AxiosError,
+    AdminCrew,
+    ReturnType<typeof queryKeys.adminCrews.detail>
+  >({
+    queryKey: queryKeys.adminCrews.detail(crewId!),
+    queryFn: () => fetchAdminCrewById(crewId!),
+    enabled: !!crewId,
   });
 };
 

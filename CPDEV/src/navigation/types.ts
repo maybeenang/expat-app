@@ -1,6 +1,21 @@
+import {Contract} from '../features/adminCrews/types';
+
 export type RootStackParamList = {
   Login?: undefined;
   Drawer: undefined;
+
+  AdminCrewDetail: {
+    crewId: string;
+  };
+
+  AdminCrewContractDetail: {
+    contract: Contract;
+    crewName: string | undefined;
+  };
+
+  ContractDetail: {
+    contractId: string;
+  };
 };
 
 export type DrawerParamList = {
@@ -10,5 +25,4 @@ export type DrawerParamList = {
 
 export type BottomTabParamList = {
   Home: undefined;
-  Profile: undefined;
 };

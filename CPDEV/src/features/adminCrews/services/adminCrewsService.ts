@@ -1,6 +1,14 @@
-import {ADMIN_CREWS_ENDPOINT} from '../../../contants/endpoints';
+import {
+  ADMIN_CREWS_DETAIL_ENDPOINT,
+  ADMIN_CREWS_ENDPOINT,
+} from '../../../contants/endpoints';
 import apiClient from '../../../services/apiClient'; // Sesuaikan path
-import type {AdminCrewsApiResponse, GetAdminCrewsParams} from '../types';
+import type {
+  AdminCrew,
+  AdminCrewDetailApiResponse,
+  AdminCrewsApiResponse,
+  GetAdminCrewsParams,
+} from '../types';
 import {AxiosError} from 'axios';
 
 /**
@@ -52,6 +60,39 @@ export const fetchAdminCrews = async (
     );
 
     throw error;
+  }
+};
+
+export const fetchAdminCrewById = async (
+  crewId: string,
+): Promise<AdminCrew> => {
+  try {
+    const response = await apiClient.get<AdminCrewDetailApiResponse>(
+      ADMIN_CREWS_DETAIL_ENDPOINT,
+      {
+        params: {id: crewId}, // Mengirim ID sebagai query parameter
+      },
+    );
+
+    if (response.data && response.data.status === 200 && response.data.data) {
+      return response.data.data; // Langsung kembalikan objek AdminCrew dari 'data.data'
+    } else {
+      throw new Error(
+        response.data.message ||
+          `Failed to fetch admin crew detail for ID ${crewId}: Invalid response structure`,
+      );
+    }
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      `Error fetching admin crew detail for ID ${crewId}:`,
+      axiosError.response?.data || axiosError.message,
+    );
+    // Anda bisa melempar error yang lebih spesifik jika API mengembalikan status error tertentu
+    if (axiosError.response?.status === 404) {
+      throw new Error(`Admin crew with ID ${crewId} not found.`);
+    }
+    throw error; // Re-throw error umum
   }
 };
 

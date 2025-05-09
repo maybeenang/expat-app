@@ -5,6 +5,9 @@ import {LoginScreen} from '../screens/Login';
 import {useAuthStore} from '../store/useAuthStore';
 import DraweNavigation from './DraweNavigation';
 import {colors} from '../contants/styles';
+import AdminCrewDetailScreen from '../screens/Main/AdminCrews/detail';
+import ContractDetailScreen from '../screens/Main/Contract/detail';
+import AdminCrewContractDetailScreen from '../screens/Main/AdminCrews/contractDetail';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -23,6 +26,38 @@ const RootNavigator: React.FC = () => {
           headerShown: false,
         }}
       />
+
+      <Stack.Group>
+        <Stack.Screen
+          name="AdminCrewDetail"
+          component={AdminCrewDetailScreen}
+          options={{
+            headerShown: true,
+            headerTintColor: colors.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="AdminCrewContractDetail"
+          component={AdminCrewContractDetailScreen}
+          options={{
+            headerShown: true,
+            title: 'Detail Kontrak',
+            headerTintColor: colors.primary,
+          }}
+        />
+      </Stack.Group>
+
+      <Stack.Group>
+        <Stack.Screen
+          name="ContractDetail"
+          component={ContractDetailScreen}
+          options={{
+            headerShown: true,
+            headerTintColor: colors.primary,
+          }}
+        />
+      </Stack.Group>
 
       {isLoggedIn ? null : (
         <Stack.Screen

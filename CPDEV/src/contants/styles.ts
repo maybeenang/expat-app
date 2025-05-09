@@ -1,4 +1,5 @@
 import {Dimensions} from 'react-native';
+import {MixedStyleDeclaration} from 'react-native-render-html';
 
 export const width = Dimensions.get('window').width;
 export const height = Dimensions.get('window').height;
@@ -53,4 +54,35 @@ export const fonts = {
 export const DRAWERICONOPTIONS = {
   size: 24,
   color: colors.primary,
+};
+
+export const tagsStyles: Readonly<Record<string, MixedStyleDeclaration>> = {
+  body: {
+    // Gaya default untuk seluruh konten HTML
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    color: colors.textPrimary,
+    lineHeight: 22,
+    textAlign: 'justify',
+  },
+  p: {
+    marginBottom: 10,
+    marginTop: 5,
+  },
+  strong: {
+    fontFamily: fonts.bold,
+    fontWeight: 'bold',
+  },
+  ul: {
+    marginLeft: 20,
+    marginBottom: 10,
+  },
+  ol: {
+    marginLeft: 20,
+    marginBottom: 10,
+  },
+  li: {
+    marginBottom: 5,
+  },
+  // Tambahkan tag lain sesuai kebutuhan
 };

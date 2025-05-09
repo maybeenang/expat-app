@@ -23,7 +23,7 @@ const DraweNavigation = () => {
         },
         headerStyle: {
           borderBottomWidth: 1,
-          borderBottomColor: colors.greyLight,
+          borderBottomColor: colors.border,
         },
         drawerStyle: {
           width: '70%',

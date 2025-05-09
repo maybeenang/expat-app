@@ -44,6 +44,12 @@ export interface AdminCrewsApiResponse {
   pagination: PaginationInfo;
 }
 
+export interface AdminCrewDetailApiResponse {
+  status: number;
+  message: string;
+  data: AdminCrew; // Menggunakan kembali tipe AdminCrew yang sudah ada
+}
+
 // Tipe untuk parameter request (termasuk paginasi dan search)
 export interface GetAdminCrewsParams {
   limit?: number;

@@ -80,9 +80,15 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const handleCardPress = useCallback((crewId: string) => {
-    console.log('Navigate to crew detail:', crewId);
-  }, []);
+  const handleCardPress = useCallback(
+    (crewId: string) => {
+      console.log('Navigate to crew detail:', crewId);
+
+      // @ts-ignore
+      navigation.navigate('AdminCrewDetail', {crewId});
+    },
+    [navigation],
+  );
 
   const renderCrewItem = useCallback(
     ({item}: {item: AdminCrew}) => (
@@ -174,7 +180,6 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
           searchPlaceholder="Cari kru..."
           rightActions={[
             {
-              // iconName: 'filter-variant', // Ganti dengan nama ikon Anda
               iconElement: (
                 <CustomIcon
                   name="SquareSplitVertical"

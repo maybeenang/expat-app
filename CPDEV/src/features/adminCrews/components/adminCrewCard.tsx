@@ -63,9 +63,6 @@ const AdminCrewCard: React.FC<AdminCrewCardProps> = ({
             {/* <Icon name="phone-outline" size={14} color={colors.textSecondary} />  */}
             Telp: {crew.cell_number}
           </Text>
-          <Text style={styles.role}>
-            Role: <Text style={styles.roleValue}>{crew.role}</Text>
-          </Text>
         </View>
 
         <View style={styles.contractsInfo}>
