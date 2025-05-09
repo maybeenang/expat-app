@@ -7,7 +7,11 @@ import {
 } from '@tanstack/react-query';
 import {AxiosError} from 'axios';
 import {fetchAdminCrews} from '../services/adminCrewsService';
-import type {AdminCrewsApiResponse, GetAdminCrewsParams} from '../types';
+import type {
+  AdminCrewsApiResponse,
+  GetAdminCrewsParams,
+  AdminCrew,
+} from '../types';
 import {queryKeys} from '../../../services/queryKeys'; // Sesuaikan path
 
 export const useAdminCrewsListQuery = (
@@ -27,11 +31,11 @@ export const useAdminCrewsListQuery = (
 
 export const useInfiniteAdminCrewsQuery = (
   baseParams: Omit<GetAdminCrewsParams, 'page'> & {limit: number},
-): UseInfiniteQueryResult<AdminCrewsApiResponse, AxiosError> => {
+): UseInfiniteQueryResult<AdminCrew[], AxiosError> => {
   return useInfiniteQuery<
     AdminCrewsApiResponse,
     AxiosError,
-    AdminCrewsApiResponse, // TData
+    AdminCrew[], // TData
     QueryKey,
     number
   >({
@@ -48,6 +52,17 @@ export const useInfiniteAdminCrewsQuery = (
       return undefined; // Tidak ada halaman berikutnya
     },
     enabled: !!baseParams,
+    select: data => {
+      const allItems: AdminCrew[] = [];
+
+      data.pages.forEach(page => {
+        page.data.forEach(item => {
+          allItems.push(item);
+        });
+      });
+
+      return allItems;
+    },
   });
 };
 

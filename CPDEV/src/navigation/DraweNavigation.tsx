@@ -40,11 +40,7 @@ const DraweNavigation = () => {
         }}
       />
 
-      <Drawer.Screen
-        name="AdminCrew"
-        component={AdminCrewsScreen}
-        options={{}}
-      />
+      <Drawer.Screen name="AdminCrew" component={AdminCrewsScreen} />
     </Drawer.Navigator>
   );
 };

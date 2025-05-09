@@ -1,11 +1,11 @@
-import React, {useState, useCallback, useMemo} from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-  TextInput,
-} from 'react-native';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+  useRef,
+} from 'react';
+import {FlatList, StyleSheet, RefreshControl, Alert} from 'react-native';
 import useDebounce from '../../../hooks/useDebounce';
 import {
   AdminCrew,
@@ -14,12 +14,35 @@ import {
 import {useInfiniteAdminCrewsQuery} from '../../../features/adminCrews/hooks/useAdminCrewsQuery';
 import AdminCrewCard from '../../../features/adminCrews/components/adminCrewCard';
 import EmptyListComponent from '../../../components/common/EmptyListComponent';
-import {colors, fonts, numbers} from '../../../contants/styles';
+import {colors, numbers} from '../../../contants/styles';
 import {ListFooterLoading, ScreenContainer} from '../../../components/common';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {DrawerParamList} from '../../../navigation/types';
+import UniversalHeaderTitle from '../../../components/common/UniversalHeaderTitle';
+import {CustomIcon} from '../../../components/common/CustomIcon';
+import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import ReusableBottomSheetModal, {
+  BottomSheetAction,
+} from '../../../components/common/ReusableBottomSheet';
 
 const ITEMS_PER_PAGE = 10; // Atau ambil dari konstanta
 
-const AdminCrewsScreen: React.FC = () => {
+interface Props extends NativeStackScreenProps<DrawerParamList, 'AdminCrew'> {}
+
+const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const [selectedCrewForAction, setSelectedCrewForAction] =
+    useState<AdminCrew | null>(null);
+
+  const handleOpenActionSheet = useCallback((crew: AdminCrew) => {
+    setSelectedCrewForAction(crew);
+    bottomSheetModalRef.current?.present(); // Buka bottom sheet
+  }, []);
+
+  const handleCloseActionSheet = useCallback(() => {
+    setSelectedCrewForAction(null); // Reset crew yang dipilih saat ditutup
+  }, []);
+
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500); // Debounce 500ms
 
@@ -57,21 +80,121 @@ const AdminCrewsScreen: React.FC = () => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const handleCardPress = (crewId: string) => {
+  const handleCardPress = useCallback((crewId: string) => {
     console.log('Navigate to crew detail:', crewId);
-  };
-
-  // Menggabungkan semua halaman data menjadi satu array untuk FlatList
-  const allCrews = useMemo(() => {
-    return data?.pages.flatMap(page => page.data) ?? [];
-  }, [data]);
+  }, []);
 
   const renderCrewItem = useCallback(
     ({item}: {item: AdminCrew}) => (
-      <AdminCrewCard crew={item} onPress={handleCardPress} />
+      <AdminCrewCard
+        crew={item}
+        onPress={handleCardPress}
+        onActionPress={crew => handleOpenActionSheet(crew)}
+      />
     ),
-    [],
+    [handleCardPress, handleOpenActionSheet],
   );
+
+  const crewActions = useMemo((): BottomSheetAction[] => {
+    if (!selectedCrewForAction) {
+      return [];
+    }
+
+    return [
+      {
+        id: 'view-details',
+        label: `Lihat Detail ${selectedCrewForAction.name}`,
+        iconName: 'Bed',
+        onPress: () => {
+          Alert.alert(
+            'View Details',
+            `Melihat detail untuk: ${selectedCrewForAction.name}`,
+          );
+          bottomSheetModalRef.current?.dismiss();
+          // navigation.navigate('AdminCrewDetail', { crewId: selectedCrewForAction.id });
+        },
+      },
+      {
+        id: 'edit-crew',
+        label: 'Edit Kru',
+        iconName: 'DotsThreeVertical',
+        onPress: () => {
+          Alert.alert(
+            'Edit Crew',
+            `Mengedit kru: ${selectedCrewForAction.name}`,
+          );
+          bottomSheetModalRef.current?.dismiss();
+          // Logika untuk navigasi ke layar edit atau membuka modal edit
+        },
+      },
+      {
+        id: 'view-contracts',
+        label: 'Lihat Kontrak',
+        iconName: 'X',
+        onPress: () => {
+          Alert.alert(
+            'View Contracts',
+            `Melihat kontrak untuk: ${selectedCrewForAction.name}`,
+          );
+          bottomSheetModalRef.current?.dismiss();
+        },
+      },
+      {
+        id: 'delete-crew',
+        label: 'Hapus Kru',
+        iconName: 'DotsThreeVertical',
+        isDestructive: true,
+        onPress: () => {
+          bottomSheetModalRef.current?.dismiss(); // Tutup dulu sebelum Alert agar tidak tumpang tindih
+          Alert.alert(
+            'Hapus Kru',
+            `Anda yakin ingin menghapus ${selectedCrewForAction.name}?`,
+            [
+              {text: 'Batal', style: 'cancel'},
+              {
+                text: 'Hapus',
+                style: 'destructive',
+                onPress: () =>
+                  console.log('DELETE CREW:', selectedCrewForAction.id),
+              },
+            ],
+          );
+        },
+      },
+    ];
+  }, [selectedCrewForAction]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <UniversalHeaderTitle
+          isSearchable
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Cari kru..."
+          rightActions={[
+            {
+              // iconName: 'filter-variant', // Ganti dengan nama ikon Anda
+              iconElement: (
+                <CustomIcon
+                  name="SquareSplitVertical"
+                  size={24}
+                  color={colors.primary}
+                />
+              ),
+              onPress: () => console.log('Filter button pressed!'),
+              accessibilityLabel: 'Filter kru',
+            },
+            {
+              iconName: 'plus-circle-outline',
+              onPress: () => console.log('Add crew pressed!'),
+              accessibilityLabel: 'Tambah kru baru',
+            },
+          ]}
+        />
+      ),
+    });
+  }, [navigation, searchTerm]);
 
   if (isError) {
     // Tampilan error yang lebih baik bisa dibuat
@@ -85,25 +208,10 @@ const AdminCrewsScreen: React.FC = () => {
       </ScreenContainer>
     );
   }
-
   return (
     <ScreenContainer style={styles.screen}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Cari kru (nama, email, no. telp)..."
-          placeholderTextColor={colors.greyDark}
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          returnKeyType="search"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        {/* Bisa tambahkan ikon search di sini */}
-      </View>
-
       <FlatList
-        data={allCrews}
+        data={data}
         renderItem={renderCrewItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContentContainer}
@@ -133,6 +241,12 @@ const AdminCrewsScreen: React.FC = () => {
           />
         }
       />
+
+      <ReusableBottomSheetModal
+        ref={bottomSheetModalRef}
+        actions={crewActions}
+        onDismiss={handleCloseActionSheet} // Callback saat ditutup
+      />
     </ScreenContainer>
   );
 };
@@ -143,23 +257,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background, // Latar belakang utama layar
   },
   searchContainer: {
-    paddingHorizontal: numbers.padding,
-    paddingTop: numbers.padding / 2, // Beri sedikit jarak jika tidak ada header navigator
-    paddingBottom: numbers.padding / 1.5,
+    width: numbers.headerWidth,
     backgroundColor: colors.surface, // Bisa beda dari screen background
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-  },
-  searchInput: {
-    backgroundColor: colors.greyLight, // Atau colors.neutralLight
-    borderRadius: numbers.borderRadius,
-    paddingHorizontal: numbers.padding,
-    paddingVertical: 10, // Sesuaikan tinggi
-    fontSize: 15,
-    fontFamily: fonts.regular,
-    color: colors.textPrimary,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   listContentContainer: {
     padding: numbers.padding,

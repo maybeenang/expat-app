@@ -39,6 +39,7 @@ export const numbers = {
   shadowRadius: 4,
   padding: 16,
   width: width,
+  headerWidth: width - width * 0.16,
   height: height,
   margin: 16,
 };
