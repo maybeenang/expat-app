@@ -26,6 +26,7 @@ export interface AdminCrew {
   cell_number: string; // Meskipun angka, seringkali lebih aman sebagai string jika ada format khusus
   role: 'CREW' | string; // Bisa lebih spesifik jika ada role lain
   unavailable_date: string | null; // Sebaiknya di-parse menjadi Date object
+  formatted_unavailable_date?: string | null; // Format yang lebih baik untuk ditampilkan
   contracts: Contract[];
 }
 
@@ -56,4 +57,60 @@ export interface GetAdminCrewsParams {
   page?: number;
   search?: string;
   // Tambahkan filter lain jika ada (mis. role, status, dll.)
+}
+
+export interface CreateAdminCrewPayload {
+  name: string;
+  email: string;
+  cell_number: string;
+  company: string; // ID perusahaan (mis. "1" atau "2")
+  pin: string; // PIN berupa string angka
+  'id_master_contract_terms[]'?: string[]; // Array ID master contract terms, opsional
+}
+
+export interface CreateAdminCrewSuccessResponse {
+  status: number;
+  message: string;
+}
+
+export interface ApiErrorResponse {
+  status: number; // Status HTTP error
+  message: string; // Pesan error utama
+  errors?: Record<string, string[] | string>; // Opsional: detail error per field
+}
+
+export interface CreateAdminCrewContractPayload {
+  'id_master_contract_terms[]': string[]; // Array ID master contract terms, minimal satu
+  id_users: string; // ID user (kru)
+  id_company: string; // ID perusahaan
+}
+
+export interface CreateAdminCrewContractSuccessResponse {
+  status: number;
+  message: string;
+}
+
+export interface AddUnavailableDatePayload {
+  id: number | string; // ID Kru (User). Dari API terlihat number, tapi string lebih aman untuk ID.
+  unavailable_date: string[]; // Array string tanggal (format "YYYY-MM-DD")
+}
+
+export interface AddUnavailableDateSuccessResponse {
+  status: number;
+  message: string;
+}
+
+export type SignatureType = 'CREW' | 'ADMIN'; // Atau enum jika ada lebih banyak tipe
+
+export interface AddSignaturePayload {
+  id: string; // Diasumsikan ID Kontrak yang akan ditandatangani
+  type_signature: SignatureType;
+  base64_signature: string; // String base64 gambar tanda tangan (termasuk prefix data URI)
+}
+
+// Tipe untuk respons sukses dari API add_signature
+export interface AddSignatureSuccessResponse {
+  status: number;
+  message: string;
+  // Jika ada data lain (misalnya URL tanda tangan yang disimpan), tambahkan di sini
 }

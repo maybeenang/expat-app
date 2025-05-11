@@ -11,6 +11,7 @@ import {
   GestureResponderEvent,
 } from 'react-native';
 import {colors, fonts, numbers} from '../../contants/styles';
+import {CustomIcon, IconName} from './CustomIcon';
 
 export type ButtonVariant =
   | 'primary'
@@ -30,8 +31,8 @@ export interface ButtonProps extends TouchableOpacityProps {
   onPress: (event: GestureResponderEvent) => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  leftIcon?: IconName;
+  rightIcon?: IconName;
   isLoading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
@@ -117,7 +118,13 @@ const StyledButton: React.FC<ButtonProps> = ({
       conditionalStyles.width = '100%';
     }
 
-    return [base, variantStyles, sizeStyles, conditionalStyles, style];
+    return [
+      base,
+      variantStyles,
+      sizeStyles,
+      conditionalStyles,
+      style as ViewStyle,
+    ];
   };
 
   const getTextStyle = (): TextStyle[] => {
@@ -178,7 +185,7 @@ const StyledButton: React.FC<ButtonProps> = ({
     //   }
     // }
 
-    return [base, variantTextStyles, sizeTextStyles, textStyle];
+    return [base, variantTextStyles, sizeTextStyles, textStyle as TextStyle];
   };
 
   const getIconColor = (): string => {
@@ -212,17 +219,21 @@ const StyledButton: React.FC<ButtonProps> = ({
         <View style={styles.contentWrapper}>
           {leftIcon && (
             <View style={styles.iconWrapper}>
-              {React.cloneElement(leftIcon as React.ReactElement, {
-                color: getIconColor(),
-              })}
+              <CustomIcon
+                name={leftIcon}
+                color={getIconColor()}
+                size={size === 'small' ? 16 : size === 'medium' ? 18 : 20}
+              />
             </View>
           )}
           <Text style={getTextStyle()}>{title}</Text>
           {rightIcon && (
             <View style={styles.iconWrapper}>
-              {React.cloneElement(rightIcon as React.ReactElement, {
-                color: getIconColor(),
-              })}
+              <CustomIcon
+                name={rightIcon}
+                color={getIconColor()}
+                size={size === 'small' ? 16 : size === 'medium' ? 18 : 20}
+              />
             </View>
           )}
         </View>

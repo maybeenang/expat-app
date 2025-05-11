@@ -1,50 +1,45 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useLayoutEffect,
-  useRef,
-} from 'react';
+import React, {useState, useCallback, useMemo, useLayoutEffect} from 'react';
 import {FlatList, StyleSheet, RefreshControl, Alert} from 'react-native';
+// import { LocaleConfig } from 'react-native-calendars'; // Tidak diperlukan lagi
+
 import useDebounce from '../../../hooks/useDebounce';
+import {colors, numbers} from '../../../contants/styles';
+import {useAdminCrewActions} from '../../../features/adminCrews/hooks/useAdminCrewAction';
 import {
   AdminCrew,
   GetAdminCrewsParams,
 } from '../../../features/adminCrews/types';
 import {useInfiniteAdminCrewsQuery} from '../../../features/adminCrews/hooks/useAdminCrewsQuery';
 import AdminCrewCard from '../../../features/adminCrews/components/adminCrewCard';
-import EmptyListComponent from '../../../components/common/EmptyListComponent';
-import {colors, numbers} from '../../../contants/styles';
-import {ListFooterLoading, ScreenContainer} from '../../../components/common';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {DrawerParamList} from '../../../navigation/types';
-import UniversalHeaderTitle from '../../../components/common/UniversalHeaderTitle';
-import {CustomIcon} from '../../../components/common/CustomIcon';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
 import ReusableBottomSheetModal, {
   BottomSheetAction,
 } from '../../../components/common/ReusableBottomSheet';
+import UniversalHeaderTitle from '../../../components/common/UniversalHeaderTitle';
+import {ListFooterLoading, ScreenContainer} from '../../../components/common';
+import EmptyListComponent from '../../../components/common/EmptyListComponent';
+import ManageUnavailableDatesContent from '../../../features/adminCrews/components/UnavailableDatePicker';
 
-const ITEMS_PER_PAGE = 10; // Atau ambil dari konstanta
+const ITEMS_PER_PAGE = 10;
 
-interface Props extends NativeStackScreenProps<DrawerParamList, 'AdminCrew'> {}
+interface Props {
+  navigation: any;
+}
 
 const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const [selectedCrewForAction, setSelectedCrewForAction] =
-    useState<AdminCrew | null>(null);
-
-  const handleOpenActionSheet = useCallback((crew: AdminCrew) => {
-    setSelectedCrewForAction(crew);
-    bottomSheetModalRef.current?.present(); // Buka bottom sheet
-  }, []);
-
-  const handleCloseActionSheet = useCallback(() => {
-    setSelectedCrewForAction(null); // Reset crew yang dipilih saat ditutup
-  }, []);
+  const {
+    actionsBottomSheetRef,
+    manageDatesBottomSheetRef, // Nama ref diupdate
+    selectedCrewForAction,
+    openActionsSheet,
+    closeActionsSheet,
+    openManageDatesSheet, // Nama fungsi diupdate
+    closeManageDatesSheet,
+    handleSaveUnavailableDates, // Nama fungsi diupdate
+    isSavingUnavailableDate,
+  } = useAdminCrewActions();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 500); // Debounce 500ms
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const queryParams = useMemo((): Omit<GetAdminCrewsParams, 'page'> & {
     limit: number;
@@ -63,11 +58,11 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isLoading, // Loading awal
+    isLoading,
     isError,
     error,
-    refetch, // Untuk pull-to-refresh
-    isRefetching, // Untuk status pull-to-refresh
+    refetch,
+    isRefetching,
   } = useInfiniteAdminCrewsQuery(queryParams);
 
   const handleRefresh = useCallback(() => {
@@ -82,9 +77,6 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
 
   const handleCardPress = useCallback(
     (crewId: string) => {
-      console.log('Navigate to crew detail:', crewId);
-
-      // @ts-ignore
       navigation.navigate('AdminCrewDetail', {crewId});
     },
     [navigation],
@@ -95,65 +87,45 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
       <AdminCrewCard
         crew={item}
         onPress={handleCardPress}
-        onActionPress={crew => handleOpenActionSheet(crew)}
+        onActionPress={openActionsSheet} // Gunakan dari custom hook
       />
     ),
-    [handleCardPress, handleOpenActionSheet],
+    [handleCardPress, openActionsSheet],
   );
 
+  // Aksi untuk BottomSheet Utama
   const crewActions = useMemo((): BottomSheetAction[] => {
     if (!selectedCrewForAction) {
       return [];
     }
-
     return [
       {
-        id: 'view-details',
-        label: `Lihat Detail ${selectedCrewForAction.name}`,
-        iconName: 'Bed',
-        onPress: () => {
-          Alert.alert(
-            'View Details',
-            `Melihat detail untuk: ${selectedCrewForAction.name}`,
-          );
-          bottomSheetModalRef.current?.dismiss();
-          // navigation.navigate('AdminCrewDetail', { crewId: selectedCrewForAction.id });
-        },
+        id: 'add-unavailable-date',
+        label: 'Add Unavailable Date',
+        iconName: 'Calendar',
+        onPress: openManageDatesSheet, // Gunakan dari custom hook
       },
       {
         id: 'edit-crew',
-        label: 'Edit Kru',
-        iconName: 'DotsThreeVertical',
+        label: 'Edit Admin Crew',
+        iconName: 'Pencil',
         onPress: () => {
           Alert.alert(
-            'Edit Crew',
+            'Edit Crew (NOT IMPLEMENTED)',
             `Mengedit kru: ${selectedCrewForAction.name}`,
           );
-          bottomSheetModalRef.current?.dismiss();
-          // Logika untuk navigasi ke layar edit atau membuka modal edit
-        },
-      },
-      {
-        id: 'view-contracts',
-        label: 'Lihat Kontrak',
-        iconName: 'X',
-        onPress: () => {
-          Alert.alert(
-            'View Contracts',
-            `Melihat kontrak untuk: ${selectedCrewForAction.name}`,
-          );
-          bottomSheetModalRef.current?.dismiss();
+          closeActionsSheet(); // Gunakan dari custom hook
         },
       },
       {
         id: 'delete-crew',
-        label: 'Hapus Kru',
-        iconName: 'DotsThreeVertical',
+        label: 'Hapus Admin Crew',
+        iconName: 'X',
         isDestructive: true,
         onPress: () => {
-          bottomSheetModalRef.current?.dismiss(); // Tutup dulu sebelum Alert agar tidak tumpang tindih
+          closeActionsSheet(); // Gunakan dari custom hook
           Alert.alert(
-            'Hapus Kru',
+            'Hapus Kru (NOT IMPLEMENTED)',
             `Anda yakin ingin menghapus ${selectedCrewForAction.name}?`,
             [
               {text: 'Batal', style: 'cancel'},
@@ -168,7 +140,7 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
         },
       },
     ];
-  }, [selectedCrewForAction]);
+  }, [selectedCrewForAction, closeActionsSheet, openManageDatesSheet]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -180,19 +152,10 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
           searchPlaceholder="Cari kru..."
           rightActions={[
             {
-              iconElement: (
-                <CustomIcon
-                  name="SquareSplitVertical"
-                  size={24}
-                  color={colors.primary}
-                />
-              ),
-              onPress: () => console.log('Filter button pressed!'),
-              accessibilityLabel: 'Filter kru',
-            },
-            {
-              iconName: 'plus-circle-outline',
-              onPress: () => console.log('Add crew pressed!'),
+              iconName: 'Plus',
+              onPress: () => {
+                navigation.navigate('AdminCrewCreate');
+              },
               accessibilityLabel: 'Tambah kru baru',
             },
           ]}
@@ -201,8 +164,7 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
     });
   }, [navigation, searchTerm]);
 
-  if (isError) {
-    // Tampilan error yang lebih baik bisa dibuat
+  if (isError && !isLoading) {
     return (
       <ScreenContainer>
         <EmptyListComponent
@@ -213,6 +175,7 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
       </ScreenContainer>
     );
   }
+
   return (
     <ScreenContainer style={styles.screen}>
       <FlatList
@@ -221,25 +184,25 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContentContainer}
         onEndReached={loadMore}
-        onEndReachedThreshold={0.5} // Seberapa dekat dari bawah sebelum onEndReached dipanggil
+        onEndReachedThreshold={0.5}
         ListFooterComponent={
           <ListFooterLoading isLoading={isFetchingNextPage} />
         }
         ListEmptyComponent={
           <EmptyListComponent
-            isLoading={isLoading && !isRefetching} // Hanya tampilkan loading utama jika bukan dari refresh
+            isLoading={isLoading && !isRefetching}
             message={
               debouncedSearchTerm
                 ? `Tidak ada kru ditemukan untuk "${debouncedSearchTerm}".`
                 : 'Belum ada kru terdaftar.'
             }
-            onRefresh={handleRefresh} // Bisa juga untuk kasus empty
+            onRefresh={handleRefresh}
             refreshing={isRefetching}
           />
         }
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching && !isLoading} // Hanya true saat pull-to-refresh aktif
+            refreshing={isRefetching && !isLoading}
             onRefresh={handleRefresh}
             colors={[colors.primary]}
             tintColor={colors.primary}
@@ -247,30 +210,41 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
         }
       />
 
+      {/* BottomSheet untuk Aksi Utama */}
       <ReusableBottomSheetModal
-        ref={bottomSheetModalRef}
+        ref={actionsBottomSheetRef}
+        title={
+          selectedCrewForAction
+            ? `Action untuk ${selectedCrewForAction.name}`
+            : undefined
+        }
         actions={crewActions}
-        onDismiss={handleCloseActionSheet} // Callback saat ditutup
+        onDismiss={closeActionsSheet}
       />
+
+      {selectedCrewForAction && (
+        <ReusableBottomSheetModal
+          ref={manageDatesBottomSheetRef} // Gunakan ref yang benar
+          onDismiss={closeManageDatesSheet} // Gunakan fungsi yang benar
+          snapPoints={['95%', '100%']}>
+          <ManageUnavailableDatesContent
+            crew={selectedCrewForAction}
+            initialUnavailableDatesString={
+              selectedCrewForAction.unavailable_date
+            }
+            onSave={handleSaveUnavailableDates}
+            onCancel={closeManageDatesSheet}
+            isSaving={isSavingUnavailableDate}
+          />
+        </ReusableBottomSheetModal>
+      )}
     </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background, // Latar belakang utama layar
-  },
-  searchContainer: {
-    width: numbers.headerWidth,
-    backgroundColor: colors.surface, // Bisa beda dari screen background
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  listContentContainer: {
-    padding: numbers.padding,
-    flexGrow: 1, // Penting agar EmptyListComponent bisa di tengah jika konten sedikit
-  },
+  screen: {flex: 1, backgroundColor: colors.background},
+  listContentContainer: {padding: numbers.padding, flexGrow: 1},
 });
 
 export default AdminCrewsScreen;

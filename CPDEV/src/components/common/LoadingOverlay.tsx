@@ -7,7 +7,11 @@ const LoadingOverlay = () => {
   const isLoading = useLoadingOverlayStore(state => state.isLoading);
 
   return (
-    <Modal visible={isLoading} animationType="fade">
+    <Modal
+      visible={isLoading}
+      animationType="fade"
+      transparent
+      hardwareAccelerated>
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#fff" />
       </View>

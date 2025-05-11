@@ -5,6 +5,7 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import type {AdminCrew} from '../types';
 import {colors, fonts, numbers} from '../../../contants/styles';
 import {CustomIcon} from '../../../components/common/CustomIcon';
+import DetailRow from '../../../components/common/DetailRow';
 
 interface AdminCrewCardProps {
   crew: AdminCrew;
@@ -55,14 +56,18 @@ const AdminCrewCard: React.FC<AdminCrewCardProps> = ({
           <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
             {crew.name}
           </Text>
-          <Text style={styles.detailText}>
-            {/* <Icon name="email-outline" size={14} color={colors.textSecondary} />  */}
-            Email: {crew.email.trim()}
-          </Text>
-          <Text style={styles.detailText}>
-            {/* <Icon name="phone-outline" size={14} color={colors.textSecondary} />  */}
-            Telp: {crew.cell_number}
-          </Text>
+          <Text style={styles.detailText}>Email: {crew.email?.trim()}</Text>
+          <Text style={styles.detailText}>Telp: {crew.cell_number}</Text>
+          {crew.formatted_unavailable_date && (
+            <>
+              <DetailRow
+                label="Unavailable Date"
+                value={crew.formatted_unavailable_date}
+                valueStyle={styles.roleValue}
+                labelStyle={styles.role}
+              />
+            </>
+          )}
         </View>
 
         <View style={styles.contractsInfo}>
@@ -70,7 +75,6 @@ const AdminCrewCard: React.FC<AdminCrewCardProps> = ({
           <Text style={styles.contractsLabel}>Kontrak</Text>
         </View>
       </View>
-      {/* <Icon name="chevron-right" size={24} color={colors.greyMedium} style={styles.chevron} /> */}
     </TouchableOpacity>
   );
 };

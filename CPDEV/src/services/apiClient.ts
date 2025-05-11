@@ -48,7 +48,14 @@ apiClient.interceptors.response.use(
       if (error.response.status === 401) {
         // Mungkin perlu navigasi ke layar login
         // RootNavigation.navigate('Login'); // Jika Anda setup global navigation helper
-        Alert.alert('Session Expired', 'Please login again.');
+        Alert.alert('Session Expired', 'Silahkan login', [
+          {
+            text: 'OK',
+            onPress: () => {
+              useAuthStore.setState({token: null}); // Hapus token dari store
+            },
+          },
+        ]);
       }
       // Anda bisa menambahkan penanganan error global lainnya di sini
     } else if (error.request) {

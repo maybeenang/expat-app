@@ -1,3 +1,4 @@
+import {da} from 'date-fns/locale';
 import {IconName} from '../components/common/CustomIcon';
 import {colors} from '../contants/styles';
 import {useAuthStore} from '../store/useAuthStore';
@@ -26,13 +27,6 @@ export const drawerButtons = (): DrawerItemProps[] => {
       icon: 'House',
       type: 'tab',
       navigateTo: 'Home',
-    },
-    {
-      label: 'Admin Crew',
-      icon: 'Newspaper',
-      type: 'drawer',
-      navigateTo: 'AdminCrew',
-      key: 'AdminCrew',
     },
     // {
     //   label: 'Rental',
@@ -90,6 +84,17 @@ export const drawerButtons = (): DrawerItemProps[] => {
   //     key: 'ChangePassword',
   //   });
   // }
+  //
+  //
+  if (isLoggedIn) {
+    data.push({
+      label: 'Admin Crew',
+      icon: 'UserCircle',
+      type: 'drawer',
+      navigateTo: 'AdminCrew',
+      key: 'AdminCrew',
+    });
+  }
 
   return data;
 };

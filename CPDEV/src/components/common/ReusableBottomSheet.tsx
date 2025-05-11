@@ -96,7 +96,7 @@ const ReusableBottomSheetModal = forwardRef<
         // backgroundStyle={{ backgroundColor: colors.surface }} // Bisa juga diatur di sini
         // detached={true} // Jika ingin bottom sheet "mengambang"
         // bottomInset={24} // Untuk detached mode
-      >
+        enableDynamicSizing={false}>
         <BottomSheetView style={[styles.contentContainer, containerStyle]}>
           {title && <Text style={styles.title}>{title}</Text>}
           {children ? (

@@ -1,4 +1,6 @@
 import Check from 'phosphor-react-native/src/icons/Check';
+import Trash from 'phosphor-react-native/src/icons/Trash';
+import Calendar from 'phosphor-react-native/src/icons/Calendar';
 import ArrowLeft from 'phosphor-react-native/src/icons/ArrowLeft';
 import Password from 'phosphor-react-native/src/icons/Password';
 import Plus from 'phosphor-react-native/src/icons/Plus';
@@ -45,6 +47,7 @@ import {StyleProp, ViewStyle} from 'react-native';
 
 export const SupportedIconsList = {
   Faders,
+  Trash,
   Password,
   ChatCircleDots,
   BriefCase,
@@ -54,6 +57,7 @@ export const SupportedIconsList = {
   DotsThreeVertical,
   PaperPlaneRight,
   X,
+  Calendar,
   ArrowLeft,
   Plus,
   Check,

@@ -1,12 +1,24 @@
 import {
+  ADMIN_CREWS_ADD_SIGNATURE_ENDPOINT,
+  ADMIN_CREWS_ADD_UNAVAILABLE_DATE_ENDPOINT,
+  ADMIN_CREWS_CREATE_CONTRACT_ENDPOINT,
+  ADMIN_CREWS_CREATE_ENDPOINT,
   ADMIN_CREWS_DETAIL_ENDPOINT,
   ADMIN_CREWS_ENDPOINT,
 } from '../../../contants/endpoints';
 import apiClient from '../../../services/apiClient'; // Sesuaikan path
 import type {
+  AddSignaturePayload,
+  AddSignatureSuccessResponse,
+  AddUnavailableDatePayload,
+  AddUnavailableDateSuccessResponse,
   AdminCrew,
   AdminCrewDetailApiResponse,
   AdminCrewsApiResponse,
+  CreateAdminCrewContractPayload,
+  CreateAdminCrewContractSuccessResponse,
+  CreateAdminCrewPayload,
+  CreateAdminCrewSuccessResponse,
   GetAdminCrewsParams,
 } from '../types';
 import {AxiosError} from 'axios';
@@ -42,7 +54,7 @@ export const fetchAdminCrews = async (
     );
 
     // Validasi dasar respons (bisa lebih detail)
-    if (response.data && response.data.status === 200) {
+    if (response.data && response.status === 200) {
       return response.data;
     } else {
       // Jika status di dalam body data bukan 200, anggap sebagai error aplikasi
@@ -74,7 +86,7 @@ export const fetchAdminCrewById = async (
       },
     );
 
-    if (response.data && response.data.status === 200 && response.data.data) {
+    if (response.data && response.status === 200 && response.data.data) {
       return response.data.data; // Langsung kembalikan objek AdminCrew dari 'data.data'
     } else {
       throw new Error(
@@ -96,8 +108,190 @@ export const fetchAdminCrewById = async (
   }
 };
 
-// Anda bisa menambahkan fungsi service lain di sini, misalnya:
-// export const fetchAdminCrewById = async (id: string): Promise<AdminCrew> => { ... };
-// export const createAdminCrew = async (payload: Omit<AdminCrew, 'id' | 'contracts'>): Promise<AdminCrew> => { ... };
-// export const updateAdminCrew = async (id: string, payload: Partial<AdminCrew>): Promise<AdminCrew> => { ... };
-// export const deleteAdminCrew = async (id: string): Promise<void> => { ... };
+export const createAdminCrew = async (
+  payload: CreateAdminCrewPayload,
+): Promise<CreateAdminCrewSuccessResponse> => {
+  const formData = new FormData();
+  formData.append('name', payload.name);
+  formData.append('email', payload.email);
+  formData.append('cell_number', payload.cell_number);
+  formData.append('company', payload.company);
+  formData.append('pin', payload.pin);
+
+  if (
+    payload['id_master_contract_terms[]'] &&
+    payload['id_master_contract_terms[]']!.length > 0
+  ) {
+    payload['id_master_contract_terms[]']!.forEach(termId => {
+      formData.append('id_master_contract_terms[]', termId);
+    });
+  }
+
+  try {
+    const response = await apiClient.post<CreateAdminCrewSuccessResponse>(
+      ADMIN_CREWS_CREATE_ENDPOINT,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
+    );
+
+    if (response.data && response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(
+        response.data?.message ||
+          'Failed to create admin crew: Invalid server response',
+      );
+    }
+  } catch (error) {
+    const axiosError = error as AxiosError<
+      CreateAdminCrewSuccessResponse | any
+    >;
+    console.error(
+      'Error creating admin crew:',
+      axiosError.response?.data || axiosError.message,
+    );
+
+    throw new Error(
+      axiosError.response?.data?.message ||
+        axiosError.message ||
+        'An unexpected error occurred',
+    );
+  }
+};
+
+export const createAdminCrewContract = async (
+  payload: CreateAdminCrewContractPayload,
+): Promise<CreateAdminCrewContractSuccessResponse> => {
+  const formData = new FormData();
+  formData.append('id_users', payload.id_users);
+  formData.append('id_company', payload.id_company);
+
+  // Menambahkan array id_master_contract_terms[]
+  payload['id_master_contract_terms[]'].forEach(termId => {
+    formData.append('id_master_contract_terms[]', termId);
+  });
+
+  try {
+    const response =
+      await apiClient.post<CreateAdminCrewContractSuccessResponse>(
+        ADMIN_CREWS_CREATE_CONTRACT_ENDPOINT,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
+    if (response.data && response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(
+        response.data?.message ||
+          'Failed to create contract: Invalid server response',
+      );
+    }
+  } catch (error) {
+    const axiosError = error as AxiosError<
+      CreateAdminCrewContractSuccessResponse | any
+    >;
+    console.error(
+      'Error creating admin crew contract:',
+      axiosError.response?.data || axiosError.message,
+    );
+    throw new Error(
+      axiosError.response?.data?.message ||
+        axiosError.message ||
+        'An unexpected error occurred while creating the contract',
+    );
+  }
+};
+
+export const addUnavailableDateToCrew = async (
+  payload: AddUnavailableDatePayload,
+): Promise<AddUnavailableDateSuccessResponse> => {
+  try {
+    // Pastikan ID dikirim sebagai number jika API mengharapkannya
+    const requestPayload = {
+      ...payload,
+      id: Number(payload.id), // Konversi ID ke number jika API mengharapkannya
+    };
+
+    const response = await apiClient.post<AddUnavailableDateSuccessResponse>(
+      ADMIN_CREWS_ADD_UNAVAILABLE_DATE_ENDPOINT,
+      requestPayload, // Body request adalah objek JSON
+      {
+        headers: {
+          'Content-Type': 'application/json', // Eksplisit set header
+        },
+      },
+    );
+
+    if (response.data && response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(
+        response.data?.message ||
+          'Failed to add unavailable date: Invalid server response',
+      );
+    }
+  } catch (error) {
+    const axiosError = error as AxiosError<
+      AddUnavailableDateSuccessResponse | any
+    >;
+    console.error(
+      'Error adding unavailable date:',
+      axiosError.response?.data || axiosError.message,
+    );
+    throw new Error(
+      axiosError.response?.data?.message ||
+        axiosError.message ||
+        'An unexpected error occurred while adding unavailable date',
+    );
+  }
+};
+
+export const addSignature = async (
+  payload: AddSignaturePayload,
+): Promise<AddSignatureSuccessResponse> => {
+  const formData = new FormData();
+  formData.append('id', payload.id);
+  formData.append('type_signature', payload.type_signature);
+  formData.append('base64_signature', payload.base64_signature);
+
+  try {
+    const response = await apiClient.post<AddSignatureSuccessResponse>(
+      ADMIN_CREWS_ADD_SIGNATURE_ENDPOINT,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
+    );
+
+    if (response.data && response.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(
+        response.data?.message ||
+          'Failed to add signature: Invalid server response',
+      );
+    }
+  } catch (error) {
+    const axiosError = error as AxiosError<AddSignatureSuccessResponse | any>;
+    console.error(
+      'Error adding signature:',
+      axiosError.response?.data || axiosError.message,
+    );
+    throw new Error(
+      axiosError.response?.data?.message ||
+        axiosError.message ||
+        'An unexpected error occurred while adding signature',
+    );
+  }
+};

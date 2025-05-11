@@ -10,9 +10,10 @@ import {
   TextInputProps,
 } from 'react-native';
 import {colors, fonts, numbers} from '../../contants/styles';
+import {CustomIcon, IconName} from './CustomIcon';
 
 export interface HeaderAction {
-  iconName?: string; // Nama ikon jika menggunakan pustaka ikon
+  iconName?: IconName;
   iconElement?: React.ReactNode; // Atau elemen ikon kustom
   onPress: () => void;
   accessibilityLabel: string;
@@ -93,15 +94,11 @@ const UniversalHeaderTitle: React.FC<UniversalHeaderTitleProps> = ({
               {action.iconElement ? (
                 action.iconElement
               ) : action.iconName ? (
-                // <Icon name={action.iconName} size={24} color={action.disabled ? colors.textDisabled : colors.primary} />
-                <Text
-                  style={{
-                    color: action.disabled
-                      ? colors.textDisabled
-                      : colors.primary,
-                  }}>
-                  {action.iconName.substring(0, 3)}
-                </Text> // Placeholder ikon
+                <CustomIcon
+                  name={action.iconName}
+                  size={24}
+                  color={action.disabled ? colors.textDisabled : colors.primary}
+                />
               ) : null}
             </TouchableOpacity>
           ))}

@@ -3,11 +3,12 @@ import React from 'react';
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import {RootStackParamList} from '../../../navigation/types';
 import {useAdminCrewDetailQuery} from '../../../features/adminCrews/hooks/useAdminCrewsQuery';
-import {ScreenContainer} from '../../../components/common';
+import {ScreenContainer, StyledButton} from '../../../components/common';
 import {colors, fonts, numbers} from '../../../contants/styles';
 import EmptyListComponent from '../../../components/common/EmptyListComponent';
 import ContractCard from '../../../features/adminCrews/components/ContractCard';
 import {Contract} from '../../../features/adminCrews/types';
+import {RefreshControl} from 'react-native-gesture-handler';
 
 interface Props
   extends NativeStackScreenProps<RootStackParamList, 'AdminCrewDetail'> {}
@@ -27,6 +28,7 @@ const AdminCrewDetailScreen: React.FC<Props> = ({route, navigation}) => {
   const handlePressContract = (contract: Contract) => {
     navigation.navigate('AdminCrewContractDetail', {
       contract: contract,
+      companyName: contract.company_name,
       crewName: crew?.name,
     });
   };
@@ -67,7 +69,16 @@ const AdminCrewDetailScreen: React.FC<Props> = ({route, navigation}) => {
 
   return (
     <ScreenContainer style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={refetch}
+            tintColor={colors.primary}
+            colors={[colors.primary, colors.secondary]}
+          />
+        }>
         {isFetching && !isLoading && (
           <Text style={styles.fetchingText}>Menyegarkan data...</Text>
         )}
@@ -76,16 +87,14 @@ const AdminCrewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           <Text style={styles.label}>Nama:</Text>
           <Text style={styles.value}>{crew.name}</Text>
           <Text style={styles.label}>Email:</Text>
-          <Text style={styles.value}>{crew.email.trim()}</Text>
+          <Text style={styles.value}>{crew.email?.trim()}</Text>
           <Text style={styles.label}>Nomor Telepon:</Text>
           <Text style={styles.value}>{crew.cell_number}</Text>
-          <Text style={styles.label}>Role:</Text>
-          <Text style={styles.valueRole}>{crew.role}</Text>
-          {crew.unavailable_date && (
+          {crew.formatted_unavailable_date && (
             <>
               <Text style={styles.label}>Tanggal Tidak Tersedia:</Text>
               <Text style={styles.value}>
-                {new Date(crew.unavailable_date).toLocaleDateString()}
+                {crew.formatted_unavailable_date}
               </Text>
             </>
           )}
@@ -95,6 +104,20 @@ const AdminCrewDetailScreen: React.FC<Props> = ({route, navigation}) => {
           <Text style={styles.sectionTitle}>
             Kontrak ({crew.contracts.length})
           </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              marginBottom: numbers.padding,
+            }}>
+            <StyledButton
+              title="Tambah Kontrak"
+              onPress={() => {
+                navigation.navigate('AdminCrewCreateContract', {crew: crew});
+              }}
+              leftIcon="Plus"
+            />
+          </View>
           {crew.contracts.length > 0 ? (
             crew.contracts.map(contract => (
               <ContractCard

@@ -1,4 +1,4 @@
-import {Contract} from '../features/adminCrews/types';
+import {AdminCrew, Contract, SignatureType} from '../features/adminCrews/types';
 
 export type RootStackParamList = {
   Login?: undefined;
@@ -10,7 +10,17 @@ export type RootStackParamList = {
 
   AdminCrewContractDetail: {
     contract: Contract;
-    crewName: string | undefined;
+    crewName?: string | undefined;
+    companyName?: string | undefined;
+  };
+
+  AdminCrewCreate: undefined;
+  AdminCrewCreateContract: {crew: AdminCrew};
+
+  SignaturePadScreen: {
+    entityId: string;
+    signatureType: SignatureType;
+    relatedCrewId: string;
   };
 
   ContractDetail: {
