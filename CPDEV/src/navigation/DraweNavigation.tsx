@@ -5,6 +5,8 @@ import BottomTabNavigation from './BottomTabNavigation';
 import {CustomDrawerContent} from '../components/layout/CustomDrawer';
 import {colors} from '../contants/styles';
 import AdminCrewsScreen from '../screens/Main/AdminCrews';
+import AdminCrewAssignedCalendarScreen from '../screens/Main/AdminAssigned';
+import ContactResultsScreen from '../screens/Main/ContractResult';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
@@ -41,6 +43,12 @@ const DraweNavigation = () => {
       />
 
       <Drawer.Screen name="AdminCrew" component={AdminCrewsScreen} />
+      <Drawer.Screen
+        name="AdminAssigned"
+        component={AdminCrewAssignedCalendarScreen}
+      />
+
+      <Drawer.Screen name="ContactResult" component={ContactResultsScreen} />
     </Drawer.Navigator>
   );
 };

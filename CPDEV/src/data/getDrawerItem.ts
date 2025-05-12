@@ -1,4 +1,3 @@
-import {da} from 'date-fns/locale';
 import {IconName} from '../components/common/CustomIcon';
 import {colors} from '../contants/styles';
 import {useAuthStore} from '../store/useAuthStore';
@@ -93,6 +92,22 @@ export const drawerButtons = (): DrawerItemProps[] => {
       type: 'drawer',
       navigateTo: 'AdminCrew',
       key: 'AdminCrew',
+    });
+
+    data.push({
+      label: 'Admin Crew Assigned',
+      icon: 'UserCircle',
+      type: 'drawer',
+      navigateTo: 'AdminAssigned',
+      key: 'AdminAssigned',
+    });
+
+    data.push({
+      label: 'Contact Result',
+      icon: 'UserCircle',
+      type: 'drawer',
+      navigateTo: 'ContactResult',
+      key: 'ContactResult',
     });
   }
 

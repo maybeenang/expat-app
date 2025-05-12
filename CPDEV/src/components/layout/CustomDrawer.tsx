@@ -107,7 +107,13 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         ]}>
         {!isLoggedIn ? (
           <DrawerItem
-            style={[styles.drawerItem, {}]}
+            style={[
+              styles.drawerItem,
+              {
+                borderWidth: 0,
+                borderColor: colors.white,
+              },
+            ]}
             label="Login"
             labelStyle={[styles.drawerLabel]}
             icon={({color, size, focused}) => (
@@ -124,7 +130,13 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
           />
         ) : (
           <DrawerItem
-            style={[styles.drawerItem, {}]}
+            style={[
+              styles.drawerItem,
+              {
+                borderWidth: 0,
+                borderColor: colors.white,
+              },
+            ]}
             label="Logout"
             labelStyle={[styles.drawerLabel]}
             icon={({size, focused}) => (

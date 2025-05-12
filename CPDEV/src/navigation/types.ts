@@ -31,6 +31,8 @@ export type RootStackParamList = {
 export type DrawerParamList = {
   BottomTab: undefined;
   AdminCrew: undefined;
+  AdminAssigned: undefined;
+  ContactResult: undefined;
 };
 
 export type BottomTabParamList = {

@@ -149,7 +149,7 @@ const AdminCrewsScreen: React.FC<Props> = ({navigation}) => {
           isSearchable
           searchValue={searchTerm}
           onSearchChange={setSearchTerm}
-          searchPlaceholder="Cari kru..."
+          searchPlaceholder="Serch crew..."
           rightActions={[
             {
               iconName: 'Plus',
