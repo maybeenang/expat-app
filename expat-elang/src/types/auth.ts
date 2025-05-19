@@ -13,13 +13,21 @@ export interface UserSession {
 }
 
 export interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 
 export interface LoginApiResponseData {
-  'x-token': string;
-  data_session: UserSession;
+  id: string;
+  nama: string;
+  email: string;
+  timezone: string;
+  role: string;
+  exp: number;
+  duration: number;
+  redirect: string;
+  session_token: string;
+  refresh_token: string;
 }
 
 export interface LoginApiResponse {

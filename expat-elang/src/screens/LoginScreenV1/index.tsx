@@ -44,7 +44,7 @@ const LoginScreenV1 = ({navigation, route}: LoginScreenV1Props) => {
 
     try {
       show();
-      await login({email, password});
+      await login({username: email, password});
       if (route.params?.goto) {
       }
     } catch (e: any) {

@@ -22,16 +22,13 @@ export const useAuthMutations = () => {
     LoginCredentials
   >({
     mutationFn: loginApiCall,
-    onSuccess: async (data, variable) => {
-      const {'x-token': token, data_session: sessionData} = data;
-      sessionData.password = variable.password;
+    onSuccess: async data => {
+      const {session_token: token} = data;
+
       try {
         await EncryptedStorage.setItem(AUTH_TOKEN_KEY, token);
-        await EncryptedStorage.setItem(
-          AUTH_SESSION_KEY,
-          JSON.stringify(sessionData),
-        );
-        setAuthState(token, sessionData); // Update Zustand store
+        await EncryptedStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data));
+        setAuthState(token, data); // Update Zustand store
       } catch (storageError) {
         console.error('Storage Error on Login:', storageError);
         clearAuthState();

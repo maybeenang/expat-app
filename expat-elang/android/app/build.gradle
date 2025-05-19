@@ -85,6 +85,21 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    flavorDimensions "environment"
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationId "com.devsatuexpat"
+            resValue "string", "app_name", "SatuExpat Dev"
+        }
+        prod {
+            dimension "environment"
+            applicationId "com.satuexpat"
+            resValue "string", "app_name", "SatuExpat"
+        }
+    }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -101,16 +116,27 @@ android {
             }
         }
     }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            debuggable true
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            debuggable false
+        }
+    }
+
+    // Enable variant-aware resource merging
+    sourceSets {
+        dev {
+            manifest.srcFile 'src/dev/AndroidManifest.xml'
+        }
+        prod {
+            manifest.srcFile 'src/prod/AndroidManifest.xml'
         }
     }
 }

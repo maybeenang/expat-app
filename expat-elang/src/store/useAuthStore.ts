@@ -1,14 +1,17 @@
 import {create} from 'zustand';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {AUTH_TOKEN_KEY, AUTH_SESSION_KEY} from '../constants/storage';
-import type {UserSession} from '../types/auth';
+import type {LoginApiResponseData, UserSession} from '../types/auth';
 
 interface AuthState {
   token: string | null;
-  userSession: UserSession | null;
+  userSession: LoginApiResponseData | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  setAuthState: (token: string | null, session: UserSession | null) => void;
+  setAuthState: (
+    token: string | null,
+    session: LoginApiResponseData | null,
+  ) => void;
   clearAuthState: () => void;
   setLoading: (loading: boolean) => void;
 }

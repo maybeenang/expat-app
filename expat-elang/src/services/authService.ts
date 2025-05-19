@@ -22,11 +22,7 @@ export const loginApiCall = async (
       credentials,
     );
 
-    if (
-      response.data &&
-      response.data.status === 200 &&
-      response.data.data?.['x-token']
-    ) {
+    if (response.data && response.data.status === 200) {
       return response.data.data;
     } else {
       throw new Error(response.data.message || 'Invalid response data');

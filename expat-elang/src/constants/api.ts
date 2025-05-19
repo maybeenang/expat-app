@@ -1,4 +1,8 @@
-export const API_BASE_URL = 'https://solo.oiffel.com/api';
+import {ENV} from '../config/env';
+
+// export const API_BASE_URL = 'https://solo.oiffel.com/api';
+// export const API_BASE_URL = 'https://devexpat.oiffel.com/api';
+export const API_BASE_URL = ENV.API_BASE_URL;
 //export const API_BASE_URL = 'https://satuexpat.com/api';
 export const LOGIN_ENDPOINT = '/login';
 
