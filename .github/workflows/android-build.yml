@@ -1,0 +1,107 @@
+name: Android Build and Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "expat-elang/**"
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android Expat
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+          cache: "yarn"
+          cache-dependency-path: "expat-elang/yarn.lock"
+
+      - name: Install Dependencies
+        run: |
+          cd expat-elang
+          yarn install --frozen-lockfile
+        continue-on-error: false
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "gradle"
+          cache-dependency-path: "expat-elang/android/build.gradle"
+
+      - name: Setup Gradle Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            expat-elang/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('expat-elang/**/*.gradle*', 'expat-elang/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./expat-elang/android/gradlew
+
+      - name: Copy Keystore
+        run: cp ./expat-elang/android/app/my-release-key.keystore.bak ./expat-elang/android/app/my-release-key.keystore
+
+      - name: Build Development APK
+        run: |
+          cd expat-elang
+          yarn build:android:dev:apk
+        env:
+          ENVFILE: .env.development
+        continue-on-error: false
+
+      - name: Build Production APK
+        run: |
+          cd expat-elang
+          yarn build:android:prod
+        env:
+          ENVFILE: .env.production
+        continue-on-error: false
+
+      - name: Get Version
+        id: get_version
+        run: |
+          cd expat-elang
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release v${{ steps.get_version.outputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}
+          files: |
+            expat-elang/android/app/build/outputs/apk/dev/release/*.apk
+            expat-elang/android/app/build/outputs/apk/prod/release/*.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Increment Version
+        run: |
+          cd expat-elang
+          npm version patch --no-git-tag-version
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'github-actions@github.com'
+          git add package.json
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
