@@ -37,4 +37,9 @@ export const capitalizeFirstChar = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
+export const deleteEndLines = (str: string) => {
+  if (!str) return '';
+  return str.replace(/(\r\n|\n|\r)/gm, '');
+};
+
 export const qss = qs;

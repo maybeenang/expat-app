@@ -1,7 +1,8 @@
 import {create} from 'zustand';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {AUTH_TOKEN_KEY, AUTH_SESSION_KEY} from '../constants/storage';
-import type {LoginApiResponseData, UserSession} from '../types/auth';
+import type {LoginApiResponseData} from '../types/auth';
+import {refreshTokenApiCall} from '../services/authService';
 
 interface AuthState {
   token: string | null;
@@ -48,17 +49,28 @@ export const checkAuthStatus = async () => {
     );
 
     if (storedToken && storedSessionString) {
-      const storedSession: UserSession = JSON.parse(storedSessionString);
+      const storedSession: LoginApiResponseData =
+        JSON.parse(storedSessionString);
 
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      const isExpired = storedSession.exp && storedSession.exp < nowInSeconds;
-      if (isExpired) {
-        console.warn('Session expired. Clearing auth state.');
-        clearAuthState();
-        return;
+      const refreshedToken = await refreshTokenApiCall({
+        username: storedSession.email,
+        refresh_token: storedSession.refresh_token,
+      });
+
+      if (refreshedToken) {
+        storedSession.session_token = refreshedToken.session_token;
+        await EncryptedStorage.setItem(
+          AUTH_SESSION_KEY,
+          JSON.stringify(storedSession),
+        );
+        await EncryptedStorage.setItem(
+          AUTH_TOKEN_KEY,
+          refreshedToken.session_token,
+        );
+        setAuthState(storedToken, storedSession);
+      } else {
+        clearAuthState(); // Bersihkan state jika tidak ada token baru
       }
-
-      setAuthState(storedToken, storedSession);
     } else {
       clearAuthState(); // Pastikan state bersih jika tidak ada data valid
     }

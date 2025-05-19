@@ -51,10 +51,15 @@ export const useForumCategoriesQuery = () => {
     queryFn: fetchForumCategoriesApi,
     staleTime: Infinity,
     select: data => {
+      const deletedEndLineData = data.map(item => ({
+        ...item,
+        name: item.name.replace(/\n/g, ''),
+      }));
+
       if (isLoggedIn) {
-        return [MY_FORUM_CATEGORY_PLACEHOLDER, ...data];
+        return [MY_FORUM_CATEGORY_PLACEHOLDER, ...deletedEndLineData];
       }
-      return data;
+      return deletedEndLineData;
     },
   });
 };

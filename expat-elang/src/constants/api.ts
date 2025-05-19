@@ -5,6 +5,7 @@ import {ENV} from '../config/env';
 export const API_BASE_URL = ENV.API_BASE_URL;
 //export const API_BASE_URL = 'https://satuexpat.com/api';
 export const LOGIN_ENDPOINT = '/login';
+export const REFRESH_TOKEN_ENDPOINT = '/login/refresh';
 
 export const BLOG_LIST_ENDPOINT = '/blog';
 export const BLOG_CATEGORIES_ENDPOINT = '/blog/categories';

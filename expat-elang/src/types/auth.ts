@@ -17,6 +17,11 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RefreshTokenCredentials {
+  username: string;
+  refresh_token: string;
+}
+
 export interface LoginApiResponseData {
   id: string;
   nama: string;
@@ -34,6 +39,14 @@ export interface LoginApiResponse {
   status: number;
   message: string;
   data: LoginApiResponseData;
+}
+
+export interface RefreshTokenApiResponse {
+  status: number;
+  message: string;
+  data: {
+    session_token: string;
+  };
 }
 
 export interface ApiErrorData {

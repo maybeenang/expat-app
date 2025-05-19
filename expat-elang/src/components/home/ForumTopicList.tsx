@@ -92,7 +92,9 @@ const ForumTopicList = () => {
         goto="Forum"
       />
       <View style={styles.forumChipsContainer}>
-        {forumTopics.map(item => renderForumTopic({item}))}
+        {forumTopics.slice(0, 10).map((item: ForumCategoryApi) => (
+          <View key={item.id}>{renderForumTopic({item})}</View>
+        ))}
       </View>
     </View>
   );
