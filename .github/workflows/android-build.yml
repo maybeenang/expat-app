@@ -67,7 +67,7 @@ jobs:
       - name: Build Production APK
         run: |
           cd expat-elang
-          yarn build:android:prod
+          yarn build:android:prod:apk
         env:
           ENVFILE: .env.production
         continue-on-error: false
