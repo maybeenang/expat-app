@@ -15,6 +15,7 @@ import type {
   ProcessedBlogPost,
 } from '../types/blog';
 import {useMemo} from 'react';
+import {queryKeys} from '../services/queryKeys';
 
 // Query key untuk blog posts
 export const blogPostsQueryKey = (categoryNames?: string[]) => [
@@ -22,24 +23,17 @@ export const blogPostsQueryKey = (categoryNames?: string[]) => [
   categoryNames?.join(',') ?? 'all',
 ];
 
-export const useBlogPostsInfinite = (activeCategory: BlogCategory | null) => {
-  const categoryFilterNames = useMemo(() => {
-    if (!activeCategory || activeCategory.id === 'all') {
-      return [];
-    }
-    return [activeCategory.name];
-  }, [activeCategory]);
-
+export const useBlogPostsInfinite = (categoryNames?: string[]) => {
   return useInfiniteQuery<
     BlogListApiResponse,
     Error,
     ProcessedBlogPost[],
-    string[],
+    readonly ['blog', 'posts', string],
     number
   >({
-    queryKey: blogPostsQueryKey(categoryFilterNames),
+    queryKey: queryKeys.blogKeys.posts(categoryNames),
     queryFn: ({pageParam}) =>
-      fetchBlogPostsApi({pageParam}, categoryFilterNames),
+      fetchBlogPostsApi({pageParam}, categoryNames),
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {
@@ -80,7 +74,7 @@ export const useBlogCategoriesQuery = () => {
   };
 
   return useQuery<BlogCategory[], Error, BlogCategory[]>({
-    queryKey: blogCategoriesQueryKey,
+    queryKey: queryKeys.blogKeys.categories(),
     queryFn: fetchBlogCategoriesApi,
     staleTime: Infinity,
     select: data => {
@@ -91,7 +85,6 @@ export const useBlogCategoriesQuery = () => {
       }));
       return [ALL_CATEGORY_PLACEHOLDER, ...data];
     },
-    //placeholderData: [ALL_CATEGORY_PLACEHOLDER],
   });
 };
 
@@ -107,7 +100,7 @@ export const useBlogPostDetail = (slug: string) => {
     Error,
     ProcessedBlogDetailData
   >({
-    queryKey: blogPostDetailQueryKey(slug),
+    queryKey: queryKeys.blogKeys.detail(slug),
     queryFn: () => fetchBlogPostDetailApi(slug),
     enabled: !!slug,
     staleTime: 1000 * 60 * 10,
@@ -150,10 +143,8 @@ export const useBlogPostDetail = (slug: string) => {
 };
 
 export const useBlogSearch = (query: string) => {
-  const queryKey = ['blogSearch', query];
-
   return useQuery<BlogPost[], Error, ProcessedBlogPost[]>({
-    queryKey: queryKey,
+    queryKey: queryKeys.blogKeys.search(query),
     queryFn: () => searchBlogPostsApi(query),
     enabled: !!query,
     staleTime: 1000 * 60 * 1,

@@ -30,6 +30,7 @@ import type {
 } from '../types/event';
 import axios from 'axios';
 import {useAuthStore} from '../store/useAuthStore';
+import {queryKeys} from '../services/queryKeys';
 
 export const eventCategoriesQueryKey = ['eventCategories'];
 export const ALL_EVENT_CATEGORY_PLACEHOLDER: EventCategoryApi = {
@@ -46,15 +47,19 @@ export const useEventCategoriesQuery = () => {
   const {isLoggedIn} = useAuthStore();
 
   return useQuery<EventCategoryApi[], Error, EventCategoryApi[]>({
-    queryKey: eventCategoriesQueryKey,
+    queryKey: queryKeys.eventKeys.categories(),
     queryFn: fetchEventCategoriesApi,
     staleTime: Infinity,
     select: data => {
-      if (isLoggedIn) {
-        return [MY_EVENT_CATEGORY, ...data];
-      }
+      const deletedEndLineData = data.map(item => ({
+        ...item,
+        name: item.name.replace(/\n/g, ''),
+      }));
 
-      return data;
+      if (isLoggedIn) {
+        return [MY_EVENT_CATEGORY, ...deletedEndLineData];
+      }
+      return deletedEndLineData;
     },
   });
 };
@@ -64,20 +69,19 @@ export const eventItemsQueryKey = (categoryId?: string) => [
   categoryId ?? 'all',
 ];
 
-export const useEventItemsInfinite = (
-  activeCategory: EventCategoryApi | null,
-) => {
-  const categoryIdFilter = activeCategory?.name;
+export const useEventItemsInfinite = (activeCategory: EventCategoryApi | null) => {
+  const categoryIdFilter = activeCategory?.id;
 
   return useInfiniteQuery<
     EventListApiResponse,
     Error,
     ProcessedEventItem[],
-    string[],
+    readonly ['event', 'items', string],
     number
   >({
-    queryKey: eventItemsQueryKey(categoryIdFilter),
-    queryFn: ({pageParam}) => fetchEventItemsApi({pageParam}, categoryIdFilter),
+    queryKey: queryKeys.eventKeys.items(categoryIdFilter),
+    queryFn: ({pageParam}) =>
+      fetchEventItemsApi({pageParam}, categoryIdFilter),
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {
@@ -111,13 +115,16 @@ export const eventDetailQueryKey = (eventId: string, categoryId?: string) => [
   categoryId,
 ];
 
-export const useEventDetailQuery = (eventId: string, categoryId?: string) => {
+export const useEventDetailQuery = (
+  eventId: string,
+  categoryId?: string,
+) => {
   return useQuery<
     {mainEvent: EventItemApi; recentEvents: EventItemApi[]},
     Error,
     ProcessedEventDetailData
   >({
-    queryKey: eventDetailQueryKey(eventId, categoryId),
+    queryKey: queryKeys.eventKeys.detail(eventId, categoryId),
     queryFn: () => fetchEventDetailApi(eventId, categoryId),
     enabled: !!eventId,
     staleTime: 1000 * 60 * 5,
@@ -152,7 +159,6 @@ export const useEventDetailQuery = (eventId: string, categoryId?: string) => {
         id: data.mainEvent.id,
         title: data.mainEvent.event_title,
         location: data.mainEvent.location,
-        // Gunakan fungsi format baru
         dateTimeFormatted: formatEventDateTime(
           data.mainEvent.event_start,
           data.mainEvent.event_end,
@@ -193,7 +199,7 @@ export const useEventDetailUnprocessedQuery = (eventId: string) => {
     {mainEvent: EventItemApi; recentEvents: EventItemApi[]},
     Error
   >({
-    queryKey: eventDetailUnprocessedQueryKey(eventId),
+    queryKey: queryKeys.eventKeys.detailUnprocessed(eventId),
     queryFn: () => fetchEventDetailApi(eventId, MY_EVENT_CATEGORY.name),
     enabled: !!eventId,
     staleTime: 1000 * 60 * 5,

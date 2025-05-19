@@ -25,9 +25,11 @@ import type {
   ProcessedForumReply,
   CreateForumPayload,
   UpdateForumPayload,
+  ForumTopicApi,
 } from '../types/forum';
 import {AxiosError} from 'axios';
 import {useAuthStore} from '../store/useAuthStore';
+import {queryKeys} from '../services/queryKeys';
 
 export const forumCategoriesQueryKey = ['forumCategories'];
 export const userForumCategoriesQueryKey = ['userForumCategories'];
@@ -47,7 +49,7 @@ export const useForumCategoriesQuery = () => {
   const {isLoggedIn} = useAuthStore();
 
   return useQuery<ForumCategoryApi[], Error, ForumCategoryApi[]>({
-    queryKey: forumCategoriesQueryKey,
+    queryKey: queryKeys.forumKeys.categories(),
     queryFn: fetchForumCategoriesApi,
     staleTime: Infinity,
     select: data => {
@@ -69,23 +71,21 @@ export const forumTopicsQueryKey = (categoryId?: string) => [
   categoryId ?? ALL_FORUM_CATEGORY_PLACEHOLDER.name,
 ];
 
-export const useForumTopicsInfinite = (
-  activeCategory: ForumCategoryApi | null,
-) => {
+export const useForumTopicsInfinite = (activeCategory: ForumCategoryApi | null) => {
   const categoryIdFilter = activeCategory?.name;
 
   return useInfiniteQuery<
     ForumListApiResponse,
     Error,
     ProcessedForumTopic[],
-    string[],
+    readonly ['forum', 'topics', string],
     number
   >({
-    queryKey: forumTopicsQueryKey(categoryIdFilter),
+    queryKey: queryKeys.forumKeys.topics(categoryIdFilter),
     queryFn: ({pageParam}) =>
       fetchForumTopicsApi({pageParam}, categoryIdFilter),
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 5, // Cache 3 menit
+    staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {
       return lastPage.page < lastPage.total_pages
         ? lastPage.page + 1
@@ -111,7 +111,6 @@ export const useForumTopicsInfinite = (
             imageUrl: topic.image_feature?.img_url ?? null,
             slug: topic.forum_slug,
             replyCount: isNaN(replyCount) ? 0 : replyCount,
-            //excerpt: topic.forum_content_excerpt // Perlu decode/strip HTML
             content: formatContentHtml(topic.forum_content),
           });
         });
@@ -129,10 +128,10 @@ export const forumDetailQueryKey = (forumId: string) => [
 
 export const useForumDetailQuery = (forumId: string) => {
   return useQuery<ForumDetailApiResponse, Error, ProcessedForumDetailData>({
-    queryKey: forumDetailQueryKey(forumId),
+    queryKey: queryKeys.forumKeys.detail(forumId),
     queryFn: () => fetchForumDetailApi(forumId),
     enabled: !!forumId,
-    staleTime: 1000 * 60 * 3, // Cache 3 menit
+    staleTime: 1000 * 60 * 5,
     select: data => {
       const topic = data.data;
       const ads = data.data_ads ?? [];
@@ -148,8 +147,6 @@ export const useForumDetailQuery = (forumId: string) => {
         }
       });
 
-      // if (mainTopicImages.length === 0) mainTopicImages.push('URL_PLACEHOLDER');
-
       const mainTopicProcessed: ProcessedForumDetail = {
         id: topic.id,
         title: topic.forum_title,
@@ -162,7 +159,7 @@ export const useForumDetailQuery = (forumId: string) => {
               .filter(cat => cat)
           : [],
         firstCategory: topic.nama_ref_global,
-        imageUrl: null, // imageURL tidak relevan di detail utama, pakai imageUrls
+        imageUrl: null,
         slug: topic.forum_slug,
         contentHTML: topic.forum_content,
         imageUrls: mainTopicImages,

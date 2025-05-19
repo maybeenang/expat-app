@@ -11,23 +11,14 @@ import {
 import Icon from '@react-native-vector-icons/ionicons';
 import COLORS from '../../constants/colors';
 import HeaderSection from './HeaderSection';
+import {useRestaurantItemsInfinite} from '../../hooks/useBizQuery';
+import {ProcessedBizItem} from '../../types/biz';
+import StyledText from '../common/StyledText';
 
 const {width} = Dimensions.get('window');
 const cardWidth = width * 0.4;
 
-type RestaurantType = {
-  id: string;
-  name: string;
-  location: string;
-  rating: string;
-  imageUrl: string;
-};
-
-interface RestaurantListProps {
-  restaurants: RestaurantType[];
-}
-
-const renderRestaurantCard = ({item}: {item: RestaurantType}) => (
+const renderRestaurantCard = ({item}: {item: ProcessedBizItem}) => (
   <TouchableOpacity
     style={[styles.card, styles.restaurantCard]}
     activeOpacity={0.8}>
@@ -37,7 +28,7 @@ const renderRestaurantCard = ({item}: {item: RestaurantType}) => (
         {item.name}
       </Text>
       <View>
-        <Text style={styles.restaurantLocation}>{item.location}</Text>
+        <Text style={styles.restaurantLocation}>{item.city}</Text>
         <View style={styles.ratingContainer}>
           <Icon name="star" size={14} color="#FFC107" />
           <Text style={styles.ratingText}>{item.rating}</Text>
@@ -47,7 +38,47 @@ const renderRestaurantCard = ({item}: {item: RestaurantType}) => (
   </TouchableOpacity>
 );
 
-const RestaurantList = ({restaurants}: RestaurantListProps) => {
+const RestaurantList = () => {
+  const {data, error, isLoading} = useRestaurantItemsInfinite({});
+
+  if (isLoading) {
+    return (
+      <View style={styles.sectionContainer}>
+        <HeaderSection
+          subtitle="Rekomendasi Restoran"
+          title="Restaurant"
+          goto="Restaurant"
+        />
+        <View
+          style={[
+            styles.horizontalListPadding,
+            {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+          ]}>
+          <StyledText>Loading...</StyledText>
+        </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.sectionContainer}>
+        <HeaderSection
+          subtitle="Rekomendasi Restoran"
+          title="Restaurant"
+          goto="Restaurant"
+        />
+        <View
+          style={[
+            styles.horizontalListPadding,
+            {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+          ]}>
+          <StyledText>{error?.message}</StyledText>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.sectionContainer}>
       <HeaderSection
@@ -57,7 +88,7 @@ const RestaurantList = ({restaurants}: RestaurantListProps) => {
       />
       <FlatList
         horizontal
-        data={restaurants}
+        data={data}
         renderItem={renderRestaurantCard}
         keyExtractor={item => item.id}
         showsHorizontalScrollIndicator={false}
@@ -124,4 +155,3 @@ const styles = StyleSheet.create({
 });
 
 export default RestaurantList;
-

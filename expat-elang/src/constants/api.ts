@@ -44,3 +44,9 @@ export const JOBS_OPTIONS_ENDPOINT = '/admin_jobs/data_option';
 export const JOBS_CREATE_ENDPOINT = '/admin_jobs/create';
 export const JOBS_UPDATE_ENDPOINT = '/admin_jobs/update';
 export const DEFAULT_JOBS_LIMIT = 10;
+
+export const BIZ_ENDPOINT = '/biz';
+export const BIZ_CATEGORIES_ENDPOINT = '/biz/categories';
+export const DEFAULT_BIZ_LIMIT = 6;
+export const BIZ_RESTAURANT_CATEGORY_NAME = 'RESTAURANT';
+export const BIZ_LAWYER_CATEGORY_NAME = 'LAYWER';
