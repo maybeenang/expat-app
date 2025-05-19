@@ -11,7 +11,9 @@
     "android:dev": "ENVFILE=.env.development react-native run-android --mode=devDebug --active-arch-only",
     "android:prod": "ENVFILE=.env.production react-native run-android --mode=prodDebug --active-arch-only",
     "build:android:dev": "ENVFILE=.env.development cd android && ./gradlew assembleDevDebug",
+    "build:android:dev:apk": "ENVFILE=.env.development cd android && ./gradlew assembleDevRelease",
     "build:android:prod": "ENVFILE=.env.production cd android && ./gradlew assembleProdDebug",
+    "build:android:prod:apk": "ENVFILE=.env.production cd android && ./gradlew assembleProdRelease",
     "log": "react-native log-android"
   },
   "dependencies": {
