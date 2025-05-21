@@ -98,38 +98,38 @@ export const formatPrice = (price: string | number, type: string): string[] => {
   const num = typeof price === 'string' ? parseInt(price, 10) : price;
   if (isNaN(num)) {
     return [
-      'Rp 0 ',
+      '$0 ',
       type.toLowerCase() === 'day'
-        ? '/ hari'
+        ? '/ day'
         : type.toLowerCase() === 'month'
-        ? '/ bulan'
+        ? '/ month'
         : type.toLowerCase() === 'year'
-        ? '/ tahun'
+        ? '/ year'
         : '',
     ];
   }
 
   let formattedNum = '-';
   if (num >= 1000000) {
-    formattedNum = `Rp ${(num / 1000000).toFixed(
+    formattedNum = `$${(num / 1000000).toFixed(
       num % 1000000 !== 0 ? 1 : 0,
-    )} juta `;
+    )}M `;
   } else if (num >= 1000) {
-    formattedNum = `Rp ${(num / 1000).toFixed(num % 1000 !== 0 ? 1 : 0)} ribu `;
+    formattedNum = `$${(num / 1000).toFixed(num % 1000 !== 0 ? 1 : 0)}K `;
   } else {
-    formattedNum = `Rp ${num} `;
+    formattedNum = `$${num} `;
   }
 
   let priceType = '';
   switch (type.toUpperCase()) {
     case 'DAY':
-      priceType = '/ hari';
+      priceType = '/ day';
       break;
     case 'MONTH':
-      priceType = '/ bulan';
+      priceType = '/ month';
       break;
     case 'YEAR':
-      priceType = '/ tahun';
+      priceType = '/ year';
       break;
     default:
       priceType = '/ ' + type.toLowerCase();

@@ -43,7 +43,7 @@ const BlogScreen = ({navigation}: NativeStackScreenProps<any>) => {
     isFetching: isFetchingPosts,
     error: errorPosts,
     refetch: refetchPosts,
-  } = useBlogPostsInfinite(activeCategory);
+  } = useBlogPostsInfinite(activeCategory?.id);
 
   const {isManualRefreshing, handleManualRefresh} = useManualRefresh({
     refetch: refetchPosts,

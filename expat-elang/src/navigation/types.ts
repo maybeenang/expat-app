@@ -1,5 +1,6 @@
 import {NavigatorScreenParams} from '@react-navigation/native';
 import {RentalCategory} from '../types/rental';
+import {ForumCategoryApi} from '../types/forum';
 
 // src/navigation/types.ts
 export type RootStackParamList = {
@@ -62,6 +63,8 @@ export type RootStackParamList = {
     participantName: string;
     participantAvatarUrl: string;
   };
+
+  OtherMenu: undefined;
 };
 
 export type DrawerParamList = {
@@ -81,7 +84,9 @@ export type MainTabParamList = {
   Rental: {
     category: RentalCategory | undefined;
   };
-  Forum: undefined;
+  Forum: {
+    category: ForumCategoryApi | undefined;
+  };
   Notification: undefined;
   AccountStack: NavigatorScreenParams<AccountStackParamList>;
 };

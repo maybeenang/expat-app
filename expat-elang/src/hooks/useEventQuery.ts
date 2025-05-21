@@ -297,22 +297,10 @@ export const useEventUpdateMutation = () => {
   return useMutation({
     mutationFn: (payload: UpdateEventPayload) => adminUpdateEventApi(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['eventItems'],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['eventDetail'],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['eventDetailUnprocessed'],
-      });
-    },
-    onError: (error: Error) => {
-      if (axios.isAxiosError(error) && error.response) {
-        console.error('Error response:', error.response.data);
-      }
-      console.error('Error message:', error.message);
+      // Invalidate and refetch events list
+      queryClient.invalidateQueries({queryKey: ['events']});
+      // Invalidate and refetch event detail
+      queryClient.invalidateQueries({queryKey: ['event']});
     },
   });
 };

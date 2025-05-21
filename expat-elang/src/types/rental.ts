@@ -91,6 +91,17 @@ export interface ProcessedRentalDetail {
   typeLabel: string;
   descExpandable: boolean;
   contactNumber?: string;
+  availability: string;
+  stayMin: string;
+  stayMax: string;
+  stayType: string;
+  features?: string[];
+  houseRules?: string[];
+  address: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zip: string;
 }
 
 export interface RentalOptionApiResponse<T> {

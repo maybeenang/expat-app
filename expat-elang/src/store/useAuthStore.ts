@@ -15,9 +15,12 @@ interface AuthState {
   ) => void;
   clearAuthState: () => void;
   setLoading: (loading: boolean) => void;
+  setToken: (token: string | null) => void;
+  setUserSession: (user: any | null) => void;
+  logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>(set => ({
+export const useAuthStore = create<AuthState>()(set => ({
   token: null,
   userSession: null,
   isLoggedIn: false,
@@ -37,6 +40,9 @@ export const useAuthStore = create<AuthState>(set => ({
       isLoading: false,
     }),
   setLoading: loading => set({isLoading: loading}),
+  setToken: token => set({token, isLoggedIn: !!token}),
+  setUserSession: user => set({userSession: user}),
+  logout: () => set({token: null, userSession: null, isLoggedIn: false}),
 }));
 
 export const checkAuthStatus = async () => {

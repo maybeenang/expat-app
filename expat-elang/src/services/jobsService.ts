@@ -48,6 +48,9 @@ export const fetchJobItemsApi = async (
     const response = await apiClient.get<JobListApiResponse>(endpoint, {
       params,
     });
+
+    console.log('Response:', response.data);
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

@@ -11,19 +11,15 @@ import apiClient from './authService';
 
 export const fetchBlogPostsApi = async (
   {pageParam = 1},
-  categoryNames?: string[],
+  category?: string,
 ): Promise<BlogListApiResponse> => {
   const params: Record<string, string | number> = {
     page: pageParam,
     limit: 10,
   };
-  if (categoryNames && categoryNames.length > 0) {
-    const filteredCats = categoryNames.filter(
-      name => name !== 'Semua Kategori',
-    );
-    if (filteredCats.length > 0) {
-      params.categories = filteredCats.join(',');
-    }
+
+  if (category && category !== 'all') {
+    params.category = category;
   }
 
   try {

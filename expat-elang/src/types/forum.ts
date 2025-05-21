@@ -1,7 +1,7 @@
 export interface ForumCategoryApi {
   id: string;
   name: string;
-  total_post: string; // String number
+  total_post?: string; // String number
 }
 
 export interface ForumCategoriesApiResponse {

@@ -6,18 +6,7 @@ import {CustomIcon} from '../common/CustomPhosporIcon';
 import HeaderSection from './HeaderSection';
 import {ForumCategoryApi} from '../../types/forum';
 import {useForumCategoriesQuery} from '../../hooks/useForumQuery';
-
-const renderForumTopic = ({item}: {item: ForumCategoryApi}) => (
-  <TouchableOpacity style={styles.forumChip} activeOpacity={0.7} key={item.id}>
-    <CustomIcon
-      name="ChatsTeardrop"
-      size={24}
-      color={COLORS.primary}
-      style={styles.forumChipIcon}
-    />
-    <StyledText style={styles.forumChipText}>{item.name}</StyledText>
-  </TouchableOpacity>
-);
+import {useNavigation} from '@react-navigation/native';
 
 const ForumTopicList = () => {
   const {
@@ -26,6 +15,28 @@ const ForumTopicList = () => {
     isError,
     error,
   } = useForumCategoriesQuery();
+
+  const navigation = useNavigation();
+
+  const renderForumTopic = ({item}: {item: ForumCategoryApi}) => (
+    <TouchableOpacity
+      style={styles.forumChip}
+      activeOpacity={0.7}
+      key={item.id}
+      onPress={() =>
+        navigation.navigate('Forum', {
+          category: item,
+        })
+      }>
+      <CustomIcon
+        name="ChatsTeardrop"
+        size={24}
+        color={COLORS.primary}
+        style={styles.forumChipIcon}
+      />
+      <StyledText style={styles.forumChipText}>{item.name}</StyledText>
+    </TouchableOpacity>
+  );
 
   if (isLoading) {
     return (

@@ -10,7 +10,6 @@ type MenuItemType = {
   id: string;
   label: string;
   icon: IconName;
-  navigationType: 'drawer' | 'stack';
   screenName?:
     | never
     | 'Rental'
@@ -18,7 +17,8 @@ type MenuItemType = {
     | 'Restaurant'
     | 'Forum'
     | 'Blog'
-    | 'Lawyers';
+    | 'Lawyers'
+    | 'OtherMenu';
   params?: object;
 };
 
@@ -27,7 +27,6 @@ const quickActions: MenuItemType[] = [
     id: '1',
     label: 'Sewa Kamar',
     icon: 'Bed',
-    navigationType: 'drawer',
     screenName: 'Rental',
     params: {
       category: {
@@ -40,7 +39,6 @@ const quickActions: MenuItemType[] = [
     id: '2',
     label: 'Sewa Kendaraan',
     icon: 'Car',
-    navigationType: 'drawer',
     screenName: 'Rental',
     params: {
       category: {
@@ -53,42 +51,37 @@ const quickActions: MenuItemType[] = [
     id: '3',
     label: 'Event Terdekat',
     icon: 'Ticket',
-    navigationType: 'drawer',
     screenName: 'Event',
   },
   {
     id: '4',
     label: 'Restaurant',
     icon: 'ForkKnife',
-    navigationType: 'drawer',
     screenName: 'Restaurant',
   },
   {
     id: '5',
     label: 'Forum',
     icon: 'ChatsTeardrop',
-    navigationType: 'drawer',
     screenName: 'Forum',
   },
   {
     id: '6',
     label: 'Blog',
     icon: 'Newspaper',
-    navigationType: 'drawer',
     screenName: 'Blog',
   },
   {
     id: '7',
     label: 'Lawyers',
     icon: 'Scales',
-    navigationType: 'drawer',
     screenName: 'Lawyers',
   },
   {
     id: '8',
     label: 'Lainnya',
     icon: 'SquresFour',
-    navigationType: 'drawer',
+    screenName: 'OtherMenu',
   },
 ];
 
@@ -104,7 +97,7 @@ const HomeMenuItem = ({item}: HomeMenuItemProps) => {
       return;
     }
     try {
-      navigation.navigate(item.screenName as never, item.params as never);
+      navigation.navigate(item.screenName as never, item?.params as never);
     } catch (error) {
       console.warn('Navigation error:', error);
     }

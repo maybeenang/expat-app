@@ -27,12 +27,8 @@ export const queryKeys = {
   // Blog Query Keys
   blogKeys: {
     all: ['blog'] as const,
-    posts: (categoryNames?: string[]) =>
-      [
-        ...queryKeys.blogKeys.all,
-        'posts',
-        categoryNames?.join(',') ?? 'all',
-      ] as const,
+    posts: (category?: string) =>
+      [...queryKeys.blogKeys.all, 'posts', category ?? 'all'] as const,
     categories: () => [...queryKeys.blogKeys.all, 'categories'] as const,
     detail: (slug: string) =>
       [...queryKeys.blogKeys.all, 'detail', slug] as const,

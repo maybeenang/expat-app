@@ -67,8 +67,10 @@ export const fetchEventItemsApi = async (
 
   let endpoint = EVENT_ENDPOINT;
 
-  if (categoryId === MY_EVENT_CATEGORY.name && isLoggedIn) {
+  if (categoryId === MY_EVENT_CATEGORY.id && isLoggedIn) {
     endpoint = EVENT_ADMIN_ENDPOINT;
+    // delete categories from params
+    delete params.categories;
   }
 
   try {
@@ -206,24 +208,27 @@ export const adminCreateEventApi = (
 
     // Append each field to the FormData object
     Object.entries(payload).forEach(([key, value]) => {
-      formdata.append(key, value);
+      if (key === 'file' && Array.isArray(value)) {
+        // Handle file array
+        value.forEach(file => {
+          formdata.append('file[]', file);
+        });
+      } else if (key === 'image_title' && Array.isArray(value)) {
+        // Handle image title array
+        value.forEach(title => {
+          formdata.append('image_title[]', title);
+        });
+      } else {
+        formdata.append(key, value);
+      }
     });
-
-    // images
-    if (payload.images) {
-      payload.images.forEach(image => {
-        formdata.append('images[]', image);
-      });
-    }
-
-    console.log('FormData:', formdata);
 
     return apiClient.post(EVENT_CREATE_ENDPOINT, formdata, {
       headers: {'Content-Type': 'multipart/form-data'},
     });
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data?.message || 'Failed to create job');
+      throw new Error(error.response.data?.message || 'Failed to create event');
     }
     throw new Error('Network error or failed to connect');
   }
@@ -275,30 +280,35 @@ export const adminUpdateEventApi = (
 ): Promise<AxiosResponse> => {
   try {
     const formdata = new FormData();
+    
     // Append each field to the FormData Object
     Object.entries(payload).forEach(([key, value]) => {
-      formdata.append(key, value);
+      if (key === 'file' && Array.isArray(value)) {
+        // Handle file array
+        value.forEach(file => {
+          formdata.append('file[]', file);
+        });
+      } else if (key === 'image_title' && Array.isArray(value)) {
+        // Handle image title array
+        value.forEach(title => {
+          formdata.append('image_title[]', title);
+        });
+      } else if (key === 'organizer_phone' && value) {
+        // Hapus awalan +1 dari nomor telepon
+        formdata.append(key, value.replace('+1', ''));
+      } else {
+        formdata.append(key, value);
+      }
     });
 
-    // images
-    if (payload.images) {
-      payload.images.forEach(image => {
-        formdata.append('images[]', image);
-      });
-    }
-
-    console.log('FormData:', formdata);
-
     return apiClient.post(EVENT_UPDATE_ENDPOINT, formdata, {
-      headers: {'Content-Type': ' multipart/form-data '},
+      headers: {'Content-Type': 'multipart/form-data'},
     });
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       console.error('Error response:', error.response.data);
       throw new Error(error.response.data?.message || 'Failed to update event');
     }
-
-    console.log('Error:', error);
     throw new Error('Network error or failed to connect');
   }
 };

@@ -16,7 +16,7 @@ import {
 import COLORS from '../../../constants/colors';
 import useManualRefresh from '../../../hooks/useManualRefresh';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../../navigation/types';
+import {MainTabParamList} from '../../../navigation/types';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -31,12 +31,14 @@ import BottomSheetForum from '../../../components/forum/BottomSheetForum';
 
 const {width} = Dimensions.get('window');
 
-interface ForumScreenProps extends NativeStackScreenProps<RootStackParamList> {}
+interface ForumScreenProps
+  extends NativeStackScreenProps<MainTabParamList, 'Forum'> {}
 
-const ForumScreen = ({navigation}: ForumScreenProps) => {
+const ForumScreen = ({navigation, route}: ForumScreenProps) => {
   const {isLoggedIn} = useAuthStore();
 
   const categoryQuery = useForumCategoriesQuery();
+
   const [activeCategory, setActiveCategory] = useState<ForumCategoryApi | null>(
     null,
   );
@@ -73,6 +75,7 @@ const ForumScreen = ({navigation}: ForumScreenProps) => {
 
   const handleNavigateDetail = useCallback(
     (id: string, screen: 'ForumDetail' | 'ForumUpdate') => {
+      // @ts-ignore
       navigation.navigate(screen, {
         forumId: id,
       });
@@ -113,6 +116,18 @@ const ForumScreen = ({navigation}: ForumScreenProps) => {
 
     return () => {};
   }, [categoryQuery.data, activeCategory, isLoggedIn]);
+
+  // Efek untuk set kategori dari parameter route
+  useEffect(() => {
+    if (route.params?.category && categoryQuery.data) {
+      const initialCategory = categoryQuery.data?.find(
+        category => category.id === route.params.category?.id,
+      );
+      if (initialCategory) {
+        setActiveCategory(initialCategory);
+      }
+    }
+  }, [route.params?.category, categoryQuery.data]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

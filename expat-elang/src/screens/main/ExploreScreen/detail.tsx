@@ -21,10 +21,26 @@ import COLORS from '../../../constants/colors';
 import LoadingScreen from '../../LoadingScreen';
 import ErrorScreen from '../../ErrorScreen';
 import StyledText from '../../../components/common/StyledText';
+import {format} from 'date-fns';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'RentalDetail'>;
 
 const {width} = Dimensions.get('window');
-const IMAGE_HEIGHT = width * 1; // Tinggi gambar (rasio 4:3)
+
+// Helper function to clean HTML tags from text
+const cleanHtmlTags = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
+    .replace(/&amp;/g, '&') // Replace &amp; with &
+    .replace(/&lt;/g, '<') // Replace &lt; with <
+    .replace(/&gt;/g, '>') // Replace &gt; with >
+    .replace(/&quot;/g, '"') // Replace &quot; with "
+    .replace(/&#39;/g, "'") // Replace &#39; with '
+    .replace(/\n\s*\n/g, '\n') // Remove multiple newlines
+    .trim(); // Remove leading/trailing whitespace
+};
 
 const RentalDetailScreen = ({route, navigation}: Props) => {
   const {rentalId} = route.params;
@@ -44,12 +60,12 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
     try {
       const shareUrl = `https://yourapp.com/rental/${rental.id}`;
       await Share.share({
-        message: `Lihat properti menarik ini: ${rental.title}\n${shareUrl}`,
+        message: `Check out this interesting property: ${rental.title}\n${shareUrl}`,
         url: shareUrl,
         title: rental.title,
       });
     } catch (shareError: any) {
-      Alert.alert('Gagal Membagikan', shareError.message);
+      Alert.alert('Failed to Share', shareError.message);
     }
   }, [rental]);
 
@@ -63,25 +79,17 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
     });
   }, [navigation, rental, handleShare]);
 
-  // --- Kontak CS Action ---
+  // --- Contact CS Action ---
   const handleContactCS = async () => {
     if (!rental?.contactNumber) {
-      Alert.alert('Info Kontak Tidak Tersedia');
+      Alert.alert('Contact Information Not Available');
       return;
     }
     const whatsappUrl = `whatsapp://send?phone=${rental.contactNumber}`;
     try {
       await Linking.openURL(whatsappUrl);
-      //const supported = await Linking.canOpenURL(whatsappUrl);
-      //if (supported) {
-      //} else {
-      //  Alert.alert(
-      //    'WhatsApp Tidak Terinstall',
-      //    'Silakan install WhatsApp untuk menghubungi CS.',
-      //  );
-      //}
     } catch (err) {
-      Alert.alert('Gagal Membuka WhatsApp');
+      Alert.alert('Failed to Open WhatsApp');
     }
   };
 
@@ -92,7 +100,7 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
     return (
       <ErrorScreen
         error={error}
-        placeholder="Gagal memuat data rental."
+        placeholder="Failed to load rental data."
         refetch={refetch}
       />
     );
@@ -115,7 +123,14 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
         {/* Info Section */}
         <View style={styles.infoSection}>
           <Text style={styles.title}>{rental.title}</Text>
-          <Text style={styles.location}>{rental.location}</Text>
+          <View style={styles.locationContainer}>
+            <Icon
+              name="location-outline"
+              size={16}
+              color={COLORS.textSecondary}
+            />
+            <Text style={styles.location}>{rental.location}</Text>
+          </View>
           <StyledText style={styles.price} weight="bold">
             {rental.priceFormatted[0]}
             <StyledText style={styles.priceType}>
@@ -127,157 +142,323 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
         {/* Separator */}
         <View style={styles.separator} />
 
-        {/* Description Section */}
-        <View style={styles.descriptionSection}>
-          <Text style={styles.sectionTitle}>Deskripsi</Text>
-          <Text
-            style={styles.descriptionText}
-            numberOfLines={isDescExpanded ? undefined : 4}>
-            {rental.description || 'Tidak ada deskripsi tersedia.'}
-          </Text>
+        {/* Property Details Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Property Details</Text>
+          <View style={styles.detailsGrid}>
+            <View style={styles.detailItem}>
+              <Icon name="home-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.detailLabel}>Type</Text>
+              <Text style={styles.detailValue}>{rental.typeLabel}</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Icon name="calendar-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.detailLabel}>Availability</Text>
+              <Text style={styles.detailValue}>
+                {format(new Date(rental.availability), 'MMMM d, yyyy')}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Icon name="time-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.detailLabel}>Minimum Stay</Text>
+              <Text style={styles.detailValue}>
+                {rental.stayMin} {rental.stayType.toLowerCase()}
+                {rental.stayMax &&
+                  ` - ${rental.stayMax} ${rental.stayType.toLowerCase()}`}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Icon name="time-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.detailLabel}>Maximum Stay</Text>
+              <Text style={styles.detailValue}>
+                {rental.stayMax} {rental.stayType.toLowerCase()}
+              </Text>
+            </View>
+          </View>
+
+          {/* Address Section */}
+          <View style={styles.addressSection}>
+            <View style={styles.addressHeader}>
+              <Icon name="location-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.addressTitle}>Address</Text>
+            </View>
+            <View style={styles.addressContent}>
+              <Text style={styles.addressText}>
+                {rental.address}
+                {rental.address2 && `\n${rental.address2}`}
+                {rental.city && `\n${rental.city}`}
+                {rental.state && `, ${rental.state}`}
+                {rental.zip && ` ${rental.zip}`}
+              </Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.separator} />
-        {rental.imageUrls.length - 1 > 0 && isDescExpanded && (
-          <View style={styles.imageDetailContainer}>
-            {rental.imageUrls.map((url, index) => (
-              <View style={styles.slide} key={`${rental.id}-img-${index}`}>
+
+        {/* Description Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Description</Text>
+          <Text
+            style={styles.description}
+            numberOfLines={isDescExpanded ? undefined : 3}>
+            {cleanHtmlTags(rental.description)}
+          </Text>
+          {rental.descExpandable && (
+            <TouchableOpacity
+              onPress={() => setIsDescExpanded(!isDescExpanded)}
+              style={styles.expandButton}>
+              <Text style={styles.expandButtonText}>
+                {isDescExpanded ? 'Show Less' : 'Show More'}
+              </Text>
+              <Icon
+                name={
+                  isDescExpanded ? 'chevron-up-outline' : 'chevron-down-outline'
+                }
+                size={16}
+                color={COLORS.primary}
+              />
+            </TouchableOpacity>
+          )}
+          {isDescExpanded && rental.imageUrls.length > 1 && (
+            <View style={styles.additionalImagesContainer}>
+              {rental.imageUrls.slice(1).map((imageUrl, index) => (
                 <Image
-                  source={{uri: url}}
-                  style={styles.image}
+                  key={index}
+                  source={{uri: imageUrl}}
+                  style={styles.additionalImage}
                   resizeMode="cover"
                 />
-              </View>
-            ))}
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.separator} />
+
+        {/* Features Section */}
+        {rental.features && rental.features.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Features</Text>
+            <View style={styles.featuresGrid}>
+              {rental.features.map((feature, index) => (
+                <View key={index} style={styles.featureItem}>
+                  <Icon
+                    name="checkmark-circle"
+                    size={16}
+                    color={COLORS.primary}
+                  />
+                  <Text style={styles.featureText}>{feature}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* House Rules Section */}
+        {rental.houseRules && rental.houseRules.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>House Rules</Text>
+            <View style={styles.rulesList}>
+              {rental.houseRules.map((rule, index) => (
+                <View key={index} style={styles.ruleItem}>
+                  <Icon
+                    name="information-circle"
+                    size={16}
+                    color={COLORS.primary}
+                  />
+                  <Text style={styles.ruleText}>{rule}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         )}
       </ScrollView>
 
-      {rental.descExpandable && (
-        <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity
-            style={[styles.expandButotn, {backgroundColor: COLORS.white}]}
-            onPress={() => setIsDescExpanded(!isDescExpanded)}>
-            <StyledText style={styles.readMoreText}>
-              {isDescExpanded ? 'Lebih Sedikit' : 'Selengkapnya'}
-            </StyledText>
-            <Icon
-              name={
-                isDescExpanded ? 'chevron-up-outline' : 'chevron-down-outline'
-              }
-              size={16}
-              color={COLORS.primary}
-            />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/*
+      {/* Contact CS Button - Temporarily Disabled
       <View style={styles.bottomButtonContainer}>
         <TouchableOpacity
-          style={styles.contactButton}
-          onPress={handleContactCS}
-          activeOpacity={0.8}
-          disabled={!rental.contactNumber}>
-          <CustomIcon
-            name="WhatsappLogo"
-            size={22}
-            color={COLORS.white}
-            style={styles.contactIcon}
-          />
-          <Text style={styles.contactButtonText}>Kontak CS</Text>
+          style={[styles.contactButton, {opacity: 0.5}]}
+          disabled={true}>
+          <Icon name="logo-whatsapp" size={22} color={COLORS.white} style={styles.contactIcon} />
+          <Text style={styles.contactButtonText}>Contact CS</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.whatsappButton}
+          onPress={handleShare}>
+          <Icon name="logo-whatsapp" size={22} color={COLORS.white} style={styles.contactIcon} />
+          <Text style={styles.whatsappButtonText}>Contact via WhatsApp</Text>
         </TouchableOpacity>
       </View>
-            */}
+        */}
     </SafeAreaView>
   );
 };
 
-// --- Styles ---
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: COLORS.white},
-  scrollView: {flex: 1},
-  headerButton: {padding: 10, marginRight: 5}, // Padding untuk tombol header
-  // Swiper & Image
-  imageDetailContainer: {
-    paddingVertical: 20,
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  scrollView: {
+    flex: 1,
   },
   slide: {
-    width: width,
-    height: IMAGE_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.greyLight,
+    width: width, // Adjust width to account for padding
+    height: (width - 40) * 0.75, // 4:3 aspect ratio
+    marginBottom: 15,
+    overflow: 'hidden',
   },
-  image: {width: '100%', height: '100%'},
-  paginationStyle: {
-    position: 'absolute',
-    bottom: 15,
-    left: 15,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
+  image: {
+    width: '100%',
+    height: '100%',
   },
-  paginationText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontFamily: 'Roboto-Medium',
+  infoSection: {
+    padding: 20,
   },
-  // Info Section
-  infoSection: {paddingHorizontal: 20, paddingTop: 20, paddingBottom: 15},
   title: {
+    fontSize: 22,
     fontFamily: 'Roboto-Bold',
-    fontSize: 20,
     color: COLORS.textPrimary,
-    marginBottom: 5,
+    marginBottom: 8,
   },
-  location: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 10,
-  },
-  price: {fontFamily: 'Roboto-Bold', fontSize: 18, color: COLORS.primary},
-  // Separator
-  separator: {height: 6, backgroundColor: COLORS.greyLight, marginVertical: 10},
-  // Description Section
-  descriptionSection: {
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 20,
-  },
-  sectionTitle: {
-    fontFamily: 'Roboto-Medium',
-    fontSize: 16,
-    color: COLORS.textPrimary,
-    marginBottom: 10,
-  },
-  descriptionText: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
-  },
-  readMoreButton: {
+  locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    alignSelf: 'flex-start',
+    marginBottom: 12,
   },
-  readMoreText: {
-    fontSize: 18,
+  location: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    marginLeft: 4,
+  },
+  price: {
+    fontSize: 20,
     color: COLORS.primary,
-    marginRight: 4,
   },
-  // Bottom Button
+  priceType: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+  },
+  separator: {
+    height: 8,
+    backgroundColor: COLORS.greyLight,
+  },
+  section: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Roboto-Bold',
+    color: COLORS.textPrimary,
+    marginBottom: 15,
+  },
+  description: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: COLORS.textSecondary,
+    fontFamily: 'Roboto-Regular',
+  },
+  detailsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -5,
+  },
+  detailItem: {
+    width: '50%',
+    paddingHorizontal: 5,
+    marginBottom: 15,
+  },
+  detailLabel: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  detailValue: {
+    fontSize: 15,
+    color: COLORS.textPrimary,
+    fontFamily: 'Roboto-Medium',
+  },
+  addressSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.greyLight,
+  },
+  addressHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  addressTitle: {
+    fontSize: 16,
+    fontFamily: 'Roboto-Bold',
+    color: COLORS.textPrimary,
+    marginLeft: 8,
+  },
+  addressContent: {
+    backgroundColor: COLORS.greyLight,
+    padding: 15,
+    borderRadius: 8,
+  },
+  addressText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: COLORS.textSecondary,
+    fontFamily: 'Roboto-Regular',
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -5,
+  },
+  featureItem: {
+    width: '50%',
+    paddingHorizontal: 5,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  featureText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginLeft: 8,
+    flex: 1,
+  },
+  rulesList: {
+    marginHorizontal: -5,
+  },
+  ruleItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    paddingHorizontal: 5,
+  },
+  ruleText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 20,
+  },
+  additionalImagesContainer: {
+    marginTop: 15,
+  },
+  additionalImage: {
+    width: width, // Adjust width to account for padding
+    height: (width - 40) * 0.75, // 4:3 aspect ratio
+    marginBottom: 15,
+    overflow: 'hidden',
+  },
   bottomButtonContainer: {
     padding: 15,
     borderTopWidth: 1,
     borderTopColor: COLORS.greyLight,
     backgroundColor: COLORS.white,
   },
-  contactButton: {
+  whatsappButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: 14,
     borderRadius: 8,
@@ -285,23 +466,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  expandButotn: {
+  whatsappButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontFamily: 'Roboto-Bold',
+  },
+  headerButton: {
+    padding: 8,
+  },
+  expandButton: {
     paddingVertical: 4,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 10,
   },
-  contactIcon: {marginRight: 10},
-  contactButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontFamily: 'Roboto-Bold',
+  expandButtonText: {
+    fontSize: 14,
+    color: COLORS.primary,
+    marginRight: 4,
   },
-
-  priceType: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
+  contactIcon: {
+    marginRight: 8,
   },
 });
 

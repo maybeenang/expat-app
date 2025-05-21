@@ -88,6 +88,25 @@ const LawyerList = () => {
     );
   }
 
+  if (!lawyers || lawyers.length === 0) {
+    return (
+      <View style={styles.sectionContainer}>
+        <HeaderSection
+          title="Lawyers"
+          subtitle="Temukan konsultan hukum"
+          goto="Lawyers"
+        />
+        <View
+          style={[
+            styles.horizontalListPadding,
+            {alignItems: 'center', justifyContent: 'center', minHeight: 120},
+          ]}>
+          <StyledText>Tidak ada data lawyers</StyledText>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.sectionContainer}>
       <HeaderSection

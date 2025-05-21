@@ -34,6 +34,7 @@ import EventUpdateScreen from '../screens/main/EventScreen/update';
 import RentalsCreateScreen from '../screens/main/ExploreScreen/create';
 import RentalsUpdateScreen from '../screens/main/ExploreScreen/update';
 import ChatDetailScreen from '../screens/main/ChatScreen/detail';
+import OtherMenu from '../screens/main/HomeScreen/other';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -305,6 +306,20 @@ const AppNavigator = () => {
           options={{
             headerShown: true,
             title: '',
+            headerTitleStyle: {
+              color: COLORS.textPrimary,
+              fontWeight: '600',
+            },
+            headerTintColor: COLORS.primary,
+          }}
+        />
+
+        <Stack.Screen
+          name="OtherMenu"
+          component={OtherMenu}
+          options={{
+            headerShown: true,
+            title: 'Semua Menu',
             headerTitleStyle: {
               color: COLORS.textPrimary,
               fontWeight: '600',

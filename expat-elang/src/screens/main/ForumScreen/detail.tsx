@@ -60,6 +60,84 @@ const repliesDemo: ProcessedForumReply[] = [
   },
 ];
 
+// HTML styles for better rendering
+const htmlStyles: Record<string, MixedStyleDeclaration> = {
+  body: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: COLORS.textSecondary,
+    fontFamily: 'Roboto-Regular',
+  },
+  p: {
+    marginBottom: 10,
+  },
+  h1: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: COLORS.textPrimary,
+  },
+  h2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: COLORS.textPrimary,
+  },
+  h3: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: COLORS.textPrimary,
+  },
+  ul: {
+    marginBottom: 10,
+  },
+  ol: {
+    marginBottom: 10,
+  },
+  li: {
+    marginBottom: 5,
+  },
+  a: {
+    color: COLORS.primary,
+    textDecorationLine: 'underline',
+  },
+  blockquote: {
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
+    paddingLeft: 10,
+    marginLeft: 0,
+    marginBottom: 10,
+  },
+  code: {
+    backgroundColor: COLORS.greyLight,
+    padding: 5,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+  },
+  pre: {
+    backgroundColor: COLORS.greyLight,
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+};
+
+// Helper function to detect if content is HTML
+const isHtml = (content: string): boolean => {
+  const htmlRegex = /<[a-z][\s\S]*>/i;
+  return htmlRegex.test(content);
+};
+
+// Helper function to format plain text with proper line breaks
+const formatPlainText = (text: string): string => {
+  if (!text) return '';
+  return text
+    .split('\\n')
+    .map(line => line.trim())
+    .join('\n');
+};
+
 const ForumDetailScreen = ({route}: Props) => {
   const {forumId} = route.params;
   const {data, isLoading, error, refetch} = useForumDetailQuery(forumId);
@@ -72,7 +150,7 @@ const ForumDetailScreen = ({route}: Props) => {
       <ErrorScreen
         error={error}
         refetch={refetch}
-        placeholder="Gagal memuat detail forum"
+        placeholder="Failed to load forum detail"
       />
     );
   }
@@ -90,6 +168,24 @@ const ForumDetailScreen = ({route}: Props) => {
   const renderReply = ({item}: {item: ProcessedForumReply}) => (
     <ForumReplyItem item={item} />
   );
+
+  const renderContent = (content: string) => {
+    if (isHtml(content)) {
+      return (
+        <RenderHTML
+          contentWidth={width}
+          source={{html: content}}
+          tagsStyles={htmlStyles}
+          enableExperimentalMarginCollapsing={true}
+        />
+      );
+    }
+    return (
+      <Text style={styles.plainText}>
+        {formatPlainText(content)}
+      </Text>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -129,12 +225,7 @@ const ForumDetailScreen = ({route}: Props) => {
 
           <View style={styles.descriptionSection}>
             <StyledText style={styles.title}>{mainTopic.title}</StyledText>
-            <RenderHTML
-              contentWidth={width}
-              source={{html: mainTopic.contentHTML}}
-              tagsStyles={htmlStyles}
-              enableExperimentalMarginCollapsing={true}
-            />
+            {renderContent(mainTopic.contentHTML)}
           </View>
 
           {mainTopic.imageUrls.length > 0 ? (
@@ -161,7 +252,7 @@ const ForumDetailScreen = ({route}: Props) => {
 
         <View style={styles.separator} />
         <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>Balasan</Text>
+          <Text style={styles.sectionTitle}>Replies</Text>
         </View>
 
         <ForumReplyInput />
@@ -176,7 +267,7 @@ const ForumDetailScreen = ({route}: Props) => {
           ListEmptyComponent={() => (
             <View style={{alignItems: 'center', paddingVertical: 20}}>
               <StyledText style={styles.descriptionText}>
-                Belum ada balasan
+                No replies yet
               </StyledText>
             </View>
           )}
@@ -301,62 +392,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-});
-
-const htmlStyles: Readonly<Record<string, MixedStyleDeclaration>> = {
-  p: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 16,
-    lineHeight: 26,
-    color: COLORS.textPrimary,
-    marginBottom: 16, // Jarak antar paragraf
-  },
-  strong: {
-    fontFamily: 'Roboto-Bold',
-  },
-  a: {
-    color: COLORS.primary,
-    textDecorationLine: 'none',
-    fontFamily: 'Roboto-Regular',
-  },
-  ul: {
-    marginBottom: 16,
-  },
-  li: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 16,
-    lineHeight: 26,
-    color: COLORS.textPrimary,
-    marginBottom: 8,
-  },
-  h1: {
-    fontFamily: 'Roboto-Bold',
-    fontSize: 20,
-    lineHeight: 30,
-    color: COLORS.textPrimary,
-  },
-  h2: {
-    fontFamily: 'Roboto-Bold',
-    fontSize: 18,
-    lineHeight: 26,
-    color: COLORS.textPrimary,
-  },
-  blockquote: {
-    fontFamily: 'Roboto-Italic',
-    fontSize: 14,
-    lineHeight: 26,
+  plainText: {
+    fontSize: 15,
+    lineHeight: 22,
     color: COLORS.textSecondary,
-    marginBottom: 16,
-    paddingLeft: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
+    fontFamily: 'Roboto-Regular',
   },
-  h3: {
-    fontFamily: 'Roboto-Bold',
-    fontSize: 14,
-    lineHeight: 26,
-    color: COLORS.textPrimary,
-  },
-};
+});
 
 export default ForumDetailScreen;

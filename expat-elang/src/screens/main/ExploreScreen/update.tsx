@@ -43,6 +43,7 @@ import {
   useRentalUpdateMutation, // Your detail query hook
 } from '../../../hooks/useRentalQuery'; // Your rental query hooks
 import {UpdateRentalFormData} from '../../../types/rental';
+import FormPriceInput from '../../../components/common/FormPriceInput';
 
 // --- Props ---
 interface RentalsUpdateScreenProps
@@ -624,17 +625,17 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
                 pattern: {value: /^\d+$/, message: 'Harga harus angka'},
               }}
               render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
+                <FormPriceInput
+                  control={control}
+                  name="price"
+                  label=""
+                  rules={{
+                    required: 'Harga sewa harus diisi',
+                    pattern: {value: /^\d+$/, message: 'Harga harus angka'},
+                  }}
+                  error={errors.price?.message}
+                  isDisabled={updateMutation.isPending}
                   placeholder="500000"
-                  keyboardType="number-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!updateMutation.isPending}
                 />
               )}
             />

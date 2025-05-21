@@ -89,22 +89,37 @@ export interface ProcessedEventDetail {
 
 export interface CreateEventPayload {
   event_title: string;
-  category: string; // ID Kategori
+  category: string;
   description: string;
+  is_feature?: string;
+  file?: {
+    uri: string;
+    type: string;
+    name: string;
+  }[];
+  image_title?: string[];
+  image_alt?: string;
   event_start: string; // Format 'YYYY-MM-DD HH:mm'
   event_end: string; // Format 'YYYY-MM-DD HH:mm'
   location: string;
-  max_capacity: string; // API mungkin menerima string atau number
-  price: string; // Value dari price dropdown
-  organizer_name: string;
-  organizer_email: string;
-  organizer_phone: string;
-  images?: {uri: string; type: string; name: string}[]; // Array file gambar
+  max_capacity?: string;
+  price: string;
+  organizer_name?: string;
+  organizer_email?: string;
+  organizer_phone?: string;
 }
 
-export interface UpdateEventPayload extends CreateEventPayload {
+export interface UpdateEventPayload extends Omit<CreateEventPayload, 'file'> {
   id: string; // ID event yang akan diperbarui
-  event_url: string; // URL event jika ada
+  event_url?: string; // URL event jika ada
+  is_feature?: string; // Make is_feature optional
+  file?: {
+    uri: string;
+    type: string;
+    name: string;
+  }[];
+  image_title?: string[];
+  image_alt?: string;
 }
 
 export interface CategoryOption {

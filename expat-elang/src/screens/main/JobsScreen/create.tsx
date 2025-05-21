@@ -21,7 +21,7 @@ import {Controller, SubmitHandler, useForm} from 'react-hook-form';
 import {CreateJobPayload} from '../../../types/jobs';
 import DatePicker from 'react-native-date-picker';
 import ErrorLabel from '../../../components/common/ErrorLabel';
-import {useCreateJobMutation} from '../../../hooks/useJobsQuery';
+import {useJobCreateMutation} from '../../../hooks/useJobsQuery';
 import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../../navigation/types';
@@ -57,7 +57,7 @@ const JobsCreateScreen = ({navigation}: JobsCreateScreenProps) => {
     },
   });
 
-  const mutation = useCreateJobMutation();
+  const mutation = useJobCreateMutation();
 
   const {hide, show} = useLoadingOverlayStore();
 

@@ -50,3 +50,5 @@ export const BIZ_CATEGORIES_ENDPOINT = '/biz/categories';
 export const DEFAULT_BIZ_LIMIT = 6;
 export const BIZ_RESTAURANT_CATEGORY_NAME = 'RESTAURANT';
 export const BIZ_LAWYER_CATEGORY_NAME = 'LAYWER';
+
+export const PROFILE_ENDPOINT = '/my_profile';

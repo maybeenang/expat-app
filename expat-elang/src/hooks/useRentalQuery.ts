@@ -160,6 +160,17 @@ export const useRentalDetailQuery = (rentalId: string) => {
           data.rent_descriptions,
           imageUrls.length,
         ),
+        availability: data.rent_availability,
+        stayMin: data.rent_stay_min_number,
+        stayMax: data.rent_stay_max_number,
+        stayType: data.rent_stay_min_type,
+        features: data.details_feature?.map((item: any) => item.nama_details1) || [],
+        houseRules: data.details_house_rules?.map((item: any) => item.nama_details1) || [],
+        address: data.rent_address,
+        address2: data.rent_address2,
+        city: data.rent_city,
+        state: data.rent_state,
+        zip: data.rent_zip,
       };
     },
   });

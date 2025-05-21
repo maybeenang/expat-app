@@ -124,11 +124,13 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
             ? format(parsedEndDate, 'yyyy-MM-dd HH:mm')
             : '',
           location: data.location,
-          max_capacity: String(data.max_capacity), // Konversi ke string untuk input
+          max_capacity: data?.max_capacity ? String(data.max_capacity) : '',
           price: capitalizeFirstChar(data.price),
-          organizer_name: data.organizer_name,
-          organizer_email: data.organizer_email,
-          organizer_phone: data.organizer_phone,
+          organizer_name: data?.organizer_name || '',
+          organizer_email: data?.organizer_email || '',
+          organizer_phone: data?.organizer_phone
+            ? `+1${data.organizer_phone}`
+            : '',
         };
       };
 
@@ -201,21 +203,34 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
 
   // Handler Submit Form Update
   const onSubmit: SubmitHandler<UpdateEventPayload> = async data => {
-    // Buat payload FormData (akan dihandle oleh hook mutation)
     console.log('Updating Event with Data:', data);
     console.log('New Images:', newSelectedImages);
     console.log('Images to Delete:', imagesToDelete);
 
-    // append gambar baru ke payload
-    const imagesToUpload = newSelectedImages.map((image, index) => ({
-      uri: image.uri,
-      type: image.type || 'image/jpeg', // Default ke jpeg jika type tidak ada
-      name: image.fileName || `event_image_${Date.now()}_${index}.jpg`, // Generate nama file jika tidak ada
-    }));
+    // Filter out images without URI and map to the correct type
+    const imagesToUpload = newSelectedImages
+      .filter(image => image.uri)
+      .map((image, index) => ({
+        uri: image.uri!,
+        type: image.type || 'image/jpeg',
+        name: image.fileName || `event_image_${Date.now()}_${index}.jpg`,
+      }));
 
     const payload: UpdateEventPayload = {
       ...data,
-      images: imagesToUpload as {uri: string; type: string; name: string}[], // Cast ke tipe yang sesuai
+      is_feature: newSelectedImages[0]?.fileName || undefined,
+      file: imagesToUpload.length > 0 ? imagesToUpload : undefined,
+      image_title:
+        newSelectedImages.length > 0
+          ? newSelectedImages.map((_, index) => `Image ${index + 1}`)
+          : undefined,
+      image_alt: 'Event image',
+      max_capacity: data.max_capacity || undefined,
+      organizer_name: data.organizer_name || undefined,
+      organizer_email: data.organizer_email || undefined,
+      organizer_phone: data.organizer_phone
+        ? data.organizer_phone.replace('+1', '')
+        : undefined,
     };
 
     show();
@@ -224,7 +239,7 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
       Alert.alert('Sukses', 'Event berhasil diperbarui', [
         {
           text: 'OK',
-          onPress: () => navigation.goBack(), // Kembali ke layar sebelumnya
+          onPress: () => navigation.goBack(),
         },
       ]);
     } catch (e: any) {
@@ -509,12 +524,11 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
           </View>
           {/* Max Capacity */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Kapasitas Maksimal *</Text>
+            <Text style={styles.label}>Kapasitas Maksimal</Text>
             <Controller
               control={control}
               name="max_capacity"
               rules={{
-                required: 'Kapasitas maksimal harus diisi',
                 pattern: {
                   value: /^[1-9]\d*$/,
                   message: 'Kapasitas harus berupa angka positif',
@@ -529,7 +543,7 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
                   placeholder="Contoh: 100"
                   placeholderTextColor={COLORS.greyDark}
                   keyboardType="number-pad"
-                  value={value} // value dari form (sudah string)
+                  value={value || ''}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   editable={!updateMutation.isPending}
@@ -543,7 +557,7 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
             <Text style={styles.label}>Harga Tiket *</Text>
             <Controller
               control={control}
-              name="price" // Ini adalah ID price option
+              name="price"
               rules={{required: 'Harga tiket harus dipilih'}}
               render={({field: {onChange, onBlur, value}}) => (
                 <Dropdown
@@ -556,8 +570,8 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
                   labelField="name"
                   valueField="id"
                   placeholder="Pilih Harga (Gratis/Berbayar)"
-                  value={value || null} // Value harus ID
-                  onChange={item => onChange(item.id)} // Pastikan onChange mengirim ID
+                  value={value || null}
+                  onChange={item => onChange(item.id)}
                   onBlur={onBlur}
                   disable={updateMutation.isPending || prices?.length === 0}
                 />
@@ -567,11 +581,10 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
           </View>
           {/* Organizer Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nama Penyelenggara *</Text>
+            <Text style={styles.label}>Nama Penyelenggara</Text>
             <Controller
               control={control}
               name="organizer_name"
-              rules={{required: 'Nama penyelenggara harus diisi'}}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
                   style={[
@@ -580,7 +593,7 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
                   ]}
                   placeholder="Contoh: Komunitas Developer XYZ"
                   placeholderTextColor={COLORS.greyDark}
-                  value={value}
+                  value={value || ''}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   editable={!updateMutation.isPending}
@@ -591,12 +604,11 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
           </View>
           {/* Organizer Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Penyelenggara *</Text>
+            <Text style={styles.label}>Email Penyelenggara</Text>
             <Controller
               control={control}
               name="organizer_email"
               rules={{
-                required: 'Email penyelenggara harus diisi',
                 pattern: {
                   value: /\S+@\S+\.\S+/,
                   message: 'Format email tidak valid',
@@ -612,7 +624,7 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
                   placeholderTextColor={COLORS.greyDark}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  value={value}
+                  value={value || ''}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   editable={!updateMutation.isPending}
@@ -623,16 +635,15 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
           </View>
           {/* Organizer Phone */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Telepon Penyelenggara *</Text>
+            <Text style={styles.label}>Telepon Penyelenggara</Text>
             <Controller
               control={control}
               name="organizer_phone"
               rules={{
-                required: 'Telepon penyelenggara harus diisi',
                 pattern: {
-                  value: /^\+628/, // Harus diawali +628
+                  value: /^\+1\d{10,}$/,
                   message:
-                    'Format nomor telepon tidak valid (contoh: +62812...)',
+                    'Nomor telepon harus diawali dengan +1 dan minimal 10 angka',
                 },
               }}
               render={({field: {onChange, onBlur, value}}) => (
@@ -641,10 +652,10 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
                     styles.input,
                     updateMutation.isPending && styles.disabledInput,
                   ]}
-                  placeholder="Contoh: +6281234567890"
+                  placeholder="Contoh: +1234567890"
                   placeholderTextColor={COLORS.greyDark}
                   keyboardType="phone-pad"
-                  value={value}
+                  value={value || ''}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   editable={!updateMutation.isPending}

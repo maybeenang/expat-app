@@ -20,42 +20,46 @@ import {
   ImagePickerResponse,
   Asset,
 } from 'react-native-image-picker';
-import {AccountStackParamList} from '../../../../navigation/types';
+import {DrawerParamList} from '../../../../navigation/types';
 import COLORS from '../../../../constants/colors';
 import Icon from '@react-native-vector-icons/ionicons';
 import ErrorLabel from '../../../../components/common/ErrorLabel';
 import {IMAGE_AVATAR_PLACEHOLDER} from '../../../../constants/images';
+import {useAuthStore} from '../../../../store/useAuthStore';
 
 interface EditProfileFormData {
   name: string;
   email: string;
+  phone?: string;
 }
 
 interface EditProfileScreenProps
-  extends NativeStackScreenProps<AccountStackParamList, 'LoggedIn'> {}
+  extends NativeStackScreenProps<DrawerParamList, 'Profile'> {}
 
 const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
+  const {userSession} = useAuthStore();
+  
   // State lokal untuk gambar dan status submit
   const [currentAvatarUri, setCurrentAvatarUri] = useState<string | null>(
     IMAGE_AVATAR_PLACEHOLDER,
-  ); // Ganti dengan URL user asli
+  );
   const [selectedImage, setSelectedImage] = useState<Asset | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Atau gunakan mutation.isPending
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // React Hook Form setup
   const {
     control,
     handleSubmit,
-    formState: {errors, isDirty}, // isDirty untuk cek perubahan form
-    // reset, // Nanti untuk mengisi data dari API
+    formState: {errors, isDirty},
   } = useForm<EditProfileFormData>({
     defaultValues: {
-      name: 'Revina Putri', // Ganti dengan nama user asli
-      email: 'admindev@gmail.com', // Ganti dengan email user asli
+      name: userSession?.nama || '',
+      email: userSession?.email || '',
+      phone: '',
     },
   });
 
-  // Handler submit form (saat tombol Simpan ditekan)
+  // Handler submit form
   const onSubmit: SubmitHandler<EditProfileFormData> = useCallback(
     async data => {
       console.log('Form Data:', data);
@@ -63,12 +67,11 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
         'Selected Image:',
         selectedImage ? selectedImage.fileName : 'None',
       );
-      setIsSubmitting(true); // Mulai proses submit
+      setIsSubmitting(true);
 
-      // @ts-ignore
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      setIsSubmitting(false); // Selesai proses submit
+      setIsSubmitting(false);
       Alert.alert('Info (Dummy)', 'Data profil disimpan (simulasi)');
     },
     [selectedImage],
@@ -79,14 +82,12 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity
-          onPress={handleSubmit(onSubmit)} // Trigger submit RHF saat ditekan
-          // Disable jika tidak ada perubahan di form DAN tidak ada gambar baru dipilih, ATAU jika sedang submit
+          onPress={handleSubmit(onSubmit)}
           disabled={(!isDirty && !selectedImage) || isSubmitting}
           style={styles.headerButton}>
           {isSubmitting ? (
-            <ActivityIndicator size="small" color={COLORS.primary} /> // Tampilkan loading
+            <ActivityIndicator size="small" color={COLORS.primary} />
           ) : (
-            // Ubah style teks jika tombol disabled
             <Text
               style={[
                 styles.headerButtonText,
@@ -122,8 +123,8 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
         return;
       }
       if (result.assets && result.assets.length > 0) {
-        setSelectedImage(result.assets[0]); // Simpan data asset gambar baru
-        setCurrentAvatarUri(result.assets[0].uri ?? null); // Update preview avatar
+        setSelectedImage(result.assets[0]);
+        setCurrentAvatarUri(result.assets[0].uri ?? null);
       }
     } catch (error) {
       Alert.alert('Error', 'Gagal membuka galeri.');
@@ -139,7 +140,7 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
         {/* Bagian Avatar */}
         <View style={styles.avatarContainer}>
           <Image
-            source={{uri: currentAvatarUri ?? IMAGE_AVATAR_PLACEHOLDER}} // Placeholder jika URI null
+            source={{uri: currentAvatarUri ?? IMAGE_AVATAR_PLACEHOLDER}}
             style={styles.avatar}
           />
           <TouchableOpacity
@@ -159,16 +160,16 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
             <Controller
               control={control}
               name="name"
-              rules={{required: 'Nama tidak boleh kosong'}} // Aturan validasi
+              rules={{required: 'Nama tidak boleh kosong'}}
               render={({field: {onChange, onBlur, value}}) => (
                 <TextInput
-                  style={[styles.input, errors.name && styles.inputError]} // Style error jika ada
+                  style={[styles.input, errors.name && styles.inputError]}
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   placeholder="Masukkan nama lengkap"
                   placeholderTextColor={COLORS.greyDark}
-                  editable={!isSubmitting} // Nonaktifkan saat submit
+                  editable={!isSubmitting}
                 />
               )}
             />
@@ -180,20 +181,39 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
             <Text style={styles.label}>Email</Text>
             <Controller
               control={control}
-              name="email" // Nama field email
-              render={(
-                {field: {value}}, // Hanya butuh value
-              ) => (
+              name="email"
+              render={({field: {value}}) => (
                 <TextInput
-                  style={[styles.input, styles.disabledInput]} // Style disabled
+                  style={[styles.input, styles.disabledInput]}
                   value={value}
                   placeholder="Email"
-                  editable={false} // Tidak bisa diedit
-                  selectTextOnFocus={false} // Cegah seleksi teks
+                  editable={false}
+                  selectTextOnFocus={false}
                 />
               )}
             />
-            {/* Error tidak perlu ditampilkan karena tidak bisa diedit */}
+          </View>
+
+          {/* Input Nomor Telepon */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Nomor Telepon</Text>
+            <Controller
+              control={control}
+              name="phone"
+              render={({field: {onChange, onBlur, value}}) => (
+                <TextInput
+                  style={[styles.input, errors.phone && styles.inputError]}
+                  value={value}
+                  onChangeText={(text) => onChange(text.replace(/[^0-9]/g, ''))}
+                  onBlur={onBlur}
+                  placeholder="Masukkan nomor telepon"
+                  placeholderTextColor={COLORS.greyDark}
+                  keyboardType="phone-pad"
+                  editable={!isSubmitting}
+                />
+              )}
+            />
+            <ErrorLabel error={errors.phone?.message} />
           </View>
         </View>
       </ScrollView>
@@ -201,7 +221,6 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
   );
 };
 
-// Styles untuk EditProfileScreen
 const styles = StyleSheet.create({
   safeArea: {flex: 1, backgroundColor: COLORS.white},
   scrollContainer: {

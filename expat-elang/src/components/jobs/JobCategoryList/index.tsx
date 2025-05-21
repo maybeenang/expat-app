@@ -1,7 +1,7 @@
 import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import COLORS from '../../../constants/colors';
 import StyledText from '../../common/StyledText';
-import {useJobCategoryQuery} from '../../../hooks/useJobsQuery';
+import {allJobCategories} from '../../../hooks/useJobsQuery';
 import {JobCategory} from '../../../types/jobs';
 
 interface JobCategoryListProps {
@@ -15,7 +15,7 @@ const JobCategoryList = ({
   setState,
   isManualRefreshing,
 }: JobCategoryListProps) => {
-  const data = useJobCategoryQuery();
+  const data = allJobCategories;
 
   return (
     <View style={styles.categoryContainer}>

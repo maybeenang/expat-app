@@ -1,107 +1,93 @@
 import React from 'react';
-import {Image, StyleSheet, TouchableOpacity, View} from 'react-native';
-import {CustomIcon} from '../../common/CustomPhosporIcon';
-import StyledText from '../../common/StyledText';
-import COLORS from '../../../constants/colors';
-import {useAuthStore} from '../../../store/useAuthStore';
-import {IMAGE_PLACEHOLDER} from '../../../constants/images';
+import {View, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../../navigation/types';
+import COLORS from '../../../constants/colors';
+import StyledText from '../../common/StyledText';
+import {CustomIcon} from '../../common/CustomPhosporIcon';
+import {useAuthStore} from '../../../store/useAuthStore';
+import {IMAGE_AVATAR_PLACEHOLDER} from '../../../constants/images';
 
 const ProfileCard = () => {
-  const {userSession, isLoggedIn} = useAuthStore();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {isLoggedIn, userSession} = useAuthStore();
 
-  const navigation = useNavigation();
-
-  const handleEditProfile = () => {
-    navigation.navigate(
-      'AppDrawer' as never,
-      {
+  const handlePress = () => {
+    if (isLoggedIn) {
+      // @ts-ignore
+      navigation.navigate('AppDrawer', {
         screen: 'Profile',
-      } as never,
-    );
+      });
+    } else {
+      // @ts-ignore
+      navigation.navigate('LoginV1');
+    }
   };
 
   return (
-    <View style={styles.profileContainer}>
+    <TouchableOpacity style={styles.container} onPress={handlePress}>
       <View style={styles.avatarContainer}>
-        <View style={styles.avatarPlaceholder}>
-          {isLoggedIn && (
-            <Image
-              source={{
-                uri: userSession?.avatar ?? IMAGE_PLACEHOLDER,
-              }}
-              style={{width: 60, height: 60}}
-            />
-          )}
-        </View>
-        {isLoggedIn && (
-          <TouchableOpacity
-            style={styles.profileEditButton}
-            onPress={handleEditProfile}>
-            <CustomIcon name="Pencil" color={COLORS.greyDark} size={18} />
-            <StyledText
-              style={{fontSize: 14, color: COLORS.greyDark}}
-              weight="medium">
-              Edit Profile
-            </StyledText>
-          </TouchableOpacity>
+        {isLoggedIn ? (
+          <Image
+            source={{
+              uri: IMAGE_AVATAR_PLACEHOLDER,
+            }}
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+            }}
+            resizeMode="cover"
+          />
+        ) : (
+          <CustomIcon
+            name="UserCircle"
+            size={48}
+            type="fill"
+            color={COLORS.greyMedium}
+          />
         )}
       </View>
-      <View style={styles.profileTextContainer}>
-        <StyledText style={styles.profileName}>
-          {userSession?.nama ?? 'Guest User'}
+      <View style={styles.infoContainer}>
+        <StyledText style={styles.name} numberOfLines={1}>
+          {isLoggedIn ? userSession?.nama || 'User' : 'Guest'}
         </StyledText>
-        <StyledText style={styles.profileEmail}>
-          {userSession?.email ?? ''}
+        <StyledText style={styles.email} numberOfLines={1}>
+          {isLoggedIn
+            ? userSession?.email || 'User'
+            : 'Sign in to your account'}
         </StyledText>
       </View>
-    </View>
+      <CustomIcon name="ArrowRight" size={20} color={COLORS.textSecondary} />
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  profileContainer: {
-    paddingHorizontal: 10,
-    gap: 10,
-    marginBottom: 20,
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.greyLight,
   },
   avatarContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    marginRight: 12,
   },
-  avatarPlaceholder: {
-    width: 60,
-    overflow: 'hidden',
-    height: 60,
-    borderRadius: '100%',
-    backgroundColor: COLORS.greyMedium,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  profileTextContainer: {
+  infoContainer: {
     flex: 1,
   },
-  profileName: {
+  name: {
     fontSize: 16,
-    fontFamily: 'Roboto-Bold',
     color: COLORS.textPrimary,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  profileEmail: {
-    fontSize: 13,
-    fontFamily: 'Roboto-Regular',
+  email: {
+    fontSize: 14,
     color: COLORS.textSecondary,
-  },
-  profileEditButton: {
-    flexDirection: 'row',
-    gap: 5,
-    borderWidth: 1,
-    borderRadius: 30,
-    borderColor: COLORS.greyMedium,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
   },
 });
 

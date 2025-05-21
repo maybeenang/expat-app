@@ -5,34 +5,18 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   Platform,
   StatusBar,
   Alert,
-  Image,
-  ActivityIndicator,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {
-  Controller,
-  SubmitHandler,
-  useForm,
-  useFieldArray,
-} from 'react-hook-form';
-import {Dropdown} from 'react-native-element-dropdown';
-import DatePicker from 'react-native-date-picker';
-import {
-  launchImageLibrary,
-  ImagePickerResponse,
-  Asset,
-} from 'react-native-image-picker';
+import {useForm, useFieldArray} from 'react-hook-form';
+import {Asset} from 'react-native-image-picker';
 import Icon from '@react-native-vector-icons/ionicons';
-import {format, parseISO, isValid} from 'date-fns';
 
 import COLORS from '../../../constants/colors';
 import {RootStackParamList} from '../../../navigation/types';
-import ErrorLabel from '../../../components/common/ErrorLabel';
 import LoadingScreen from '../../LoadingScreen';
 import ErrorScreen from '../../ErrorScreen';
 import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore';
@@ -40,10 +24,19 @@ import {useAllRentalOptions} from '../../../hooks/useRentalOptionQuery';
 import {CreateRentalFormData} from '../../../types/rental';
 import {useRentalCreateMutation} from '../../../hooks/useRentalQuery';
 
+// --- Reusable Components ---
+import FormInput from '../../../components/common/FormInput';
+import FormDropdown from '../../../components/common/FormDropdown';
+import FormDatePicker from '../../../components/common/FormDatePicker';
+import ImagePicker from '../../../components/common/ImagePicker';
+import SubmitButton from '../../../components/common/SubmitButton';
+import FormPriceInput from '../../../components/common/FormPriceInput';
+
 interface RentalsCreateScreenProps
   extends NativeStackScreenProps<RootStackParamList, 'RentalCreate'> {}
 
 const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
+  // --- Data Fetching & Mutation Hooks ---
   const {
     isLoading: isLoadingOptions,
     type: typeOptions = [],
@@ -57,17 +50,17 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
   const mutation = useRentalCreateMutation();
   const {show, hide} = useLoadingOverlayStore();
 
+  // --- Local UI State ---
   const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
-  const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [availabilityDate, setAvailabilityDate] = useState(new Date());
 
+  // --- React Hook Form Setup ---
   const {
     control,
     handleSubmit,
-    setValue,
     watch,
-    formState: {errors},
+    setValue,
     trigger,
+    formState: {errors},
   } = useForm<CreateRentalFormData>({
     defaultValues: {
       kt_details: [],
@@ -86,7 +79,7 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
     [typeDetailsOptions],
   );
 
-  // Efek samping untuk set default value dropdown dan tanggal
+  // --- Effects ---
   useEffect(() => {
     if (paidOptions.length > 0 && !watch('status_paid')) {
       setValue('status_paid', paidOptions[0].value);
@@ -98,12 +91,9 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
       setValue('stay_type', stayTypeOptions[0].value);
     }
     if (!watch('availability')) {
-      const todayFormatted = format(availabilityDate, 'yyyy-MM-dd');
-      if (isValid(parseISO(todayFormatted))) {
-        setValue('availability', todayFormatted);
-      }
+      const today = new Date();
+      setValue('availability', today.toISOString().split('T')[0]);
     }
-    // Tambahkan satu item detail default jika belum ada & opsi sudah load
     if (!isLoadingOptions && fields.length === 0) {
       append({
         type_details: '',
@@ -118,52 +108,13 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
     stayTypeOptions,
     setValue,
     watch,
-    availabilityDate,
     fields.length,
     append,
     isLoadingOptions,
   ]);
 
-  // Handler untuk memilih gambar
-  const handleImagePick = async () => {
-    try {
-      const result: ImagePickerResponse = await launchImageLibrary({
-        mediaType: 'photo',
-        selectionLimit: 10 - selectedImages.length,
-        quality: 0.7,
-        includeBase64: false,
-      });
-      if (result.didCancel) {
-        return;
-      }
-      if (result.errorCode) {
-        Alert.alert('Error', 'Gagal memilih gambar: ' + result.errorMessage);
-        return;
-      }
-      if (result.assets && result.assets.length > 0) {
-        const validAssets = result.assets.filter(asset => asset.uri);
-        setSelectedImages(prev => [...prev, ...validAssets]);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Gagal memilih gambar. Silakan coba lagi.');
-    }
-  };
-
-  // Handler untuk menghapus gambar
-  const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  // Format tanggal YYYY-MM-DD
-  const formatSimpleDateForAPI = (date: Date): string => {
-    return format(date, 'yyyy-MM-dd');
-  };
-
-  // Handler submit form
-  const onSubmit: SubmitHandler<CreateRentalFormData> = async data => {
-    console.log('Submitting Rental Payload:', JSON.stringify(data, null, 2));
-    console.log('Submitting Images:', selectedImages.length);
-
+  // --- Form Handlers ---
+  const onSubmit = async (data: CreateRentalFormData) => {
     if (!data.kt_details || data.kt_details.length === 0) {
       Alert.alert(
         'Error',
@@ -172,7 +123,7 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
       return;
     }
 
-    show(); // Tampilkan loading overlay
+    show();
     try {
       await mutation.mutateAsync({formData: data, images: selectedImages});
       Alert.alert('Sukses', 'Rental berhasil dibuat', [
@@ -183,16 +134,15 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
         e?.response?.data?.message || e?.message || 'Gagal membuat rental.';
       Alert.alert('Error', errorMessage);
     } finally {
-      hide(); // Sembunyikan loading overlay
+      hide();
     }
   };
 
-  // Tampilkan loading jika opsi masih dimuat dan belum ada field detail
-  if (isLoadingOptions && fields.length === 0) {
+  // --- Loading & Error States ---
+  if (isLoadingOptions) {
     return <LoadingScreen text="Memuat opsi..." />;
   }
 
-  // Tampilkan error jika gagal memuat opsi
   if (optionsError) {
     return (
       <ErrorScreen error={optionsError} placeholder="Gagal memuat data opsi" />
@@ -209,177 +159,84 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
         <View style={styles.formContainer}>
           <Text style={styles.screenTitle}>Buat Rental Baru</Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Judul/Nama Properti *</Text>
-            <Controller
-              control={control}
-              name="title"
-              rules={{required: 'Judul properti harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Contoh: Kost Eksklusif Mawar"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.title?.message} />
-          </View>
+          <FormInput
+            control={control}
+            name="title"
+            label="Judul/Nama Properti *"
+            rules={{required: 'Judul properti harus diisi'}}
+            error={errors.title?.message}
+            isDisabled={mutation.isPending}
+            placeholder="Kost Eksklusif Mawar"
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Status Pembayaran *</Text>
-            <Controller
-              control={control}
-              name="status_paid"
-              rules={{required: 'Status pembayaran harus dipilih'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <Dropdown
-                  mode="modal"
-                  style={[
-                    styles.dropdownPlaceholder,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  data={paidOptions}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Pilih Status (Gratis/Berbayar)"
-                  value={value || null}
-                  onChange={item => onChange(item.value)}
-                  onBlur={onBlur}
-                  disable={mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.status_paid?.message} />
-          </View>
+          <FormDropdown
+            control={control}
+            name="status_paid"
+            label="Status Pembayaran *"
+            options={paidOptions}
+            rules={{required: 'Status pembayaran harus dipilih'}}
+            error={errors.status_paid?.message}
+            isDisabled={mutation.isPending}
+            placeholder="Pilih Status (Gratis/Berbayar)"
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Tipe Properti *</Text>
-            <Controller
-              control={control}
-              name="type"
-              rules={{required: 'Tipe properti harus dipilih'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <Dropdown
-                  mode="modal"
-                  style={[
-                    styles.dropdownPlaceholder,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  data={typeOptions}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Pilih Tipe (Room/Apartment/House)"
-                  value={value || null}
-                  onChange={item => onChange(item.value)}
-                  onBlur={onBlur}
-                  disable={mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.type?.message} />
-          </View>
+          <FormDropdown
+            control={control}
+            name="type"
+            label="Tipe Properti *"
+            options={typeOptions}
+            rules={{required: 'Tipe properti harus dipilih'}}
+            error={errors.type?.message}
+            isDisabled={mutation.isPending}
+            placeholder="Pilih Tipe (Room/Apartment/House)"
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Alamat Lengkap *</Text>
-            <Controller
-              control={control}
-              name="address"
-              rules={{required: 'Alamat harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Jl. Contoh No. 123, Kelurahan..."
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.address?.message} />
-          </View>
+          <FormInput
+            control={control}
+            name="address"
+            label="Alamat Lengkap *"
+            rules={{required: 'Alamat harus diisi'}}
+            error={errors.address?.message}
+            isDisabled={mutation.isPending}
+            placeholder="Jl. Contoh No. 123, Kelurahan..."
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Alamat Tambahan (Opsional)</Text>
-            <Controller
-              control={control}
-              name="address2"
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Contoh: Blok C, Lantai 2"
-                  value={value ?? ''}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-          </View>
+          <FormInput
+            control={control}
+            name="address2"
+            label="Alamat Tambahan (Opsional)"
+            isDisabled={mutation.isPending}
+            placeholder="Blok C, Lantai 2"
+          />
 
           <View style={styles.addressRow}>
             <View style={[styles.inputGroup, styles.addressCity]}>
-              <Text style={styles.label}>Kota *</Text>
-              <Controller
+              <FormInput
                 control={control}
                 name="city"
+                label="Kota *"
                 rules={{required: 'Kota harus diisi'}}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="Contoh: Jakarta Pusat"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!mutation.isPending}
-                  />
-                )}
+                error={errors.city?.message}
+                isDisabled={mutation.isPending}
+                placeholder="Jakarta Pusat"
               />
-              <ErrorLabel error={errors.city?.message} />
             </View>
             <View style={[styles.inputGroup, styles.addressState]}>
-              <Text style={styles.label}>Provinsi *</Text>
-              <Controller
+              <FormInput
                 control={control}
                 name="state"
+                label="Provinsi *"
                 rules={{required: 'Provinsi harus diisi'}}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="Contoh: DKI Jakarta"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!mutation.isPending}
-                  />
-                )}
+                error={errors.state?.message}
+                isDisabled={mutation.isPending}
+                placeholder="DKI Jakarta"
               />
-              <ErrorLabel error={errors.state?.message} />
             </View>
             <View style={[styles.inputGroup, styles.addressZip]}>
-              <Text style={styles.label}>Kode Pos *</Text>
-              <Controller
+              <FormInput
                 control={control}
                 name="zip"
+                label="Kode Pos *"
                 rules={{
                   required: 'Kode pos harus diisi',
                   pattern: {
@@ -387,212 +244,99 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
                     message: 'Kode pos harus 5 digit angka',
                   },
                 }}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="12345"
-                    keyboardType="number-pad"
-                    maxLength={5}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!mutation.isPending}
-                  />
-                )}
+                error={errors.zip?.message}
+                isDisabled={mutation.isPending}
+                placeholder="12345"
+                keyboardType="number-pad"
+                maxLength={5}
               />
-              <ErrorLabel error={errors.zip?.message} />
             </View>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Deskripsi Properti *</Text>
-            <Controller
-              control={control}
-              name="description"
-              rules={{required: 'Deskripsi properti harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.textArea,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Jelaskan fasilitas, kondisi, lingkungan sekitar, dll."
-                  multiline
-                  textAlignVertical="top"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.description?.message} />
-          </View>
+          <FormInput
+            control={control}
+            name="description"
+            label="Deskripsi Properti *"
+            rules={{required: 'Deskripsi properti harus diisi'}}
+            error={errors.description?.message}
+            isDisabled={mutation.isPending}
+            placeholder="Jelaskan fasilitas, kondisi, lingkungan sekitar, dll."
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            style={styles.textArea}
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Tersedia Mulai Tanggal *</Text>
-            <Controller
-              control={control}
-              name="availability"
-              rules={{required: 'Tanggal ketersediaan harus diisi'}}
-              render={({field: {onChange, value}}) => (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.dropdownPlaceholder,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    onPress={() =>
-                      !mutation.isPending && setOpenDatePicker(true)
-                    }
-                    activeOpacity={0.7}
-                    disabled={mutation.isPending}>
-                    <Text style={styles.dropdownText}>
-                      {value && isValid(parseISO(value))
-                        ? format(parseISO(value), 'dd MMM yyyy')
-                        : 'Pilih Tanggal'}
-                    </Text>
-                    <Icon
-                      name="calendar-outline"
-                      size={20}
-                      color={COLORS.greyDark}
-                    />
-                  </TouchableOpacity>
-                  <DatePicker
-                    modal
-                    mode="date"
-                    open={openDatePicker}
-                    date={availabilityDate}
-                    minimumDate={new Date()}
-                    onConfirm={_date => {
-                      setOpenDatePicker(false);
-                      setAvailabilityDate(_date);
-                      onChange(formatSimpleDateForAPI(_date));
-                    }}
-                    onCancel={() => setOpenDatePicker(false)}
-                    title="Pilih Tanggal Tersedia"
-                    confirmText="Konfirmasi"
-                    cancelText="Batal"
-                  />
-                </>
-              )}
-            />
-            <ErrorLabel error={errors.availability?.message} />
-          </View>
+          <FormDatePicker
+            control={control}
+            name="availability"
+            label="Tersedia Mulai Tanggal *"
+            rules={{required: 'Tanggal ketersediaan harus diisi'}}
+            error={errors.availability?.message}
+            isDisabled={mutation.isPending}
+            placeholder="Pilih Tanggal"
+            mode="date"
+            minimumDate={new Date()}
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Harga Sewa (per satuan waktu) *</Text>
-            <Controller
-              control={control}
-              name="price"
-              rules={{
-                required: 'Harga sewa harus diisi',
-                pattern: {value: /^\d+$/, message: 'Harga harus angka'},
-              }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Contoh: 500000"
-                  keyboardType="number-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.price?.message} />
-          </View>
+          <FormPriceInput
+            control={control}
+            name="price"
+            label="Harga Sewa (per satuan waktu) *"
+            rules={{
+              required: 'Harga sewa harus diisi',
+              pattern: {value: /^\d+$/, message: 'Harga harus angka'},
+            }}
+            error={errors.price?.message}
+            isDisabled={mutation.isPending}
+            placeholder="500000"
+          />
 
           <View style={styles.stayRow}>
             <View style={[styles.inputGroup, styles.stayDuration]}>
-              <Text style={styles.label}>Min. Sewa *</Text>
-              <Controller
+              <FormInput
                 control={control}
                 name="stay_min"
+                label="Min. Sewa *"
                 rules={{
                   required: 'Min. sewa harus diisi',
                   pattern: {value: /^[1-9]\d*$/, message: 'Harus angka > 0'},
                 }}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="1"
-                    keyboardType="number-pad"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!mutation.isPending}
-                  />
-                )}
+                error={errors.stay_min?.message}
+                isDisabled={mutation.isPending}
+                placeholder="2"
+                keyboardType="number-pad"
               />
-              <ErrorLabel error={errors.stay_min?.message} />
             </View>
             <View style={[styles.inputGroup, styles.stayDuration]}>
-              <Text style={styles.label}>Maks. Sewa *</Text>
-              <Controller
+              <FormInput
                 control={control}
                 name="stay_max"
+                label="Maks. Sewa *"
                 rules={{
                   required: 'Maks. sewa harus diisi',
                   pattern: {value: /^[1-9]\d*$/, message: 'Harus angka > 0'},
-                  validate: val =>
-                    parseInt(val || '0') >=
-                      parseInt(watch('stay_min') || '0') ||
+                  validate: (val: string) =>
+                    parseInt(val || '0') >= parseInt(watch('stay_min') || '0') ||
                     'Maksimal < minimal',
                 }}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="12"
-                    keyboardType="number-pad"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!mutation.isPending}
-                  />
-                )}
+                error={errors.stay_max?.message}
+                isDisabled={mutation.isPending}
+                placeholder="12"
+                keyboardType="number-pad"
               />
-              <ErrorLabel error={errors.stay_max?.message} />
             </View>
             <View style={[styles.inputGroup, styles.stayType]}>
-              <Text style={styles.label}>Satuan *</Text>
-              <Controller
+              <FormDropdown
                 control={control}
                 name="stay_type"
+                label="Satuan *"
+                options={stayTypeOptions}
                 rules={{required: 'Satuan waktu sewa harus dipilih'}}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <Dropdown
-                    mode="modal"
-                    data={stayTypeOptions}
-                    labelField="label"
-                    valueField="value"
-                    style={[
-                      styles.dropdownPlaceholder,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="Bulan/Tahun"
-                    value={value || null}
-                    onChange={item => onChange(item.value)}
-                    onBlur={onBlur}
-                    disable={mutation.isPending}
-                  />
-                )}
+                error={errors.stay_type?.message}
+                isDisabled={mutation.isPending}
+                placeholder="Bulan/Tahun"
               />
-              <ErrorLabel error={errors.stay_type?.message} />
             </View>
           </View>
 
@@ -625,163 +369,68 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
                     )}
                   </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Tipe Detail *</Text>
-                    <Controller
-                      control={control}
-                      name={`kt_details.${index}.type_details`}
-                      rules={{required: 'Tipe detail harus dipilih'}}
-                      render={({field: {onChange, onBlur, value}}) => (
-                        <Dropdown
-                          mode="modal"
-                          style={[
-                            styles.dropdownPlaceholder,
-                            mutation.isPending && styles.disabledInput,
-                          ]}
-                          data={typeDetailsOptions}
-                          labelField="label"
-                          valueField="value"
-                          placeholder="Pilih Tipe (Main/Features/etc)"
-                          value={value || null}
-                          onChange={item => {
-                            onChange(item.value);
-                            if (mainTypeId && item.value !== mainTypeId) {
-                              setValue(
-                                `kt_details.${index}.nama_details1`,
-                                '',
-                                {shouldValidate: true},
-                              );
-                              setValue(
-                                `kt_details.${index}.nama_details2`,
-                                '',
-                                {shouldValidate: true},
-                              );
-                            } else if (item.value === mainTypeId) {
-                              trigger(`kt_details.${index}.nama_details1`);
-                              trigger(`kt_details.${index}.nama_details2`);
-                            }
-                          }}
-                          onBlur={onBlur}
-                          disable={mutation.isPending}
-                        />
-                      )}
-                    />
-                    <ErrorLabel
-                      error={errors.kt_details?.[index]?.type_details?.message}
-                    />
-                  </View>
+                  <FormDropdown
+                    control={control}
+                    name={`kt_details.${index}.type_details`}
+                    label="Tipe Detail *"
+                    options={typeDetailsOptions}
+                    rules={{required: 'Tipe detail harus dipilih'}}
+                    error={errors.kt_details?.[index]?.type_details?.message}
+                    isDisabled={mutation.isPending}
+                    placeholder="Pilih Tipe (Main/Features/etc)"
+                  />
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Detail Kuantitas/Nama 1</Text>
-                    <Controller
+                  <FormInput
+                    control={control}
+                    name={`kt_details.${index}.nama_details1`}
+                    label="Detail Kuantitas/Nama 1"
+                    rules={{
+                      required: isMainType
+                        ? 'Detail kuantitas harus diisi jika tipe MAIN'
+                        : false,
+                    }}
+                    error={errors.kt_details?.[index]?.nama_details1?.message}
+                    isDisabled={mutation.isPending || !isMainType}
+                    placeholder={
+                      isMainType
+                        ? 'Contoh: 2'
+                        : '(Hanya aktif jika tipe MAIN)'
+                    }
+                    keyboardType={isMainType ? 'number-pad' : 'default'}
+                  />
+
+                  {isMainType ? (
+                    <FormDropdown
                       control={control}
-                      name={`kt_details.${index}.nama_details1`}
+                      name={`kt_details.${index}.nama_details2`}
+                      label="Detail Unit/Nama 2"
+                      options={typeDetails2Options}
                       rules={{
                         required: isMainType
-                          ? 'Detail kuantitas harus diisi jika tipe MAIN'
+                          ? 'Detail unit/nama 2 harus dipilih jika tipe MAIN'
                           : false,
                       }}
-                      render={({field: {onChange, onBlur, value}}) => (
-                        <TextInput
-                          style={[
-                            styles.input,
-                            mutation.isPending && styles.disabledInput,
-                            !isMainType && styles.disabledInput,
-                          ]}
-                          placeholder={
-                            isMainType
-                              ? 'Contoh: 2'
-                              : '(Hanya aktif jika tipe MAIN)'
-                          }
-                          value={value ?? ''}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          editable={!mutation.isPending && isMainType}
-                          keyboardType={isMainType ? 'number-pad' : 'default'}
-                        />
-                      )}
+                      error={errors.kt_details?.[index]?.nama_details2?.message}
+                      isDisabled={mutation.isPending}
+                      placeholder="Pilih Unit (Bathroom/etc)"
                     />
-                    {isMainType && (
-                      <ErrorLabel
-                        error={
-                          errors.kt_details?.[index]?.nama_details1?.message
-                        }
-                      />
-                    )}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Detail Unit/Nama 2</Text>
-                    {isMainType ? (
-                      <Controller
-                        control={control}
-                        name={`kt_details.${index}.nama_details2`}
-                        rules={{
-                          required: isMainType
-                            ? 'Detail unit/nama 2 harus dipilih jika tipe MAIN'
-                            : false,
-                        }}
-                        render={({field: {onChange, onBlur, value}}) => (
-                          <Dropdown
-                            mode="modal"
-                            style={[
-                              styles.dropdownPlaceholder,
-                              mutation.isPending && styles.disabledInput,
-                            ]}
-                            data={typeDetails2Options}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Pilih Unit (Bathroom/etc)"
-                            value={value || null}
-                            onChange={item => onChange(item.value)}
-                            onBlur={onBlur}
-                            disable={mutation.isPending}
-                          />
-                        )}
-                      />
-                    ) : (
-                      <Controller
-                        control={control}
-                        name={`kt_details.${index}.nama_details2`}
-                        render={({field: {value}}) => (
-                          <TextInput
-                            style={[styles.input, styles.disabledInput]}
-                            placeholder="(Hanya aktif jika tipe MAIN)"
-                            value={value ?? ''}
-                            editable={false}
-                          />
-                        )}
-                      />
-                    )}
-                    {isMainType && (
-                      <ErrorLabel
-                        error={
-                          errors.kt_details?.[index]?.nama_details2?.message
-                        }
-                      />
-                    )}
-                  </View>
-
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Deskripsi Detail</Text>
-                    <Controller
+                  ) : (
+                    <FormInput
                       control={control}
-                      name={`kt_details.${index}.desc`}
-                      render={({field: {onChange, onBlur, value}}) => (
-                        <TextInput
-                          style={[
-                            styles.input,
-                            mutation.isPending && styles.disabledInput,
-                          ]}
-                          placeholder="Contoh: AC, Wifi, Lemari (jika tipe FEATURES)"
-                          value={value ?? ''}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          editable={!mutation.isPending}
-                        />
-                      )}
+                      name={`kt_details.${index}.nama_details2`}
+                      label="Detail Unit/Nama 2"
+                      isDisabled={true}
+                      placeholder="(Hanya aktif jika tipe MAIN)"
                     />
-                  </View>
+                  )}
+
+                  <FormInput
+                    control={control}
+                    name={`kt_details.${index}.desc`}
+                    label="Deskripsi Detail"
+                    isDisabled={mutation.isPending}
+                    placeholder="AC, Wifi, Lemari (jika tipe FEATURES)"
+                  />
                 </View>
               );
             })}
@@ -810,58 +459,19 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Gambar Properti (Maks. 10)</Text>
-            <View style={styles.imageContainer}>
-              {selectedImages.map((asset, index) => (
-                <View key={asset.uri || index} style={styles.imageWrapper}>
-                  <Image
-                    source={{uri: asset.uri}}
-                    style={styles.imagePreview}
-                  />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => !mutation.isPending && removeImage(index)}
-                    disabled={mutation.isPending}
-                    activeOpacity={0.7}>
-                    <Icon name="close-circle" size={24} color={COLORS.red} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-              {selectedImages.length < 10 && (
-                <TouchableOpacity
-                  style={[
-                    styles.addImageButton,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  onPress={handleImagePick}
-                  disabled={mutation.isPending}
-                  activeOpacity={0.7}>
-                  <Icon
-                    name="camera-outline"
-                    size={30}
-                    color={COLORS.primary}
-                  />
-                  <Text style={styles.addImageText}>Tambah Gambar</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          <ImagePicker
+            selectedImages={selectedImages}
+            onImagesChange={setSelectedImages}
+            maxImages={10}
+            isDisabled={mutation.isPending}
+            label="Gambar Properti (Maks. 10)"
+          />
 
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              mutation.isPending && styles.submitButtonDisabled,
-            ]}
-            activeOpacity={0.8}
+          <SubmitButton
             onPress={handleSubmit(onSubmit)}
-            disabled={mutation.isPending}>
-            {mutation.isPending ? (
-              <ActivityIndicator color={COLORS.white} size="small" />
-            ) : (
-              <Text style={styles.submitButtonText}>Buat Rental</Text>
-            )}
-          </TouchableOpacity>
+            isLoading={mutation.isPending}
+            label="Buat Rental"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -869,10 +479,19 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {flex: 1, backgroundColor: COLORS.white},
-  scrollView: {flex: 1},
-  scrollContentContainer: {paddingBottom: 50},
-  formContainer: {padding: 20},
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    paddingBottom: 40,
+  },
+  formContainer: {
+    padding: 20,
+  },
   screenTitle: {
     fontSize: 22,
     fontFamily: 'Roboto-Bold',
@@ -880,56 +499,47 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     textAlign: 'center',
   },
-  inputGroup: {marginBottom: 20},
-  label: {
-    fontSize: 14,
-    fontFamily: 'Roboto-Medium',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
+  inputGroup: {
+    marginBottom: 20,
   },
-  input: {
+  textArea: {
+    height: 100,
+    paddingTop: 12,
     borderWidth: 1,
     borderColor: COLORS.greyMedium,
     borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
-    fontSize: 15,
-    fontFamily: 'Roboto-Regular',
-    color: COLORS.textPrimary,
-    backgroundColor: COLORS.white,
   },
-  textArea: {height: 100, paddingTop: 12},
-  dropdownPlaceholder: {
-    borderWidth: 1,
-    borderColor: COLORS.greyMedium,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    height: Platform.OS === 'ios' ? 50 : 48,
+  addressRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
+    marginHorizontal: -5,
+    marginBottom: -10,
   },
-  dropdownText: {
-    fontSize: 15,
-    fontFamily: 'Roboto-Regular',
-    color: COLORS.textPrimary,
-    flex: 1,
-    marginRight: 10,
+  addressCity: {
+    flex: 3,
+    paddingHorizontal: 5,
   },
-  disabledInput: {backgroundColor: COLORS.greyLight, opacity: 0.7},
-  addressRow: {flexDirection: 'row', marginHorizontal: -5, marginBottom: -10},
-  addressCity: {flex: 3, paddingHorizontal: 5},
-  addressState: {flex: 3, paddingHorizontal: 5},
-  addressZip: {flex: 2, paddingHorizontal: 5},
+  addressState: {
+    flex: 3,
+    paddingHorizontal: 5,
+  },
+  addressZip: {
+    flex: 2,
+    paddingHorizontal: 5,
+  },
   stayRow: {
     flexDirection: 'row',
     marginHorizontal: -5,
     marginBottom: -10,
     alignItems: 'flex-start',
   },
-  stayDuration: {flex: 2, paddingHorizontal: 5},
-  stayType: {flex: 3, paddingHorizontal: 5},
+  stayDuration: {
+    flex: 2,
+    paddingHorizontal: 5,
+  },
+  stayType: {
+    flex: 3,
+    paddingHorizontal: 5,
+  },
   detailsSection: {
     marginTop: 10,
     marginBottom: 20,
@@ -965,7 +575,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto-Medium',
     color: COLORS.textSecondary,
   },
-  removeDetailButton: {padding: 5},
+  removeDetailButton: {
+    padding: 5,
+  },
   addDetailButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -983,63 +595,8 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontFamily: 'Roboto-Medium',
   },
-  imageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-    gap: 10,
-  },
-  imageWrapper: {position: 'relative', width: 100, height: 100},
-  imagePreview: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.greyMedium,
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
-  },
-  addImageButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    padding: 5,
-  },
-  addImageText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: COLORS.primary,
-    textAlign: 'center',
-    fontFamily: 'Roboto-Regular',
-  },
-  submitButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  submitButtonDisabled: {backgroundColor: COLORS.primaryDisabled, opacity: 0.6},
-  submitButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontFamily: 'Roboto-Bold',
+  disabledInput: {
+    opacity: 0.5,
   },
 });
 

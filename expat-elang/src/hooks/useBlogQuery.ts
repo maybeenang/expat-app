@@ -14,16 +14,9 @@ import type {
   ProcessedBlogDetailData,
   ProcessedBlogPost,
 } from '../types/blog';
-import {useMemo} from 'react';
 import {queryKeys} from '../services/queryKeys';
 
-// Query key untuk blog posts
-export const blogPostsQueryKey = (categoryNames?: string[]) => [
-  'blogPosts',
-  categoryNames?.join(',') ?? 'all',
-];
-
-export const useBlogPostsInfinite = (categoryNames?: string[]) => {
+export const useBlogPostsInfinite = (category?: string) => {
   return useInfiniteQuery<
     BlogListApiResponse,
     Error,
@@ -31,9 +24,8 @@ export const useBlogPostsInfinite = (categoryNames?: string[]) => {
     readonly ['blog', 'posts', string],
     number
   >({
-    queryKey: queryKeys.blogKeys.posts(categoryNames),
-    queryFn: ({pageParam}) =>
-      fetchBlogPostsApi({pageParam}, categoryNames),
+    queryKey: queryKeys.blogKeys.posts(category),
+    queryFn: ({pageParam}) => fetchBlogPostsApi({pageParam}, category),
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {

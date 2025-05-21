@@ -42,6 +42,11 @@ import {
   useEventAllOptions,
   useEventCreateMutation,
 } from '../../../hooks/useEventQuery';
+import FormInput from '../../../components/common/FormInput';
+import FormDropdown from '../../../components/common/FormDropdown';
+import FormDatePicker from '../../../components/common/FormDatePicker';
+import ImagePicker from '../../../components/common/ImagePicker';
+import SubmitButton from '../../../components/common/SubmitButton';
 
 interface EventsCreateScreenProps
   extends NativeStackScreenProps<RootStackParamList, 'EventCreate'> {}
@@ -140,15 +145,18 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
     // Format gambar untuk payload multipart/form-data
     const imagePayload = selectedImages.map((asset, index) => ({
       uri: asset.uri!,
-      type: asset.type || 'image/jpeg', // Default ke jpeg jika type tidak ada
-      name: asset.fileName || `event_image_${Date.now()}_${index}.jpg`, // Generate nama file jika tidak ada
+      type: asset.type || 'image/jpeg',
+      name: asset.fileName || `event_image_${Date.now()}_${index}.jpg`,
     }));
 
     const payload: CreateEventPayload = {
       ...data,
-      // Pastikan format number/string sesuai API (jika perlu konversi)
-      max_capacity: String(data.max_capacity), // Contoh: pastikan string
-      images: imagePayload.length > 0 ? imagePayload : undefined, // Sertakan hanya jika ada gambar
+      is_feature: selectedImages[0]?.fileName || '', // Gunakan nama file pertama sebagai feature image
+      file: imagePayload.length > 0 ? imagePayload : undefined,
+      image_title: selectedImages.map((_, index) => `Image ${index + 1}`), // Default title untuk setiap gambar
+      image_alt: 'Event image', // Default alt text
+      max_capacity: data.max_capacity || '', // Bisa kosong
+      organizer_phone: data?.organizer_phone?.replace('+1', ''), // Hapus awalan +1
     };
 
     console.log('Submitting Event Payload:', JSON.stringify(payload, null, 2));
@@ -195,420 +203,137 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
         keyboardShouldPersistTaps="handled">
         <View style={styles.formContainer}>
           <Text style={styles.screenTitle}>Buat Event Baru</Text>
-
-          {/* Event Title */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Judul Event *</Text>
-            <Controller
-              control={control}
-              name="event_title"
-              rules={{required: 'Judul event harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contoh: Workshop React Native Advanced"
-                  placeholderTextColor={COLORS.greyDark}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.event_title?.message} />
-          </View>
-
-          {/* Category Dropdown */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Kategori Event *</Text>
-            <Controller
-              control={control}
-              name="category"
-              rules={{required: 'Kategori harus dipilih'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <Dropdown
-                  mode="modal"
-                  style={[
-                    styles.dropdownPlaceholder,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  data={categories as EventCategoryApi[]}
-                  labelField="name"
-                  valueField="id"
-                  placeholder="Pilih Kategori"
-                  value={value || null}
-                  onChange={item => onChange(item.id)}
-                  onBlur={onBlur}
-                  disable={mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.category?.message} />
-          </View>
-
-          {/* Description */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Deskripsi Event *</Text>
-            <Controller
-              control={control}
-              name="description"
-              rules={{required: 'Deskripsi event harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  placeholder="Jelaskan detail event, agenda, target peserta, dll."
-                  placeholderTextColor={COLORS.greyDark}
-                  multiline={true}
-                  textAlignVertical="top"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.description?.message} />
-          </View>
-
-          {/* Event Start DateTime */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Waktu Mulai *</Text>
-            <Controller
-              control={control}
-              name="event_start"
-              rules={{required: 'Waktu mulai harus diisi'}}
-              render={({field: {onChange, value}}) => (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.dropdownPlaceholder,
-                      mutation.isPending && styles.disabledInput,
-                    ]}
-                    onPress={() =>
-                      !mutation.isPending && setOpenStartDatePicker(true)
-                    }
-                    activeOpacity={0.7}
-                    disabled={mutation.isPending}>
-                    <Text style={styles.dropdownText}>
-                      {value
-                        ? format(parseISO(value), 'dd MMM yyyy, HH:mm') // Format tampilan
-                        : 'Pilih Tanggal & Waktu Mulai'}
-                    </Text>
-                    <Icon
-                      name="calendar-outline"
-                      size={20}
-                      color={COLORS.greyDark}
-                    />
-                  </TouchableOpacity>
-                  <DatePicker
-                    modal
-                    mode="datetime"
-                    open={openStartDatePicker}
-                    date={startDate}
-                    minimumDate={new Date()} // Minimal hari ini
-                    onConfirm={_date => {
-                      setOpenStartDatePicker(false);
-                      setStartDate(_date);
-                      onChange(formatDateTimeForAPI(_date)); // Simpan format API
-                      // Jika tanggal akhir lebih kecil, set sama dengan tanggal mulai
-                      if (watchedEndDate && _date > parseISO(watchedEndDate)) {
-                        setEndDate(_date);
-                        setValue('event_end', formatDateTimeForAPI(_date));
-                      }
-                    }}
-                    onCancel={() => setOpenStartDatePicker(false)}
-                    title="Pilih Waktu Mulai" // Judul modal
-                    confirmText="Konfirmasi"
-                    cancelText="Batal"
-                  />
-                </>
-              )}
-            />
-            <ErrorLabel error={errors.event_start?.message} />
-          </View>
-
-          {/* Event End DateTime */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Waktu Selesai *</Text>
-            <Controller
-              control={control}
-              name="event_end"
-              rules={{
-                required: 'Waktu selesai harus diisi',
-                validate: value => {
-                  if (!watchedStartDate || !value) {
-                    return true;
-                  } // Lewati jika salah satu kosong
-                  return (
-                    parseISO(value) >= parseISO(watchedStartDate) ||
-                    'Waktu selesai tidak boleh sebelum waktu mulai'
-                  );
-                },
-              }}
-              render={({field: {onChange, value}}) => (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.dropdownPlaceholder,
-                      mutation.isPending && styles.disabledInput,
-                      !watchedStartDate && styles.disabledInput,
-                    ]} // Disable jika start date belum dipilih
-                    onPress={() =>
-                      !mutation.isPending &&
-                      watchedStartDate &&
-                      setOpenEndDatePicker(true)
-                    }
-                    activeOpacity={0.7}
-                    disabled={mutation.isPending || !watchedStartDate}>
-                    <Text style={styles.dropdownText}>
-                      {value
-                        ? format(parseISO(value), 'dd MMM yyyy, HH:mm') // Format tampilan
-                        : 'Pilih Tanggal & Waktu Selesai'}
-                    </Text>
-                    <Icon
-                      name="calendar-outline"
-                      size={20}
-                      color={COLORS.greyDark}
-                    />
-                  </TouchableOpacity>
-                  <DatePicker
-                    modal
-                    mode="datetime"
-                    open={openEndDatePicker}
-                    date={endDate} // Gunakan state endDate
-                    minimumDate={startDate} // Minimal sama dengan tanggal mulai
-                    onConfirm={_date => {
-                      setOpenEndDatePicker(false);
-                      setEndDate(_date);
-                      onChange(formatDateTimeForAPI(_date)); // Simpan format API
-                    }}
-                    onCancel={() => setOpenEndDatePicker(false)}
-                    title="Pilih Waktu Selesai" // Judul modal
-                    confirmText="Konfirmasi"
-                    cancelText="Batal"
-                  />
-                </>
-              )}
-            />
-            <ErrorLabel error={errors.event_end?.message} />
-          </View>
-
-          {/* Location */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Lokasi *</Text>
-            <Controller
-              control={control}
-              name="location"
-              rules={{required: 'Lokasi event harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contoh: Gedung Serbaguna ABC, Jl. Merdeka No. 10"
-                  placeholderTextColor={COLORS.greyDark}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.location?.message} />
-          </View>
-
-          {/* Max Capacity */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Kapasitas Maksimal *</Text>
-            <Controller
-              control={control}
-              name="max_capacity"
-              rules={{
-                required: 'Kapasitas maksimal harus diisi',
-                pattern: {
-                  value: /^[1-9]\d*$/, // Hanya angka positif > 0
-                  message: 'Kapasitas harus berupa angka positif',
-                },
-              }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contoh: 100"
-                  placeholderTextColor={COLORS.greyDark}
-                  keyboardType="number-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.max_capacity?.message} />
-          </View>
-
-          {/* Price Dropdown */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Harga Tiket *</Text>
-            <Controller
-              control={control}
-              name="price"
-              rules={{required: 'Harga tiket harus dipilih'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <Dropdown
-                  mode="modal"
-                  style={[
-                    styles.dropdownPlaceholder,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  data={prices as EventPriceOption[]} // Asumsikan prices adalah array {label, value}
-                  labelField="name"
-                  valueField="id"
-                  placeholder="Pilih Harga (Gratis/Berbayar)"
-                  value={value || null}
-                  onChange={item => onChange(item.id)}
-                  onBlur={onBlur}
-                  disable={mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.price?.message} />
-          </View>
-
-          {/* Organizer Name */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nama Penyelenggara *</Text>
-            <Controller
-              control={control}
-              name="organizer_name"
-              rules={{required: 'Nama penyelenggara harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contoh: Komunitas Developer XYZ"
-                  placeholderTextColor={COLORS.greyDark}
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.organizer_name?.message} />
-          </View>
-
-          {/* Organizer Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Penyelenggara *</Text>
-            <Controller
-              control={control}
-              name="organizer_email"
-              rules={{
-                required: 'Email penyelenggara harus diisi',
-                pattern: {
-                  value: /\S+@\S+\.\S+/,
-                  message: 'Format email tidak valid',
-                },
-              }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contoh: contact@komunitasxyz.org"
-                  placeholderTextColor={COLORS.greyDark}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.organizer_email?.message} />
-          </View>
-
-          {/* Organizer Phone */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Telepon Penyelenggara *</Text>
-            <Controller
-              control={control}
-              name="organizer_phone"
-              rules={{
-                required: 'Telepon penyelenggara harus diisi',
-                pattern: {
-                  // diawali dengan +628
-                  value: /^\+628/,
-                  message: 'Format nomor telepon tidak valid',
-                },
-              }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={styles.input}
-                  placeholder="Contoh: +6281234567890"
-                  placeholderTextColor={COLORS.greyDark}
-                  keyboardType="phone-pad"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!mutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.organizer_phone?.message} />
-          </View>
-
-          {/* Image Upload */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Gambar Event (Maks. 5)</Text>
-            <View style={styles.imageContainer}>
-              {selectedImages.map((asset, index) => (
-                <View key={asset.uri || index} style={styles.imageWrapper}>
-                  <Image
-                    source={{uri: asset.uri}}
-                    style={styles.imagePreview}
-                  />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => !mutation.isPending && removeImage(index)}
-                    disabled={mutation.isPending}
-                    activeOpacity={0.7}>
-                    <Icon name="close-circle" size={24} color={COLORS.red} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-              {selectedImages.length < 5 && (
-                <TouchableOpacity
-                  style={[
-                    styles.addImageButton,
-                    mutation.isPending && styles.disabledInput,
-                  ]}
-                  onPress={handleImagePick}
-                  disabled={mutation.isPending}
-                  activeOpacity={0.7}>
-                  <Icon
-                    name="camera-outline"
-                    size={30}
-                    color={COLORS.primary}
-                  />
-                  <Text style={styles.addImageText}>Tambah Gambar</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            {/* Tidak ada ErrorLabel khusus untuk gambar via RHF, handle validasi di onSubmit jika perlu */}
-          </View>
-
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              mutation.isPending && styles.submitButtonDisabled,
-            ]}
-            activeOpacity={0.8}
+          <FormInput
+            control={control}
+            name="event_title"
+            label="Judul Event *"
+            rules={{required: 'Judul event harus diisi'}}
+            error={errors.event_title?.message}
+            placeholder="Workshop React Native Advanced"
+            isDisabled={mutation.isPending}
+          />
+          <FormDropdown
+            control={control}
+            name="category"
+            label="Kategori Event *"
+            options={(categories ?? []).map((c: any) => ({label: c.name, value: c.id}))}
+            rules={{required: 'Kategori harus dipilih'}}
+            error={errors.category?.message}
+            placeholder="Pilih Kategori"
+            isDisabled={mutation.isPending}
+          />
+          <FormInput
+            control={control}
+            name="description"
+            label="Deskripsi Event *"
+            rules={{required: 'Deskripsi event harus diisi'}}
+            error={errors.description?.message}
+            placeholder="Jelaskan detail event, agenda, target peserta, dll."
+            isDisabled={mutation.isPending}
+            multiline
+            textAlignVertical="top"
+            style={[styles.input, styles.textArea]}
+          />
+          <FormDatePicker
+            control={control}
+            name="event_start"
+            label="Waktu Mulai *"
+            rules={{required: 'Waktu mulai harus diisi'}}
+            error={errors.event_start?.message}
+            isDisabled={mutation.isPending}
+            placeholder="Pilih Tanggal & Waktu Mulai"
+            mode="datetime"
+            minimumDate={new Date()}
+          />
+          <FormDatePicker
+            control={control}
+            name="event_end"
+            label="Waktu Selesai *"
+            rules={{
+              required: 'Waktu selesai harus diisi',
+              validate: (value: string) => {
+                if (!watchedStartDate || !value) return true;
+                return (
+                  parseISO(value) >= parseISO(watchedStartDate) ||
+                  'Waktu selesai tidak boleh sebelum waktu mulai'
+                );
+              },
+            }}
+            error={errors.event_end?.message}
+            isDisabled={mutation.isPending || !watchedStartDate}
+            placeholder="Pilih Tanggal & Waktu Selesai"
+            mode="datetime"
+            minimumDate={startDate}
+          />
+          <FormInput
+            control={control}
+            name="location"
+            label="Lokasi *"
+            rules={{required: 'Lokasi event harus diisi'}}
+            error={errors.location?.message}
+            placeholder="Gedung Serbaguna ABC, Jl. Merdeka No. 10"
+            isDisabled={mutation.isPending}
+          />
+          <FormInput
+            control={control}
+            name="max_capacity"
+            label="Kapasitas Maksimal"
+            rules={{pattern: {value: /^[1-9]\d*$/, message: 'Kapasitas harus berupa angka positif'}}}
+            error={errors.max_capacity?.message}
+            placeholder="100"
+            isDisabled={mutation.isPending}
+            keyboardType="number-pad"
+          />
+          <FormDropdown
+            control={control}
+            name="price"
+            label="Harga Tiket *"
+            options={(prices ?? []).map((p: any) => ({label: p.name, value: p.id}))}
+            rules={{required: 'Harga tiket harus dipilih'}}
+            error={errors.price?.message}
+            placeholder="Pilih Harga (Gratis/Berbayar)"
+            isDisabled={mutation.isPending}
+          />
+          <FormInput
+            control={control}
+            name="organizer_name"
+            label="Nama Penyelenggara"
+            error={errors.organizer_name?.message}
+            placeholder="Komunitas Developer XYZ"
+            isDisabled={mutation.isPending}
+          />
+          <FormInput
+            control={control}
+            name="organizer_email"
+            label="Email Penyelenggara"
+            error={errors.organizer_email?.message}
+            placeholder="contact@komunitasxyz.org"
+            isDisabled={mutation.isPending}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <FormInput
+            control={control}
+            name="organizer_phone"
+            label="Telepon Penyelenggara"
+            error={errors.organizer_phone?.message}
+            placeholder="+1234567890"
+            isDisabled={mutation.isPending}
+            keyboardType="phone-pad"
+          />
+          <ImagePicker
+            label="Gambar Event (Maks. 5)"
+            selectedImages={selectedImages}
+            onImagesChange={setSelectedImages}
+            maxImages={5}
+            isDisabled={mutation.isPending}
+          />
+          <SubmitButton
             onPress={handleSubmit(onSubmit)}
-            disabled={mutation.isPending}>
-            {mutation.isPending ? (
-              <ActivityIndicator color={COLORS.white} size="small" />
-            ) : (
-              <Text style={styles.submitButtonText}>Buat Event</Text>
-            )}
-          </TouchableOpacity>
+            isLoading={mutation.isPending}
+            label="Buat Event"
+            isDisabled={mutation.isPending}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -738,6 +463,26 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 16,
     fontFamily: 'Roboto-Bold',
+  },
+  subLabel: {
+    fontSize: 12,
+    color: COLORS.greyDark,
+    marginBottom: 8,
+    fontStyle: 'italic',
+  },
+  featureImageBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  featureImageText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

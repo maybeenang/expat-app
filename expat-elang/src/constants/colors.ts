@@ -14,6 +14,7 @@ const COLORS = {
 
   // debug
   red: '#FF0000',
+  error: '#FF3B30',
 };
 
 export default COLORS;
