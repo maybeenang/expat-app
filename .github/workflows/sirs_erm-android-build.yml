@@ -1,0 +1,97 @@
+name: SIRS ERM Android Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sirs_erm/**"
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android SIRS ERM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+          cache: "yarn"
+          cache-dependency-path: "sirs_erm/yarn.lock"
+
+      - name: Install Dependencies
+        run: |
+          cd sirs_erm
+          yarn install --frozen-lockfile
+        continue-on-error: false
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "gradle"
+          cache-dependency-path: "sirs_erm/android/build.gradle"
+
+      - name: Setup Gradle Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            sirs_erm/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('sirs_erm/**/*.gradle*', 'sirs_erm/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./sirs_erm/android/gradlew
+
+      - name: Copy Keystore
+        run: cp ./sirs_erm/android/app/my-release-key.keystore.bak ./sirs_erm/android/app/my-release-key.keystore
+
+      - name: Build Development APK
+        run: |
+          cd sirs_erm
+          yarn build:android:dev:apk
+        env:
+          ENVFILE: .env.development
+        continue-on-error: false
+
+      - name: Get Version
+        id: get_version
+        run: |
+          cd sirs_erm
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2.2.2
+        with:
+          name: Release SIRS ERM v${{ steps.get_version.outputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}
+          files: |
+            sirs_erm/android/app/build/outputs/apk/dev/release/*.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+
+      - name: Increment Version
+        run: |
+          cd sirs_erm
+          npm version patch --no-git-tag-version
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'github-actions@github.com'
+          git add package.json
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

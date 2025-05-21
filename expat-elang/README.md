@@ -96,7 +96,7 @@ Sebelum memulai, pastikan Anda telah menginstal:
    ```
 
 2. **Build Release APK:**
-   ```bash
+    ```bash
    yarn build:android:prod:apk
    # atau
    npm run build:android:prod:apk
