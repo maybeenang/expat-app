@@ -77,7 +77,7 @@ jobs:
         uses: softprops/action-gh-release@v2.2.2
         with:
           name: Release SIRS ERM v${{ steps.get_version.outputs.version }}
-          tag_name: v${{ steps.get_version.outputs.version }}
+          tag_name: SIRS ERM v${{ steps.get_version.outputs.version }}
           files: |
             sirs_erm/android/app/build/outputs/apk/dev/release/*.apk
           generate_release_notes: true
@@ -94,4 +94,5 @@ jobs:
           git commit -m "Bump version to $(node -p "require('./package.json').version")"
           git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
