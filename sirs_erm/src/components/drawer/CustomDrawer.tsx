@@ -2,22 +2,31 @@ import React, {useMemo} from 'react';
 import {View, StyleSheet} from 'react-native';
 import {DrawerContentScrollView, DrawerItem} from '@react-navigation/drawer';
 import {COLORS, colors} from '../../contants/styles';
-import Icon from '@react-native-vector-icons/ionicons';
 import ProfileCard from '../common/ProfileCard';
+import {CustomIcon, IconName} from '../common/CustomIcon';
+import {useAuthStore} from '../../store/useAuthStore';
 
 export const CustomDrawer = (props: any) => {
   const navigation = props.navigation;
 
+  const {logout} = useAuthStore();
+
   const drawerItems = useMemo(
-    () => [
+    (): {
+      name: string;
+      icon: IconName;
+      onPress: () => void;
+    }[] => [
       {
         name: 'Home',
-        icon: 'home',
-        onPress: () => {},
+        icon: 'House',
+        onPress: () => {
+          navigation.navigate('MainTabs');
+        },
       },
       {
         name: 'SEP Terbuat',
-        icon: 'home',
+        icon: 'Newspaper',
         onPress: () => {
           navigation.navigate('SepTerbuat');
         },
@@ -39,24 +48,27 @@ export const CustomDrawer = (props: any) => {
             labelStyle={[styles.drawerLabel]}
             pressColor={COLORS.greyLight}
             icon={({color}) => (
-              <Icon name={item.icon} size={20} color={color} />
+              <CustomIcon name={item.icon} size={20} color={color} />
             )}
             onPress={() => {
               item.onPress();
             }}
           />
         ))}
-
-        <View style={styles.footer}>
-          <DrawerItem
-            label="Logout"
-            onPress={() => {
-              // Handle logout
-            }}
-            labelStyle={styles.logoutLabel}
-          />
-        </View>
       </DrawerContentScrollView>
+
+      <View style={styles.footer}>
+        <DrawerItem
+          label="Logout"
+          icon={({color}) => (
+            <CustomIcon name="SignOut" size={20} color={colors.red} />
+          )}
+          onPress={() => {
+            logout();
+          }}
+          labelStyle={styles.logoutLabel}
+        />
+      </View>
     </View>
   );
 };
@@ -84,12 +96,11 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   footer: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
     marginTop: 'auto',
+    marginBottom: 20,
   },
   logoutLabel: {
-    color: colors.error,
+    color: colors.red,
   },
   drawerItem: {
     borderRadius: 0,

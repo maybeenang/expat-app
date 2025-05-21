@@ -25,12 +25,26 @@ export const useAuthStore = create<AuthState>(set => ({
       isAuthenticated: true,
     }),
   setLoading: loading => set({isLoading: loading}),
-  logout: () =>
-    set({
-      token: null,
-      userSession: null,
-      isAuthenticated: false,
-    }),
+  logout: async () => {
+    try {
+      await EncryptedStorage.removeItem(AUTH_TOKEN_KEY);
+      await EncryptedStorage.removeItem(AUTH_SESSION_KEY);
+      await EncryptedStorage.clear();
+
+      set({
+        token: null,
+        userSession: null,
+        isAuthenticated: false,
+      });
+    } catch (error) {
+      console.error('Error clearing auth data:', error);
+      set({
+        token: null,
+        userSession: null,
+        isAuthenticated: false,
+      });
+    }
+  },
 }));
 
 export const checkAuthStatus = async () => {
