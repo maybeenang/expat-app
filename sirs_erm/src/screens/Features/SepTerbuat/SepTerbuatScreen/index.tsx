@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: numbers.padding,
     marginTop: 10,
     minHeight: Dimensions.get('window').height - 220,
   },
