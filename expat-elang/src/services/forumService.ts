@@ -75,8 +75,10 @@ export const fetchForumTopicsApi = async (
       return response.data;
     }
 
-    if (categoryId && categoryId !== ALL_FORUM_CATEGORY_PLACEHOLDER.name) {
-      params.categories = categoryId;
+    params.categories = categoryId || '';
+
+    if (categoryId?.trim() === ALL_FORUM_CATEGORY_PLACEHOLDER.name.trim()) {
+      delete params.categories;
     }
 
     const response = await apiClient.get<ForumListApiResponse>(
@@ -203,6 +205,7 @@ export const adminUpdateForumApi = (
     payload.category.forEach(catId => {
       formData.append('category[]', catId);
     });
+    console.log('FormData:', formData);
 
     return apiClient.post(ADMIN_FORUM_UPDATE_ENDPOINT, formData, {
       headers: {'Content-Type': 'multipart/form-data'},

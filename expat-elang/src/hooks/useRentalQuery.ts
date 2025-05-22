@@ -1,4 +1,5 @@
 import {
+  QueryKey,
   UseMutationResult,
   useInfiniteQuery,
   useMutation,
@@ -24,16 +25,18 @@ import type {
   ProcessedRentalDetail,
   CreateRentalFormData,
   UpdateRentalFormData,
+  RentalDetailsFeature,
 } from '../types/rental';
 import NUMBER from '../constants/number';
 import {Asset} from 'react-native-image-picker';
 import {useAuthStore} from '../store/useAuthStore';
 import axios from 'axios';
+import {IMAGE_PLACEHOLDER} from '../constants/images';
+import {queryKeys} from '../services/queryKeys';
 
-export const rentalCategoriesQueryKey = ['rentalCategories'];
 export const RECOMMENDATION_CATEGORY: RentalCategory = {
   value: 'all',
-  label: 'Rekomendasi',
+  label: 'Semua',
 };
 
 export const MY_RENTAL_CATEGORY: RentalCategory = {
@@ -45,7 +48,7 @@ export const useRentalCategoriesQuery = () => {
   //const isLoggedIn = useAuthStore.getState().isLoggedIn;
 
   return useQuery<RentalCategory[], Error, RentalCategory[]>({
-    queryKey: rentalCategoriesQueryKey,
+    queryKey: queryKeys.rentalKeys.categories(),
     queryFn: fetchRentalCategoriesApi,
     staleTime: Infinity,
     select: data => {
@@ -53,15 +56,10 @@ export const useRentalCategoriesQuery = () => {
       //  return [MY_RENTAL_CATEGORY, ...data];
       //}
 
-      return [...data];
+      return [RECOMMENDATION_CATEGORY, ...data];
     },
   });
 };
-
-export const rentalItemsQueryKey = (rentalType?: string) => [
-  'rentalItems',
-  rentalType ?? 'all',
-];
 
 export const useRentalItemsInfinite = (
   activeCategory: RentalCategory | null,
@@ -72,10 +70,10 @@ export const useRentalItemsInfinite = (
     RentalListApiResponse,
     Error,
     ProcessedRentalItem[],
-    string[],
+    QueryKey,
     number
   >({
-    queryKey: rentalItemsQueryKey(categoryTypeFilter),
+    queryKey: queryKeys.rentalKeys.items(categoryTypeFilter),
     queryFn: ({pageParam}) =>
       fetchRentalItemsApi({pageParam}, categoryTypeFilter),
     initialPageParam: 1,
@@ -109,22 +107,15 @@ export const useRentalItemsInfinite = (
   });
 };
 
-export const rentalDetailQueryKey = (rentalId: string) => [
-  'rentalDetail',
-  rentalId,
-];
-
-const PLACEHOLDER_IMAGE_URL =
-  'https://via.placeholder.com/400x300/cccccc/969696?text=Image+Not+Available';
-
 export const useRentalDetailQuery = (rentalId: string) => {
   return useQuery<RentalItemApi, Error, ProcessedRentalDetail>({
-    queryKey: rentalDetailQueryKey(rentalId),
+    queryKey: queryKeys.rentalKeys.detail(rentalId),
     queryFn: () => fetchRentalDetailApi(rentalId),
     enabled: !!rentalId,
     staleTime: 1000 * 60 * 5,
     select: data => {
       const imageUrls: string[] = [];
+      const featureInRoom: RentalDetailsFeature[] = [];
 
       if (data.image_feature?.img_url) {
         imageUrls.push(data.image_feature.img_url);
@@ -140,8 +131,38 @@ export const useRentalDetailQuery = (rentalId: string) => {
         });
       }
 
+      if (Array.isArray(data.details_in_room)) {
+        data.details_in_room.forEach((item: RentalDetailsFeature) => {
+          featureInRoom.push(item);
+        });
+      }
+
+      if (Array.isArray(data.details_shared_common)) {
+        data.details_shared_common.forEach((item: RentalDetailsFeature) => {
+          featureInRoom.push(item);
+        });
+      }
+
+      if (Array.isArray(data.details_main)) {
+        data.details_main.forEach((item: RentalDetailsFeature) => {
+          featureInRoom.push(item);
+        });
+      }
+
+      if (Array.isArray(data.details_feature)) {
+        data.details_feature.forEach((item: RentalDetailsFeature) => {
+          featureInRoom.push(item);
+        });
+      }
+
+      if (Array.isArray(data.details_house_rules)) {
+        data.details_house_rules.forEach((item: RentalDetailsFeature) => {
+          featureInRoom.push(item);
+        });
+      }
+
       if (imageUrls.length === 0) {
-        imageUrls.push(PLACEHOLDER_IMAGE_URL);
+        imageUrls.push(IMAGE_PLACEHOLDER);
       }
 
       return {
@@ -164,26 +185,25 @@ export const useRentalDetailQuery = (rentalId: string) => {
         stayMin: data.rent_stay_min_number,
         stayMax: data.rent_stay_max_number,
         stayType: data.rent_stay_min_type,
-        features: data.details_feature?.map((item: any) => item.nama_details1) || [],
-        houseRules: data.details_house_rules?.map((item: any) => item.nama_details1) || [],
+        features:
+          data.details_feature?.map((item: any) => item.nama_details1) || [],
+        houseRules:
+          data.details_house_rules?.map((item: any) => item.nama_details1) ||
+          [],
         address: data.rent_address,
         address2: data.rent_address2,
         city: data.rent_city,
         state: data.rent_state,
         zip: data.rent_zip,
+        featuresInRoom: featureInRoom,
       };
     },
   });
 };
 
-export const rentalDetailUnprocessedQueryKey = (rentalId: string) => [
-  'rentalDetailUnprocessed',
-  rentalId,
-];
-
 export const useRentalDetailUnprocessedQuery = (rentalId: string) => {
   return useQuery<RentalItemApi, Error>({
-    queryKey: rentalDetailUnprocessedQueryKey(rentalId),
+    queryKey: queryKeys.rentalKeys.detailUnprocessed(rentalId),
     queryFn: () => fetchRentalDetailApi(rentalId),
     enabled: !!rentalId,
     staleTime: 1000 * 60 * 5,
@@ -207,10 +227,16 @@ export const useRentalCreateMutation = (): UseMutationResult<
     }) => {
       return createRental(formData, images);
     },
-    onSuccess: () => {
-      // Invalidate query list rental (jika ada) agar data baru muncul
-      queryClient.invalidateQueries({queryKey: ['rentalItems']});
-      console.log('Rental created successfully, cache invalidated.');
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.rentalKeys.items(MY_RENTAL_CATEGORY.value),
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.rentalKeys.all,
+        }),
+      ]);
     },
     onError: error => {
       console.error('Error creating rental:', error);
@@ -222,35 +248,23 @@ export const useRentalDeleteMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (eventId: string) => deleteRental(eventId),
-    onSuccess: (_data, deletedId) => {
-      queryClient.setQueryData<{
-        pages: RentalListApiResponse[];
-        pageParams: number[];
-      }>(['rentalItems'], oldData => {
-        if (!oldData) {
-          return oldData;
-        }
+    mutationFn: (rentalId: string) => deleteRental(rentalId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.rentalKeys.items(MY_RENTAL_CATEGORY.value),
+        }),
 
-        return {
-          ...oldData,
-          pages: oldData.pages.map(page => ({
-            ...page,
-            data: page.data.filter(topic => topic.id !== deletedId),
-          })),
-        };
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['rentalItems'],
-      });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.rentalKeys.all,
+        }),
+      ]);
     },
     onError: (error: Error) => {
       if (axios.isAxiosError(error) && error.response) {
         console.error('Error response:', error.response.data);
       }
-      console.error('Error deleting job:', error.message);
-      throw new Error('Failed to delete job');
+      console.error('Error deleting rental:', error.message);
     },
   });
 };
@@ -259,26 +273,24 @@ export const useRentalUpdateMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: UpdateRentalFormData) => updateRental(payload),
-    onSuccess: (data, variable) => {
-      queryClient.invalidateQueries({
-        queryKey: ['rentalItems'],
-      });
+    mutationFn: (formData: UpdateRentalFormData) => updateRental(formData),
+    onSuccess: async (_, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.rentalKeys.items(MY_RENTAL_CATEGORY.value),
+        }),
 
-      queryClient.invalidateQueries({
-        queryKey: ['rentalDetail', variable.id],
-      });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.rentalKeys.all,
+        }),
 
-      queryClient.invalidateQueries({
-        queryKey: ['rentalDetailUnprocessed', variable.id],
-      });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.rentalKeys.detail(variables.id),
+        }),
+      ]);
     },
-    onError: (error: Error) => {
-      if (axios.isAxiosError(error) && error.response) {
-        console.error('Error response:', error.response.data);
-      }
-
-      console.error('Error message:', error.message);
+    onError: error => {
+      console.error('Error updating rental:', error);
     },
   });
 };

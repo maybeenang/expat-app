@@ -1,4 +1,5 @@
 import {
+  QueryKey,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -25,7 +26,6 @@ import type {
   ProcessedForumReply,
   CreateForumPayload,
   UpdateForumPayload,
-  ForumTopicApi,
 } from '../types/forum';
 import {AxiosError} from 'axios';
 import {useAuthStore} from '../store/useAuthStore';
@@ -33,6 +33,7 @@ import {queryKeys} from '../services/queryKeys';
 
 export const forumCategoriesQueryKey = ['forumCategories'];
 export const userForumCategoriesQueryKey = ['userForumCategories'];
+
 export const ALL_FORUM_CATEGORY_PLACEHOLDER: ForumCategoryApi = {
   id: 'all',
   name: 'Semua Topik',
@@ -59,26 +60,27 @@ export const useForumCategoriesQuery = () => {
       }));
 
       if (isLoggedIn) {
-        return [MY_FORUM_CATEGORY_PLACEHOLDER, ...deletedEndLineData];
+        return [
+          MY_FORUM_CATEGORY_PLACEHOLDER,
+          ALL_FORUM_CATEGORY_PLACEHOLDER,
+          ...deletedEndLineData,
+        ];
       }
-      return deletedEndLineData;
+      return [ALL_FORUM_CATEGORY_PLACEHOLDER, ...deletedEndLineData];
     },
   });
 };
 
-export const forumTopicsQueryKey = (categoryId?: string) => [
-  'forumTopics',
-  categoryId ?? ALL_FORUM_CATEGORY_PLACEHOLDER.name,
-];
-
-export const useForumTopicsInfinite = (activeCategory: ForumCategoryApi | null) => {
+export const useForumTopicsInfinite = (
+  activeCategory: ForumCategoryApi | null,
+) => {
   const categoryIdFilter = activeCategory?.name;
 
   return useInfiniteQuery<
     ForumListApiResponse,
     Error,
     ProcessedForumTopic[],
-    readonly ['forum', 'topics', string],
+    QueryKey,
     number
   >({
     queryKey: queryKeys.forumKeys.topics(categoryIdFilter),
@@ -196,9 +198,9 @@ export const useCreateForumMutation = () => {
   return useMutation({
     mutationFn: (payload: CreateForumPayload) => adminCreateForumApi(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['forumDetail']});
-      queryClient.invalidateQueries({queryKey: ['forumTopics']});
-      queryClient.invalidateQueries({queryKey: ['adminForumDetail']});
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.forumKeys.all,
+      });
     },
     onError: error => {
       if (error instanceof AxiosError) {
@@ -214,10 +216,16 @@ export const useUpdateForumMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: UpdateForumPayload) => adminUpdateForumApi(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['forumDetail']});
-      queryClient.invalidateQueries({queryKey: ['forumTopics']});
-      queryClient.invalidateQueries({queryKey: ['adminForumDetail']});
+    onSuccess: async (_, variables) => {
+      console.log('Update forum success:', variables);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.forumKeys.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.forumKeys.detail(variables.id),
+        }),
+      ]);
     },
     onError: error => {
       if (error instanceof AxiosError) {
@@ -235,23 +243,16 @@ export const useDeleteForumMutation = (
 
   return useMutation({
     mutationFn: (forumId: string) => adminDeleteForumApi(forumId),
-    onSuccess: (_data, deletedId) => {
-      queryClient.setQueryData<{
-        pages: ForumListApiResponse[];
-        pageParams: number[];
-      }>(forumTopicsQueryKey(categoryIdFilter), oldData => {
-        if (!oldData) {
-          return oldData;
-        }
-
-        return {
-          ...oldData,
-          pages: oldData.pages.map(page => ({
-            ...page,
-            data: page.data.filter(topic => topic.id !== deletedId),
-          })),
-        };
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.forumKeys.all,
       });
+
+      if (categoryIdFilter) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.forumKeys.topics(categoryIdFilter),
+        });
+      }
     },
     onError: error => {
       if (error instanceof AxiosError) {

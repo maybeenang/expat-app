@@ -19,8 +19,8 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   ALL_FORUM_CATEGORY_PLACEHOLDER,
   MY_FORUM_CATEGORY_PLACEHOLDER,
-  useAdminForumDetailQuery,
   useForumCategoriesQuery,
+  useForumDetailQuery,
   useUpdateForumMutation,
 } from '../../../hooks/useForumQuery';
 import {UpdateForumPayload} from '../../../types/forum';
@@ -50,7 +50,7 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
   const updateForumMutation = useUpdateForumMutation();
   const {data: categories = []} = useForumCategoriesQuery();
 
-  const {data: forumDetail, isLoading} = useAdminForumDetailQuery(forumId);
+  const {data: forumDetail, isLoading} = useForumDetailQuery(forumId);
 
   useEffect(() => {
     if (forumDetail) {
@@ -164,6 +164,8 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
         await updateForumMutation.mutateAsync(payload);
       } catch (e) {
         console.log('Update Error:', e);
+
+        throw new Error('Failed to update forum');
       } finally {
         hide();
       }

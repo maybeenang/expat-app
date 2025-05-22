@@ -196,6 +196,32 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
 
         <View style={styles.separator} />
 
+        {rental.featuresInRoom && rental.featuresInRoom.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Detail</Text>
+            <View style={styles.featuresGrid}>
+              {rental.featuresInRoom.map((feature, index) => (
+                <View key={index} style={styles.featureItem}>
+                  <View>
+                    <Text style={styles.featureText}>{feature.tipe}</Text>
+                    {feature.nama_details1 &&
+                      feature.nama_details1 != '0' &&
+                      feature.nama_details2 && (
+                        <Text style={styles.detailLabel}>
+                          {feature.nama_details1} {feature.nama_details2}
+                        </Text>
+                      )}
+
+                    <Text style={styles.featureText}>{feature.desc}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.separator} />
+
         {/* Description Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description</Text>
@@ -204,6 +230,18 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
             numberOfLines={isDescExpanded ? undefined : 3}>
             {cleanHtmlTags(rental.description)}
           </Text>
+          {isDescExpanded && rental.imageUrls.length > 1 && (
+            <View style={styles.additionalImagesContainer}>
+              {rental.imageUrls.slice(1).map((imageUrl, index) => (
+                <Image
+                  key={index}
+                  source={{uri: imageUrl}}
+                  style={styles.additionalImage}
+                  resizeMode="cover"
+                />
+              ))}
+            </View>
+          )}
           {rental.descExpandable && (
             <TouchableOpacity
               onPress={() => setIsDescExpanded(!isDescExpanded)}
@@ -220,59 +258,9 @@ const RentalDetailScreen = ({route, navigation}: Props) => {
               />
             </TouchableOpacity>
           )}
-          {isDescExpanded && rental.imageUrls.length > 1 && (
-            <View style={styles.additionalImagesContainer}>
-              {rental.imageUrls.slice(1).map((imageUrl, index) => (
-                <Image
-                  key={index}
-                  source={{uri: imageUrl}}
-                  style={styles.additionalImage}
-                  resizeMode="cover"
-                />
-              ))}
-            </View>
-          )}
         </View>
 
         <View style={styles.separator} />
-
-        {/* Features Section */}
-        {rental.features && rental.features.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Features</Text>
-            <View style={styles.featuresGrid}>
-              {rental.features.map((feature, index) => (
-                <View key={index} style={styles.featureItem}>
-                  <Icon
-                    name="checkmark-circle"
-                    size={16}
-                    color={COLORS.primary}
-                  />
-                  <Text style={styles.featureText}>{feature}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* House Rules Section */}
-        {rental.houseRules && rental.houseRules.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>House Rules</Text>
-            <View style={styles.rulesList}>
-              {rental.houseRules.map((rule, index) => (
-                <View key={index} style={styles.ruleItem}>
-                  <Icon
-                    name="information-circle"
-                    size={16}
-                    color={COLORS.primary}
-                  />
-                  <Text style={styles.ruleText}>{rule}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
       </ScrollView>
 
       {/* Contact CS Button - Temporarily Disabled
@@ -412,19 +400,15 @@ const styles = StyleSheet.create({
   featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -5,
   },
   featureItem: {
     width: '50%',
-    paddingHorizontal: 5,
     marginBottom: 12,
     flexDirection: 'row',
-    alignItems: 'center',
   },
   featureText: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    marginLeft: 8,
     flex: 1,
   },
   rulesList: {
@@ -447,7 +431,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   additionalImage: {
-    width: width, // Adjust width to account for padding
     height: (width - 40) * 0.75, // 4:3 aspect ratio
     marginBottom: 15,
     overflow: 'hidden',

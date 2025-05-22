@@ -57,19 +57,20 @@ export const useEventCategoriesQuery = () => {
       }));
 
       if (isLoggedIn) {
-        return [MY_EVENT_CATEGORY, ...deletedEndLineData];
+        return [
+          MY_EVENT_CATEGORY,
+          ALL_EVENT_CATEGORY_PLACEHOLDER,
+          ...deletedEndLineData,
+        ];
       }
-      return deletedEndLineData;
+      return [ALL_EVENT_CATEGORY_PLACEHOLDER, ...deletedEndLineData];
     },
   });
 };
 
-export const eventItemsQueryKey = (categoryId?: string) => [
-  'eventItems',
-  categoryId ?? 'all',
-];
-
-export const useEventItemsInfinite = (activeCategory: EventCategoryApi | null) => {
+export const useEventItemsInfinite = (
+  activeCategory: EventCategoryApi | null,
+) => {
   const categoryIdFilter = activeCategory?.id;
 
   return useInfiniteQuery<
@@ -80,8 +81,7 @@ export const useEventItemsInfinite = (activeCategory: EventCategoryApi | null) =
     number
   >({
     queryKey: queryKeys.eventKeys.items(categoryIdFilter),
-    queryFn: ({pageParam}) =>
-      fetchEventItemsApi({pageParam}, categoryIdFilter),
+    queryFn: ({pageParam}) => fetchEventItemsApi({pageParam}, categoryIdFilter),
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {
@@ -109,16 +109,7 @@ export const useEventItemsInfinite = (activeCategory: EventCategoryApi | null) =
   });
 };
 
-export const eventDetailQueryKey = (eventId: string, categoryId?: string) => [
-  'eventDetail',
-  eventId,
-  categoryId,
-];
-
-export const useEventDetailQuery = (
-  eventId: string,
-  categoryId?: string,
-) => {
+export const useEventDetailQuery = (eventId: string, categoryId?: string) => {
   return useQuery<
     {mainEvent: EventItemApi; recentEvents: EventItemApi[]},
     Error,
@@ -189,11 +180,6 @@ export const useEventDetailQuery = (
   });
 };
 
-const eventDetailUnprocessedQueryKey = (eventId: string) => [
-  'eventDetailUnprocessed',
-  eventId,
-];
-
 export const useEventDetailUnprocessedQuery = (eventId: string) => {
   return useQuery<
     {mainEvent: EventItemApi; recentEvents: EventItemApi[]},
@@ -239,10 +225,17 @@ export const useEventCreateMutation = () => {
 
   return useMutation({
     mutationFn: (payload: CreateEventPayload) => adminCreateEventApi(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['eventItems'],
-      });
+    onSuccess: async () => {
+      // Invalidate all event queries to ensure UI is up-to-date
+      //
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.eventKeys.items(MY_EVENT_CATEGORY.id),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.eventKeys.all,
+        }),
+      ]);
     },
     onError: (error: Error) => {
       if (axios.isAxiosError(error) && error.response) {
@@ -259,34 +252,23 @@ export const useEventDeleteMutation = () => {
 
   return useMutation({
     mutationFn: (eventId: string) => adminDeleteEventApi(eventId),
-    onSuccess: (_data, deletedId) => {
-      queryClient.setQueryData<{
-        pages: EventListApiResponse[];
-        pageParams: number[];
-      }>(eventItemsQueryKey(MY_EVENT_CATEGORY.name), oldData => {
-        if (!oldData) {
-          return oldData;
-        }
-
-        return {
-          ...oldData,
-          pages: oldData.pages.map(page => ({
-            ...page,
-            data: page.data.filter(topic => topic.id !== deletedId),
-          })),
-        };
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['eventItems'],
-      });
+    onSuccess: async () => {
+      // Invalidate all event queries to ensure UI is up-to-date
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.eventKeys.items(MY_EVENT_CATEGORY.id),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.eventKeys.all,
+        }),
+      ]);
     },
     onError: (error: Error) => {
       if (axios.isAxiosError(error) && error.response) {
         console.error('Error response:', error.response.data);
       }
-      console.error('Error deleting job:', error.message);
-      throw new Error('Failed to delete job');
+
+      console.error('Error message:', error.message);
     },
   });
 };
@@ -296,11 +278,30 @@ export const useEventUpdateMutation = () => {
 
   return useMutation({
     mutationFn: (payload: UpdateEventPayload) => adminUpdateEventApi(payload),
-    onSuccess: () => {
-      // Invalidate and refetch events list
-      queryClient.invalidateQueries({queryKey: ['events']});
-      // Invalidate and refetch event detail
-      queryClient.invalidateQueries({queryKey: ['event']});
+    onSuccess: async (_, variables) => {
+      // Invalidate all event queries
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.eventKeys.all,
+      });
+
+      // Also specifically invalidate the detail query for this event
+      if (variables.id) {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.eventKeys.detail(variables.id),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.eventKeys.detailUnprocessed(variables.id),
+          }),
+        ]);
+      }
+    },
+    onError: (error: Error) => {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Error response:', error.response.data);
+      }
+
+      console.error('Error message:', error.message);
     },
   });
 };

@@ -11,6 +11,15 @@ export interface RentalCategoriesApiResponse {
   data: RentalCategory[];
 }
 
+export interface RentalDetailsFeature {
+  id: string;
+  id_rents: string;
+  tipe: string;
+  nama_details1: string;
+  nama_details2: string;
+  desc: string;
+}
+
 export interface RentalImageFeature {
   id: string;
   id_rents: string;
@@ -44,11 +53,11 @@ export interface RentalItemApi {
   rent_price_number: string; // String number
   rent_price_type: string; // e.g., "DAY", "MONTH", "YEAR"
   rent_slug: string;
-  details_main: any[];
-  details_feature: any[];
-  details_in_room: any[];
-  details_shared_common: any[];
-  details_house_rules: any[];
+  details_main: RentalDetailsFeature[] | null;
+  details_feature: RentalDetailsFeature[] | null;
+  details_in_room: RentalDetailsFeature[] | null;
+  details_shared_common: RentalDetailsFeature[] | null;
+  details_house_rules: RentalDetailsFeature[] | null;
   image_feature: RentalImageFeature | null;
   image_lists: any[];
   saved: boolean;
@@ -102,6 +111,7 @@ export interface ProcessedRentalDetail {
   city: string;
   state: string;
   zip: string;
+  featuresInRoom?: RentalDetailsFeature[] | null;
 }
 
 export interface RentalOptionApiResponse<T> {

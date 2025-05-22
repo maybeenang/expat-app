@@ -23,7 +23,10 @@ import {
 } from '../types/event';
 import apiClient from './authService';
 import {useAuthStore} from '../store/useAuthStore';
-import {MY_EVENT_CATEGORY} from '../hooks/useEventQuery';
+import {
+  ALL_EVENT_CATEGORY_PLACEHOLDER,
+  MY_EVENT_CATEGORY,
+} from '../hooks/useEventQuery';
 
 export const fetchEventCategoriesApi = async (): Promise<
   EventCategoryApi[]
@@ -73,6 +76,10 @@ export const fetchEventItemsApi = async (
     delete params.categories;
   }
 
+  if (categoryId === ALL_EVENT_CATEGORY_PLACEHOLDER.id) {
+    delete params.categories;
+  }
+
   try {
     const response = await apiClient.get<EventListApiResponse>(endpoint, {
       params,
@@ -81,6 +88,8 @@ export const fetchEventItemsApi = async (
     if (!response.data?.data) {
       throw new Error('No data found');
     }
+
+    console.log(response.config.baseURL);
 
     return response.data;
   } catch (error) {
@@ -280,7 +289,7 @@ export const adminUpdateEventApi = (
 ): Promise<AxiosResponse> => {
   try {
     const formdata = new FormData();
-    
+
     // Append each field to the FormData Object
     Object.entries(payload).forEach(([key, value]) => {
       if (key === 'file' && Array.isArray(value)) {

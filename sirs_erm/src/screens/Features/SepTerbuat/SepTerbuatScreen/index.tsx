@@ -90,7 +90,16 @@ const SepTerbuatScreen = () => {
       id: 'created_date',
       label: 'Tgl SEP',
       width: 100,
-      render: item => <Text>{formatDate(item.created_date)}</Text>,
+      render: item => (
+        <Text
+          style={{
+            textAlign: 'center',
+            flexWrap: 'wrap',
+            fontSize: 12,
+          }}>
+          {formatDate(item.created_date)}
+        </Text>
+      ),
     },
     {id: 'noKartu', label: 'No Kartu', width: 120},
     {id: 'id_pasien_registrasi', label: 'Pasien ID', width: 150},
