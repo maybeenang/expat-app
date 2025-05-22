@@ -22,6 +22,7 @@ interface FilterFormData {
   code_diag_awal: string;
   jns_pelayanan: number;
   search: string;
+  deleted: 'active' | 'deleted';
 }
 
 const filterOptions = [
@@ -42,8 +43,18 @@ const yearOptions = Array.from({length: 5}, (_, i) => {
 });
 
 const jnsPelayananOptions = [
-  {label: 'Rawat Inap', value: 2},
-  {label: 'Rawat Jalan', value: 1},
+  {label: 'Ranap', value: 1},
+  {label: 'IGD/Rajal', value: 2},
+];
+
+const jenisDiagAwalOptions = [
+  {label: 'Simrs', value: 'simrs'},
+  {label: 'Vclaim', value: 'vclaim'},
+];
+
+const deletedOptions = [
+  {label: 'Aktif', value: 'active'},
+  {label: 'Tidak Aktif', value: 'deleted'},
 ];
 
 export const SepTerbuatFilter: React.FC<SepTerbuatFilterProps> = ({
@@ -75,7 +86,7 @@ export const SepTerbuatFilter: React.FC<SepTerbuatFilterProps> = ({
   const onSubmit = (data: FilterFormData) => {
     const params: SepTerbuatListParams = {
       filter: data.filter,
-      deleted: 'active',
+      deleted: data.deleted,
       limit: 10,
       code_diag_awal: data.code_diag_awal,
       jns_pelayanan: data.jns_pelayanan,
@@ -216,6 +227,32 @@ export const SepTerbuatFilter: React.FC<SepTerbuatFilterProps> = ({
           onChange={item => setValue('jns_pelayanan', item.value)}
           style={styles.dropdown}
           placeholder="Pilih Jenis Pelayanan"
+        />
+      </View>
+
+      <View style={styles.dropdownContainer}>
+        <Text style={styles.label}>Terbuat Di</Text>
+        <Dropdown
+          data={jenisDiagAwalOptions}
+          labelField="label"
+          valueField="value"
+          value={watch('code_diag_awal')}
+          onChange={item => setValue('code_diag_awal', item.value)}
+          style={styles.dropdown}
+          placeholder="Pilih terbuat di"
+        />
+      </View>
+
+      <View style={styles.dropdownContainer}>
+        <Text style={styles.label}>Deleted</Text>
+        <Dropdown
+          data={deletedOptions}
+          labelField="label"
+          valueField="value"
+          value={watch('deleted')}
+          onChange={item => setValue('deleted', item.value)}
+          style={styles.dropdown}
+          placeholder="Pilih deleted"
         />
       </View>
 

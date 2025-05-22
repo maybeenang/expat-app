@@ -17,7 +17,7 @@ export const useAuthStore = create<AuthState>(set => ({
   token: null,
   userSession: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   setAuthData: (token, session) =>
     set({
       token,
@@ -52,8 +52,9 @@ export const checkAuthStatus = async () => {
   setLoading(true);
   try {
     const storedToken = await EncryptedStorage.getItem(AUTH_TOKEN_KEY);
-    const storedSessionString =
-      await EncryptedStorage.getItem(AUTH_SESSION_KEY);
+    const storedSessionString = await EncryptedStorage.getItem(
+      AUTH_SESSION_KEY,
+    );
 
     if (storedToken && storedSessionString) {
       const storedSession: UserSession = JSON.parse(storedSessionString);

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {StyleSheet, View, ScrollView, Dimensions} from 'react-native';
 import {DataTable, Text, useTheme} from 'react-native-paper';
-import {numbers, colors} from '../../contants/styles';
+import {numbers, colors, fonts} from '../../contants/styles';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -40,11 +40,13 @@ export function ReusableTable<T>({
 }: ReusableTableProps<T>) {
   const theme = useTheme();
   const [page, setPage] = useState(0);
-  
+
   const rowsPerPage = pagination?.itemsPerPage || 10;
-  const from = pagination ? (pagination.currentPage - 1) * rowsPerPage : page * rowsPerPage;
-  const to = pagination 
-    ? Math.min(pagination.currentPage * rowsPerPage, pagination.totalItems) 
+  const from = pagination
+    ? (pagination.currentPage - 1) * rowsPerPage
+    : page * rowsPerPage;
+  const to = pagination
+    ? Math.min(pagination.currentPage * rowsPerPage, pagination.totalItems)
     : Math.min((page + 1) * rowsPerPage, data.length);
 
   const handlePageChange = (newPage: number) => {
@@ -55,9 +57,10 @@ export function ReusableTable<T>({
     }
   };
 
-  const totalPages = pagination?.totalPages || Math.ceil(data.length / rowsPerPage);
+  const totalPages =
+    pagination?.totalPages || Math.ceil(data.length / rowsPerPage);
   const totalItems = pagination?.totalItems || data.length;
-  const currentPage = pagination?.currentPage || (page + 1);
+  const currentPage = pagination?.currentPage || page + 1;
 
   if (isLoading) {
     return (
@@ -94,13 +97,8 @@ export function ReusableTable<T>({
                 <DataTable.Title
                   numberOfLines={2}
                   key={index}
-                  style={[
-                    styles.columnHeader, 
-                    {width: column.width || 150}
-                  ]}>
-                  <Text style={styles.headerText}>
-                    {column.label}
-                  </Text>
+                  style={[styles.columnHeader, {width: column.width || 150}]}>
+                  <Text style={styles.headerText}>{column.label}</Text>
                 </DataTable.Title>
               ))}
             </DataTable.Header>
@@ -134,7 +132,7 @@ export function ReusableTable<T>({
                     {columns.map((column, colIndex) => (
                       <DataTable.Cell
                         key={colIndex}
-                        style={[styles.cell, {width: column.width || 150}]}>
+                        style={[styles.cell, {width: column.width || 175}]}>
                         {column.render ? (
                           column.render(item)
                         ) : (
@@ -177,26 +175,20 @@ const styles = StyleSheet.create({
     backgroundColor: colors.greyLight,
   },
   columnHeader: {
-    justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 10,
   },
   headerText: {
-    textAlign: 'center',
-    fontWeight: '500',
+    fontFamily: fonts.medium,
     fontSize: 14,
   },
   scrollableTable: {
     flex: 1,
   },
   cell: {
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 8,
   },
   cellText: {
-    textAlign: 'center',
     flexWrap: 'wrap',
     fontSize: 12,
   },
@@ -218,4 +210,5 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginStart: 4,
   },
-}); 
+});
+

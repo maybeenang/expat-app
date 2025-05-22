@@ -1,13 +1,23 @@
 import React, {useLayoutEffect, useState, useRef} from 'react';
-import {StyleSheet, View, Dimensions, ActivityIndicator} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Dimensions,
+  ActivityIndicator,
+  Switch,
+} from 'react-native';
 import {SepTerbuatFilter} from '../components/SepTerbuatFilter';
 import {useNavigation} from '@react-navigation/native';
 import {SepTerbuat, SepTerbuatListParams} from '../../../../types/sepTerbuat';
-import {useSepTerbuatTable} from '../../../../hooks/useSepTerbuat';
+import {PieChart} from 'react-native-chart-kit';
+import {
+  useSepTerbuatChartData,
+  useSepTerbuatTable,
+} from '../../../../hooks/useSepTerbuat';
 import UniversalHeaderTitle from '../../../../components/common/UniversarHeader';
 import EmptyListComponent from '../../../../components/common/EmptyListComponent';
 import ReusableBottomSheetModal from '../../../../components/common/ReusableBottomSheet';
-import {numbers, colors} from '../../../../contants/styles';
+import {numbers, colors, COLORS} from '../../../../contants/styles';
 import {ScreenContainer} from '../../../../components/common';
 import {
   ReusableTable,
@@ -25,7 +35,7 @@ const SepTerbuatScreen = () => {
     deleted: 'active',
     limit: 10,
     page: 1,
-    code_diag_awal: 'vclaim',
+    code_diag_awal: 'simrs',
     jns_pelayanan: 2,
     range_start: new Date('2025-02-01').toISOString().split('T')[0],
     range_end: new Date('2025-02-28').toISOString().split('T')[0],
@@ -33,6 +43,14 @@ const SepTerbuatScreen = () => {
 
   const {data, isLoading, isError, error, isFetching, refetch} =
     useSepTerbuatTable(params);
+
+  const [showChart, setShowChart] = useState<boolean>(false);
+
+  const {
+    chartData: chartDataSimrs,
+    isLoading: isLoadingSimrs,
+    error: errorSimrs,
+  } = useSepTerbuatChartData(params);
 
   const handlePageChange = (page: number) => {
     setParams(prev => ({...prev, page}));
@@ -85,11 +103,13 @@ const SepTerbuatScreen = () => {
   };
 
   const tableColumns: Column<SepTerbuat>[] = [
-    {id: 'noSep', label: 'No SEP', width: 120},
+    {id: 'noSep', label: 'No SEP'},
+    {id: 'noKartu', label: 'No Kartu'},
+    {id: 'id_pasien_registrasi', label: 'ID Pasien Regist'},
+    {id: 'nama_petugas_input', label: 'Nama Petugas Input'},
     {
       id: 'created_date',
       label: 'Tgl SEP',
-      width: 100,
       render: item => (
         <Text
           style={{
@@ -101,9 +121,8 @@ const SepTerbuatScreen = () => {
         </Text>
       ),
     },
-    {id: 'noKartu', label: 'No Kartu', width: 120},
-    {id: 'id_pasien_registrasi', label: 'Pasien ID', width: 150},
-    {id: 'diagAwal', label: 'Diagnosa', width: 150},
+    {id: 'code_diagAwal', label: 'Code Diag Awal'},
+    {id: 'diagAwal', label: 'Diag Awal'},
   ];
 
   useLayoutEffect(() => {
@@ -156,7 +175,81 @@ const SepTerbuatScreen = () => {
             />
           ) : (
             <View style={styles.content}>
-              <Text style={styles.title}>Data SEP</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                <Text style={styles.title}>Graphic SEP Terbuat</Text>
+
+                <Switch
+                  trackColor={{
+                    false: COLORS.greyMedium,
+                    true: COLORS.greyDark,
+                  }}
+                  thumbColor={COLORS.primary}
+                  onValueChange={setShowChart}
+                  value={showChart}
+                />
+              </View>
+
+              <View style={styles.spacer} />
+
+              {showChart && !isLoadingSimrs && !errorSimrs && (
+                <>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                    }}>
+                    Jumlah SEP Terbuat di SIMRS/VClaim
+                  </Text>
+                  <PieChart
+                    key={'pie-chart-1'}
+                    data={chartDataSimrs[0]}
+                    width={numbers.width}
+                    height={250}
+                    accessor="population"
+                    backgroundColor="white"
+                    paddingLeft="40"
+                    absolute
+                    hasLegend={true}
+                    chartConfig={{
+                      backgroundGradientFrom: '#fff',
+                      backgroundGradientTo: '#fff',
+                      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                    }}
+                  />
+
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      marginTop: 20,
+                    }}>
+                    Jumlah SEP Terbuat di Ranap/IGD
+                  </Text>
+
+                  <PieChart
+                    key={'pie-chart-2'}
+                    data={chartDataSimrs[1]}
+                    width={numbers.width}
+                    height={250}
+                    accessor="population"
+                    backgroundColor="white"
+                    paddingLeft="40"
+                    absolute
+                    hasLegend={true}
+                    chartConfig={{
+                      backgroundGradientFrom: '#fff',
+                      backgroundGradientTo: '#fff',
+                      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                    }}
+                  />
+                </>
+              )}
+              <Text style={styles.title}>
+                LAPORAN SEP TERBUAT DI VCLAIM & SIMRS
+              </Text>
               <View style={styles.spacer} />
               <Text style={styles.periodText}>
                 Periode : {getFormattedPeriod()}
@@ -198,7 +291,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: numbers.padding,
+    paddingHorizontal: 10,
     marginTop: 10,
     minHeight: Dimensions.get('window').height - 220,
   },

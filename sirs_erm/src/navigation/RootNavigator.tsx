@@ -8,11 +8,24 @@ import {HomeScreen} from '../screens/Home';
 import CategoryScreen from '../screens/Category/CategoryScreen';
 import SepTerbuatScreen from '../screens/Features/SepTerbuat/SepTerbuatScreen';
 import {colors} from '../contants/styles';
+import {ScreenContainer} from '../components/common';
+import LoadingOverlay from '../components/common/LoadingOverlay';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
-  const {isAuthenticated} = useAuthStore();
+  const {isAuthenticated, isLoading} = useAuthStore();
+
+  if (isLoading) {
+    // implement loading screen
+    return (
+      <>
+        <ScreenContainer>
+          <LoadingOverlay />
+        </ScreenContainer>
+      </>
+    );
+  }
 
   return (
     <Stack.Navigator
