@@ -1,13 +1,11 @@
 import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {CustomDrawer} from '../components/drawer/CustomDrawer';
-import {MainTabs} from './MainTabs';
-import {Page1Screen} from '../screens/Page1';
-import {Page2Screen} from '../screens/Page2';
-import SepTerbuatScreen from '../screens/SepTerbuat/SepTerbuatScreen';
-import type {DrawerParamList} from '../types/navigation';
 import {colors} from '../contants/styles';
 import Icon from '@react-native-vector-icons/ionicons';
+import {DrawerParamList} from './types';
+import {HomeScreen} from '../screens/Home';
+import CategoryScreen from '../screens/Category/CategoryScreen';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
@@ -17,7 +15,9 @@ export const DrawerNavigator = () => {
       drawerContent={props => <CustomDrawer {...props} />}
       screenOptions={{
         headerTintColor: colors.primary,
-        headerShadowVisible: false,
+        headerTitleStyle: {
+          color: colors.textPrimary,
+        },
         drawerActiveTintColor: colors.primary,
         drawerInactiveTintColor: colors.textSecondary,
         drawerStyle: {
@@ -25,18 +25,19 @@ export const DrawerNavigator = () => {
         },
       }}>
       <Drawer.Screen
-        name="MainTabs"
-        component={MainTabs}
+        name="Home"
+        component={HomeScreen}
         options={{
-          title: 'Main',
-          drawerLabel: 'Main',
+          drawerIcon: ({color}) => (
+            <Icon name="document-text-outline" size={24} color={color} />
+          ),
         }}
       />
+
       <Drawer.Screen
-        name="SepTerbuat"
-        component={SepTerbuatScreen}
+        name="Category"
+        component={CategoryScreen}
         options={{
-          title: 'SEP Terbuat',
           drawerIcon: ({color}) => (
             <Icon name="document-text-outline" size={24} color={color} />
           ),

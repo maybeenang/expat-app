@@ -1,34 +1,36 @@
 import React from 'react';
 import {View, StyleSheet} from 'react-native';
-import {Text} from '../../components/common/Text';
-import {colors} from '../../contants/styles';
+import {colors, numbers} from '../../contants/styles';
+import FeatureButton from '../../components/common/FeatureButton';
+import {useNavigation} from '@react-navigation/native';
+import {ScreenContainer} from '../../components/common';
 
 export const HomeScreen = () => {
+  const navigation = useNavigation();
+
   return (
-    <View style={styles.container}>
-      <Text variant="h1" style={styles.title}>
-        Home Screen
-      </Text>
-      <Text variant="body" style={styles.subtitle}>
-        Welcome to the home screen!
-      </Text>
-    </View>
+    <ScreenContainer style={styles.container}>
+      <FeatureButton
+        title="Category"
+        onPress={() => {
+          navigation.navigate('Category' as never);
+        }}
+      />
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: numbers.padding,
+    backgroundColor: colors.white,
   },
   title: {
-    marginBottom: 10,
     color: colors.textPrimary,
   },
   subtitle: {
     color: colors.textSecondary,
   },
-}); 
+});
+

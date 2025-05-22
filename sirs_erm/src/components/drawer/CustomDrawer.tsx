@@ -9,6 +9,8 @@ import {useAuthStore} from '../../store/useAuthStore';
 export const CustomDrawer = (props: any) => {
   const navigation = props.navigation;
 
+  const activeIndex = props.state?.index;
+
   const {logout} = useAuthStore();
 
   const drawerItems = useMemo(
@@ -21,14 +23,14 @@ export const CustomDrawer = (props: any) => {
         name: 'Home',
         icon: 'House',
         onPress: () => {
-          navigation.navigate('MainTabs');
+          navigation.navigate('Home');
         },
       },
       {
-        name: 'SEP Terbuat',
+        name: 'Category',
         icon: 'Newspaper',
         onPress: () => {
-          navigation.navigate('SepTerbuat');
+          navigation.navigate('Category');
         },
       },
     ],
@@ -47,6 +49,9 @@ export const CustomDrawer = (props: any) => {
             style={styles.drawerItem}
             labelStyle={[styles.drawerLabel]}
             pressColor={COLORS.greyLight}
+            focused={
+              activeIndex === drawerItems.findIndex(i => i.name === item.name)
+            }
             icon={({color}) => (
               <CustomIcon name={item.icon} size={20} color={color} />
             )}

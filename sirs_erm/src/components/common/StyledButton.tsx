@@ -54,36 +54,18 @@ const StyledButton: React.FC<ButtonProps> = ({
     switch (variant) {
       case 'primary':
         variantStyles.backgroundColor = isDisabled
-          ? colors.primaryDisabled
+          ? colors.greyMedium
           : colors.primary;
         break;
       case 'outline':
         variantStyles.backgroundColor = colors.white;
         variantStyles.borderColor = isDisabled
-          ? colors.primaryDisabled
+          ? colors.greyMedium
           : colors.primary;
         variantStyles.borderWidth = numbers.borderWidth;
         break;
       case 'secondary':
         variantStyles.backgroundColor = colors.secondary;
-        break;
-      case 'textPrimary':
-        variantStyles.backgroundColor = 'transparent';
-        break;
-      case 'textSecondary':
-        variantStyles.backgroundColor = 'transparent';
-        break;
-      case 'danger':
-        variantStyles.backgroundColor = isDisabled
-          ? colors.primaryDisabled
-          : colors.error;
-        break;
-      case 'dangerOutline':
-        variantStyles.backgroundColor = colors.white;
-        variantStyles.borderColor = isDisabled
-          ? colors.primaryDisabled
-          : colors.error;
-        variantStyles.borderWidth = numbers.borderWidth;
         break;
       default:
         variantStyles.backgroundColor = isDisabled
@@ -137,24 +119,6 @@ const StyledButton: React.FC<ButtonProps> = ({
       case 'secondary':
         variantTextStyles.color = colors.white;
         break;
-      case 'textPrimary':
-        variantTextStyles.color = isDisabled
-          ? colors.textDisabled
-          : colors.primary;
-        break;
-      case 'textSecondary':
-        variantTextStyles.color = isDisabled
-          ? colors.textDisabled
-          : colors.primary;
-        break;
-      case 'danger':
-        variantTextStyles.color = colors.white;
-        break;
-      case 'dangerOutline':
-        variantTextStyles.color = isDisabled
-          ? colors.textDisabled
-          : colors.error;
-        break;
       default:
         variantTextStyles.color = colors.white;
     }
@@ -177,18 +141,6 @@ const StyledButton: React.FC<ButtonProps> = ({
   const getIconColor = (): string => {
     switch (variant) {
       case 'primary':
-      case 'danger':
-        return colors.white;
-      case 'outline':
-        return isDisabled ? colors.primaryDisabled : colors.primary;
-      case 'secondary':
-        return colors.white;
-      case 'textPrimary':
-        return isDisabled ? colors.textDisabled : colors.primary;
-      case 'textSecondary':
-        return isDisabled ? colors.textDisabled : colors.primary;
-      case 'dangerOutline':
-        return isDisabled ? colors.textDisabled : colors.error;
       default:
         return colors.white;
     }
@@ -245,4 +197,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default StyledButton; 
+export default StyledButton;
+

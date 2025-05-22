@@ -11,7 +11,7 @@ export const colors = {
   primaryDisabled: '#61ADFF',
   secondary: '#03dac6',
   secondaryVariant: '#018786',
-  background: '#f5f5f5',
+  background: '#ffffff',
   surface: '#ffffff',
   error: '#b00020',
   textPrimary: '#262626',
@@ -38,11 +38,11 @@ export const numbers = {
   borderRadius: 8,
   borderWidth: 1,
   shadowRadius: 4,
-  padding: 16,
+  padding: 20,
   width: width,
   headerWidth: width - width * 0.16,
   height: height,
-  margin: 16,
+  margin: 12,
 };
 
 export const fonts = {
@@ -83,4 +83,5 @@ export const tagsStyles: Readonly<Record<string, MixedStyleDeclaration>> = {
   li: {
     marginBottom: 5,
   },
-}; 
+};
+

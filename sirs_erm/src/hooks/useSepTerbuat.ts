@@ -1,4 +1,4 @@
-import {QueryKey, useInfiniteQuery} from '@tanstack/react-query';
+import {QueryKey, useInfiniteQuery, useQuery} from '@tanstack/react-query';
 import {sepTerbuatService} from '../services/sepTerbuatService';
 import {queryKeys} from '../services/queryKeys';
 import type {
@@ -8,11 +8,21 @@ import type {
 } from '../types/sepTerbuat';
 import {AxiosError} from 'axios';
 
+type TableResponse = {
+  data: SepTerbuat[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+};
+
 export const useSepTerbuatList = (params: SepTerbuatListParams) => {
   return useInfiniteQuery<
     SepTerbuatListResponse,
     AxiosError,
-    SepTerbuat[], // TData
+    SepTerbuat[],
     QueryKey,
     number
   >({
@@ -32,15 +42,27 @@ export const useSepTerbuatList = (params: SepTerbuatListParams) => {
     initialPageParam: 1,
     select: data => {
       const allItems: SepTerbuat[] = [];
-
       data.pages.forEach(page => {
-        page.data.forEach(item => {
-          allItems.push(item);
-        });
+        allItems.push(...page.data);
       });
-
       return allItems;
     },
+  });
+};
+
+export const useSepTerbuatTable = (params: SepTerbuatListParams) => {
+  return useQuery<SepTerbuatListResponse, AxiosError, TableResponse>({
+    queryKey: queryKeys.sepTerbuat.list(params),
+    queryFn: () => sepTerbuatService.getList(params),
+    select: data => ({
+      data: data.data,
+      pagination: {
+        currentPage: data.pagination.current_page,
+        totalPages: data.pagination.total_pages,
+        totalItems: data.pagination.total_data,
+        itemsPerPage: data.pagination.limit,
+      },
+    }),
   });
 };
 

@@ -1,15 +1,16 @@
 import React from 'react';
-import {StyleSheet, Keyboard, Alert, Text} from 'react-native';
+import {StyleSheet, Keyboard, Alert, Text, View} from 'react-native';
 import {useForm} from 'react-hook-form';
 import {
   ControlledInput,
   ScreenContainer,
   StyledButton,
 } from '../../../components/common';
-import {numbers} from '../../../contants/styles';
+import {COLORS, numbers} from '../../../contants/styles';
 import {useAuthMutations} from '../../../hooks/useAuthMutation';
 import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore';
 import type {LoginCredentials} from '../../../types/auth';
+import Logo from '../../../components/common/Logo';
 
 const LoginScreen: React.FC = () => {
   const {login, isLoading} = useAuthMutations();
@@ -35,7 +36,12 @@ const LoginScreen: React.FC = () => {
     try {
       await login(data);
     } catch (error) {
-      Alert.alert('Login Gagal', error instanceof Error ? error.message : 'Terjadi kesalahan. Silakan coba lagi.');
+      Alert.alert(
+        'Login Gagal',
+        error instanceof Error
+          ? error.message
+          : 'Terjadi kesalahan. Silakan coba lagi.',
+      );
     } finally {
       hide();
     }
@@ -43,8 +49,20 @@ const LoginScreen: React.FC = () => {
 
   return (
     <ScreenContainer style={styles.container}>
-      <Text style={styles.title}>Masuk ke Akun Anda</Text>
-      <Text style={styles.subtitle}>Masukkan username dan password</Text>
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: numbers.margin * 2,
+          marginTop: numbers.margin * -2,
+        }}>
+        <Logo height={24} width={200} />
+      </View>
+
+      <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.subtitle}>
+        Log In to your account and stay connected
+      </Text>
 
       <ControlledInput
         name="username"
@@ -86,6 +104,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: numbers.padding,
     paddingTop: numbers.padding * 4,
+    backgroundColor: COLORS.white,
   },
   title: {
     fontSize: 28,
@@ -95,9 +114,9 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: numbers.margin,
+    marginBottom: numbers.margin * 2,
+    color: COLORS.textDisabled,
   },
 });
 
 export default LoginScreen;
-

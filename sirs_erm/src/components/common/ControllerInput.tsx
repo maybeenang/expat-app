@@ -17,6 +17,7 @@ import {
   Path,
 } from 'react-hook-form';
 import {colors, fonts, numbers} from '../../contants/styles';
+import Icon from '@react-native-vector-icons/ionicons';
 
 interface ControlledInputProps<TFieldValues extends FieldValues = FieldValues>
   extends Omit<
@@ -103,9 +104,13 @@ const ControlledInput = <TFieldValues extends FieldValues = FieldValues>({
             }
             accessibilityRole="button">
             {isPasswordVisible ? (
-              <Text style={{color: colors.textSecondary}}>👁️</Text>
+              <Icon
+                name="eye-off-outline"
+                size={24}
+                color={colors.textSecondary}
+              />
             ) : (
-              <Text style={{color: colors.textSecondary}}>👁️‍🗨️</Text>
+              <Icon name="eye-outline" size={24} color={colors.textSecondary} />
             )}
           </TouchableOpacity>
         )}
@@ -126,8 +131,8 @@ const styles = StyleSheet.create({
   },
   baseLabel: {
     marginBottom: 8,
-    fontSize: 14,
-    fontFamily: fonts.medium,
+    fontSize: 16,
+    fontFamily: fonts.bold,
     color: colors.textPrimary,
   },
   inputWrapper: {
@@ -164,4 +169,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ControlledInput; 
+export default ControlledInput;
+
