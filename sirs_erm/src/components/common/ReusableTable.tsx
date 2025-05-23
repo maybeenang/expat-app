@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
-import {StyleSheet, View, ScrollView, Dimensions} from 'react-native';
-import {DataTable, Text, useTheme} from 'react-native-paper';
+import React, {useState, useMemo} from 'react';
+import {StyleSheet, View, ScrollView, Dimensions, TouchableOpacity} from 'react-native';
+import {DataTable, Text, useTheme, IconButton} from 'react-native-paper';
 import {numbers, colors, fonts} from '../../contants/styles';
 
 const screenWidth = Dimensions.get('window').width;
@@ -27,6 +27,7 @@ type ReusableTableProps<T> = {
   emptyMessage?: string;
   pagination?: PaginationInfo;
   onPageChange?: (page: number) => void;
+  showSequenceNumber?: boolean;
 };
 
 export function ReusableTable<T>({
@@ -37,6 +38,7 @@ export function ReusableTable<T>({
   emptyMessage = 'Tidak ada data',
   pagination,
   onPageChange,
+  showSequenceNumber = true,
 }: ReusableTableProps<T>) {
   const theme = useTheme();
   const [page, setPage] = useState(0);
@@ -62,6 +64,26 @@ export function ReusableTable<T>({
   const totalItems = pagination?.totalItems || data.length;
   const currentPage = pagination?.currentPage || page + 1;
 
+  // Generate page numbers for pagination
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    const maxVisiblePages = 3; // Show at most 3 page numbers
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages && startPage > 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }, [currentPage, totalPages]);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -78,13 +100,39 @@ export function ReusableTable<T>({
           Showing {rowsPerPage} per page
         </Text>
 
-        <DataTable.Pagination
-          page={currentPage - 1}
-          numberOfPages={totalPages}
-          onPageChange={page => handlePageChange(page + 1)}
-          label={`${from + 1}-${to} of ${totalItems}`}
-          style={styles.pagination}
-        />
+        <View style={styles.paginationControls}>
+          <IconButton
+            icon="chevron-left"
+            size={20}
+            disabled={currentPage <= 1}
+            onPress={() => handlePageChange(currentPage - 1)}
+          />
+          
+          {pageNumbers.map(pageNum => (
+            <TouchableOpacity
+              key={pageNum}
+              onPress={() => handlePageChange(pageNum)}
+              style={[
+                styles.pageButton,
+                currentPage === pageNum && styles.activePageButton,
+              ]}>
+              <Text
+                style={[
+                  styles.pageButtonText,
+                  currentPage === pageNum && styles.activePageButtonText,
+                ]}>
+                {pageNum}
+              </Text>
+            </TouchableOpacity>
+          ))}
+          
+          <IconButton
+            icon="chevron-right"
+            size={20}
+            disabled={currentPage >= totalPages}
+            onPress={() => handlePageChange(currentPage + 1)}
+          />
+        </View>
       </View>
 
       {/* Table with horizontal scroll */}
@@ -93,6 +141,12 @@ export function ReusableTable<T>({
           {/* Fixed Table Header */}
           <DataTable style={styles.table}>
             <DataTable.Header style={styles.fixedHeader}>
+              {showSequenceNumber && (
+                <DataTable.Title
+                  style={[styles.columnHeader, {width: 50}]}>
+                  <Text style={styles.headerText}>No</Text>
+                </DataTable.Title>
+              )}
               {columns.map((column, index) => (
                 <DataTable.Title
                   numberOfLines={2}
@@ -129,6 +183,13 @@ export function ReusableTable<T>({
                     key={index}
                     onPress={() => onRowPress?.(item)}
                     style={onRowPress ? styles.pressableRow : undefined}>
+                    {showSequenceNumber && (
+                      <DataTable.Cell style={[styles.cell, {width: 50}]}>
+                        <Text style={styles.cellText}>
+                          {from + index + 1}
+                        </Text>
+                      </DataTable.Cell>
+                    )}
                     {columns.map((column, colIndex) => (
                       <DataTable.Cell
                         key={colIndex}
@@ -209,6 +270,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     marginStart: 4,
+  },
+  paginationControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pageButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 2,
+  },
+  activePageButton: {
+    backgroundColor: colors.primary,
+  },
+  pageButtonText: {
+    fontSize: 14,
+  },
+  activePageButtonText: {
+    color: colors.white,
   },
 });
 

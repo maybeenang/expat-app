@@ -9,7 +9,6 @@ import {
 import {SepTerbuatFilter} from '../components/SepTerbuatFilter';
 import {useNavigation} from '@react-navigation/native';
 import {SepTerbuat, SepTerbuatListParams} from '../../../../types/sepTerbuat';
-import {PieChart} from 'react-native-chart-kit';
 import {
   useSepTerbuatChartData,
   useSepTerbuatTable,
@@ -25,6 +24,7 @@ import {
 } from '../../../../components/common/ReusableTable';
 import {Button, Text} from 'react-native-paper';
 import {ScrollView} from 'react-native-gesture-handler';
+import SepTerbuatChart from '../components/SepTerbuatChart';
 
 const SepTerbuatScreen = () => {
   const navigation = useNavigation();
@@ -45,6 +45,7 @@ const SepTerbuatScreen = () => {
     useSepTerbuatTable(params);
 
   const [showChart, setShowChart] = useState<boolean>(false);
+  const [showSequenceNumber, setShowSequenceNumber] = useState<boolean>(true);
 
   const {
     chartData: chartDataSimrs,
@@ -180,8 +181,9 @@ const SepTerbuatScreen = () => {
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  marginBottom: numbers.margin * 2,
                 }}>
-                <Text style={styles.title}>Graphic SEP Terbuat</Text>
+                <Text style={[styles.title]}>Graphic SEP Terbuat</Text>
 
                 <Switch
                   trackColor={{
@@ -197,63 +199,32 @@ const SepTerbuatScreen = () => {
               <View style={styles.spacer} />
 
               {showChart && !isLoadingSimrs && !errorSimrs && (
-                <>
-                  <Text
-                    style={{
-                      fontSize: 12,
-                    }}>
-                    Jumlah SEP Terbuat di SIMRS/VClaim
-                  </Text>
-                  <PieChart
-                    key={'pie-chart-1'}
-                    data={chartDataSimrs[0]}
-                    width={numbers.width}
-                    height={250}
-                    accessor="population"
-                    backgroundColor="white"
-                    paddingLeft="40"
-                    absolute
-                    hasLegend={true}
-                    chartConfig={{
-                      backgroundGradientFrom: '#fff',
-                      backgroundGradientTo: '#fff',
-                      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                    }}
-                  />
-
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      marginTop: 20,
-                    }}>
-                    Jumlah SEP Terbuat di Ranap/IGD
-                  </Text>
-
-                  <PieChart
-                    key={'pie-chart-2'}
-                    data={chartDataSimrs[1]}
-                    width={numbers.width}
-                    height={250}
-                    accessor="population"
-                    backgroundColor="white"
-                    paddingLeft="40"
-                    absolute
-                    hasLegend={true}
-                    chartConfig={{
-                      backgroundGradientFrom: '#fff',
-                      backgroundGradientTo: '#fff',
-                      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                    }}
-                  />
-                </>
+                <SepTerbuatChart chartDataSimrs={chartDataSimrs} />
               )}
-              <Text style={styles.title}>
+              <Text style={[styles.title]}>
                 LAPORAN SEP TERBUAT DI VCLAIM & SIMRS
               </Text>
               <View style={styles.spacer} />
-              <Text style={styles.periodText}>
-                Periode : {getFormattedPeriod()}
-              </Text>
+              
+              <View style={styles.optionsContainer}>
+                <Text style={styles.periodText}>
+                  Periode : {getFormattedPeriod()}
+                </Text>
+                
+                <View style={styles.optionSwitch}>
+                  <Text style={{marginRight: 8, fontSize: 14}}>No. Urut</Text>
+                  <Switch
+                    trackColor={{
+                      false: COLORS.greyMedium,
+                      true: COLORS.greyDark,
+                    }}
+                    thumbColor={COLORS.primary}
+                    onValueChange={setShowSequenceNumber}
+                    value={showSequenceNumber}
+                  />
+                </View>
+              </View>
+              
               {data && data.data && data.data.length > 0 ? (
                 <ReusableTable
                   columns={tableColumns}
@@ -261,6 +232,7 @@ const SepTerbuatScreen = () => {
                   pagination={data.pagination}
                   onPageChange={handlePageChange}
                   isLoading={isFetching}
+                  showSequenceNumber={showSequenceNumber}
                   onRowPress={item => console.log('Row pressed', item.id)}
                 />
               ) : (
@@ -304,7 +276,6 @@ const styles = StyleSheet.create({
   },
   periodText: {
     fontSize: 14,
-    marginBottom: numbers.margin,
   },
   loader: {
     flex: 1,
@@ -315,6 +286,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     fontSize: 16,
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: numbers.margin,
+  },
+  optionSwitch: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
