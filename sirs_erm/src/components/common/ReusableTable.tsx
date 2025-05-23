@@ -24,6 +24,7 @@ type ReusableTableProps<T> = {
   data: T[];
   isLoading?: boolean;
   onRowPress?: (item: T) => void;
+  onRowHold?: (item: T) => void;
   emptyMessage?: string;
   pagination?: PaginationInfo;
   onPageChange?: (page: number) => void;
@@ -35,6 +36,7 @@ export function ReusableTable<T>({
   data,
   isLoading,
   onRowPress,
+  onRowHold,
   emptyMessage = 'Tidak ada data',
   pagination,
   onPageChange,
@@ -179,31 +181,37 @@ export function ReusableTable<T>({
               ) : (
                 // Data rows
                 data.map((item, index) => (
-                  <DataTable.Row
+                  <TouchableOpacity
                     key={index}
                     onPress={() => onRowPress?.(item)}
-                    style={onRowPress ? styles.pressableRow : undefined}>
-                    {showSequenceNumber && (
-                      <DataTable.Cell style={[styles.cell, {width: 50}]}>
-                        <Text style={styles.cellText}>
-                          {from + index + 1}
-                        </Text>
-                      </DataTable.Cell>
-                    )}
-                    {columns.map((column, colIndex) => (
-                      <DataTable.Cell
-                        key={colIndex}
-                        style={[styles.cell, {width: column.width || 175}]}>
-                        {column.render ? (
-                          column.render(item)
-                        ) : (
+                    onLongPress={() => onRowHold?.(item)}
+                    delayLongPress={500}>
+                    <DataTable.Row
+                      style={[
+                        (onRowPress || onRowHold) && styles.pressableRow,
+                      ]}>
+                      {showSequenceNumber && (
+                        <DataTable.Cell style={[styles.cell, {width: 50}]}>
                           <Text style={styles.cellText}>
-                            {String(item[column.id] ?? '-')}
+                            {from + index + 1}
                           </Text>
-                        )}
-                      </DataTable.Cell>
-                    ))}
-                  </DataTable.Row>
+                        </DataTable.Cell>
+                      )}
+                      {columns.map((column, colIndex) => (
+                        <DataTable.Cell
+                          key={colIndex}
+                          style={[styles.cell, {width: column.width || 175}]}>
+                          {column.render ? (
+                            column.render(item)
+                          ) : (
+                            <Text style={styles.cellText}>
+                              {String(item[column.id] ?? '-')}
+                            </Text>
+                          )}
+                        </DataTable.Cell>
+                      ))}
+                    </DataTable.Row>
+                  </TouchableOpacity>
                 ))
               )}
             </DataTable>

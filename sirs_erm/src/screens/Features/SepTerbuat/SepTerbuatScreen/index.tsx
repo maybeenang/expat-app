@@ -1,10 +1,13 @@
-import React, {useLayoutEffect, useState, useRef} from 'react';
+import React, {useLayoutEffect, useState, useRef, useCallback} from 'react';
 import {
   StyleSheet,
   View,
   Dimensions,
   ActivityIndicator,
   Switch,
+  Clipboard,
+  ToastAndroid,
+  Platform,
 } from 'react-native';
 import {SepTerbuatFilter} from '../components/SepTerbuatFilter';
 import {useNavigation} from '@react-navigation/native';
@@ -22,7 +25,7 @@ import {
   ReusableTable,
   Column,
 } from '../../../../components/common/ReusableTable';
-import {Button, Text} from 'react-native-paper';
+import {Button, Text, Snackbar} from 'react-native-paper';
 import {ScrollView} from 'react-native-gesture-handler';
 import SepTerbuatChart from '../components/SepTerbuatChart';
 
@@ -46,6 +49,8 @@ const SepTerbuatScreen = () => {
 
   const [showChart, setShowChart] = useState<boolean>(false);
   const [showSequenceNumber, setShowSequenceNumber] = useState<boolean>(true);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const {
     chartData: chartDataSimrs,
@@ -62,6 +67,19 @@ const SepTerbuatScreen = () => {
     setParams(prev => ({...prev, ...newParams, page: 1}));
     bottomSheetRef.current?.dismiss();
   };
+
+  const copyToClipboard = useCallback((item: SepTerbuat) => {
+    if (item.noSep) {
+      Clipboard.setString(item.noSep);
+      // setSnackbarMessage(`SEP No. ${item.noSep} disalin ke clipboard`);
+      // setSnackbarVisible(true);
+
+      // Show native toast on Android
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('SEP No. disalin ke clipboard', ToastAndroid.SHORT);
+      }
+    }
+  }, []);
 
   // Helper function to format date
   const formatDate = (dateString: string) => {
@@ -205,12 +223,12 @@ const SepTerbuatScreen = () => {
                 LAPORAN SEP TERBUAT DI VCLAIM & SIMRS
               </Text>
               <View style={styles.spacer} />
-              
+
               <View style={styles.optionsContainer}>
                 <Text style={styles.periodText}>
                   Periode : {getFormattedPeriod()}
                 </Text>
-                
+
                 <View style={styles.optionSwitch}>
                   <Text style={{marginRight: 8, fontSize: 14}}>No. Urut</Text>
                   <Switch
@@ -224,7 +242,11 @@ const SepTerbuatScreen = () => {
                   />
                 </View>
               </View>
-              
+
+              <Text style={styles.hintText}>
+                Tekan lama untuk menyalin No SEP
+              </Text>
+
               {data && data.data && data.data.length > 0 ? (
                 <ReusableTable
                   columns={tableColumns}
@@ -234,6 +256,7 @@ const SepTerbuatScreen = () => {
                   isLoading={isFetching}
                   showSequenceNumber={showSequenceNumber}
                   onRowPress={item => console.log('Row pressed', item.id)}
+                  onRowHold={copyToClipboard}
                 />
               ) : (
                 <Text style={styles.noDataText}>Tidak ada data</Text>
@@ -252,6 +275,14 @@ const SepTerbuatScreen = () => {
           initialParams={params}
         />
       </ReusableBottomSheetModal>
+
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={2000}
+        style={styles.snackbar}>
+        {snackbarMessage}
+      </Snackbar>
     </ScreenContainer>
   );
 };
@@ -296,6 +327,15 @@ const styles = StyleSheet.create({
   optionSwitch: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  hintText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  snackbar: {
+    backgroundColor: colors.primary,
   },
 });
 
