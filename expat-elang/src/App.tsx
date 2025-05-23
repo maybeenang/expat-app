@@ -7,7 +7,7 @@ import {checkAuthStatus} from './store/useAuthStore';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {enableScreens} from 'react-native-screens';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
-import {API_BASE_URL, APP_ENVIRONMENT} from '@env';
+import {ENV} from './config/env';
 
 enableScreens();
 
@@ -20,8 +20,7 @@ function App(): React.JSX.Element {
     return () => {};
   }, []);
 
-  console.log(API_BASE_URL);
-  console.log(APP_ENVIRONMENT);
+  console.log(ENV.API_BASE_URL);
 
   return (
     <QueryClientProvider client={queryClient}>

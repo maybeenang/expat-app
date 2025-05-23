@@ -1,9 +1,3 @@
-import {API_BASE_URL, APP_ENVIRONMENT} from '@env';
+import Config from 'react-native-config';
 
-export const ENV = {
-  API_BASE_URL,
-  APP_ENVIRONMENT,
-  IS_DEV: APP_ENVIRONMENT === 'dev',
-  IS_PROD: APP_ENVIRONMENT === 'prod',
-} as const;
-
+export const ENV = Config;
