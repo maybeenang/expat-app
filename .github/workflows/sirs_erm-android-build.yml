@@ -83,3 +83,15 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+
+      - name: Increment Version
+        run: |
+          cd sirs_erm
+          npm version patch --no-git-tag-version
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'github-actions@github.com'
+          git add package.json
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

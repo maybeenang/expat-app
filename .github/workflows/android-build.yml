@@ -86,11 +86,23 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2.2.2
         with:
-          name: Release v${{ steps.get_version.outputs.version }}
-          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release EXPAT v${{ steps.get_version.outputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}-expat
           files: |
             expat-elang/android/app/build/outputs/apk/dev/release/*.apk
             expat-elang/android/app/build/outputs/apk/prod/release/*.apk
           generate_release_notes: true
           draft: false
           prerelease: false
+
+      - name: Increment Version
+        run: |
+          cd expat-elang
+          npm version patch --no-git-tag-version
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'github-actions@github.com'
+          git add package.json
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
