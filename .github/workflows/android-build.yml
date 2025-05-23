@@ -61,17 +61,19 @@ jobs:
       - name: Build Development APK
         run: |
           cd expat-elang
+          echo $NODE_ENV
           yarn build:android:dev:apk
         env:
-          ENVFILE: .env.development
+          NODE_ENV: development
         continue-on-error: false
 
       - name: Build Production APK
         run: |
           cd expat-elang
+          echo $NODE_ENV
           yarn build:android:prod:apk
         env:
-          ENVFILE: .env.production
+          NODE_ENV: production
         continue-on-error: false
 
       - name: Get Version
