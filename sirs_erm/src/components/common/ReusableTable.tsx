@@ -1,5 +1,11 @@
 import React, {useState, useMemo} from 'react';
-import {StyleSheet, View, ScrollView, Dimensions, TouchableOpacity} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
 import {DataTable, Text, useTheme, IconButton} from 'react-native-paper';
 import {numbers, colors, fonts} from '../../contants/styles';
 
@@ -69,20 +75,20 @@ export function ReusableTable<T>({
   // Generate page numbers for pagination
   const pageNumbers = useMemo(() => {
     const pages = [];
-    const maxVisiblePages = 3; // Show at most 3 page numbers
-    
+    const maxVisiblePages = 5; // Show at most 5 page numbers
+
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     // Adjust if we're near the end
     if (endPage - startPage + 1 < maxVisiblePages && startPage > 1) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
     }
-    
+
     return pages;
   }, [currentPage, totalPages]);
 
@@ -109,7 +115,7 @@ export function ReusableTable<T>({
             disabled={currentPage <= 1}
             onPress={() => handlePageChange(currentPage - 1)}
           />
-          
+
           {pageNumbers.map(pageNum => (
             <TouchableOpacity
               key={pageNum}
@@ -127,7 +133,7 @@ export function ReusableTable<T>({
               </Text>
             </TouchableOpacity>
           ))}
-          
+
           <IconButton
             icon="chevron-right"
             size={20}
@@ -144,8 +150,7 @@ export function ReusableTable<T>({
           <DataTable style={styles.table}>
             <DataTable.Header style={styles.fixedHeader}>
               {showSequenceNumber && (
-                <DataTable.Title
-                  style={[styles.columnHeader, {width: 50}]}>
+                <DataTable.Title style={[styles.columnHeader, {width: 50}]}>
                   <Text style={styles.headerText}>No</Text>
                 </DataTable.Title>
               )}
@@ -153,7 +158,7 @@ export function ReusableTable<T>({
                 <DataTable.Title
                   numberOfLines={2}
                   key={index}
-                  style={[styles.columnHeader, {width: column.width || 150}]}>
+                  style={[styles.columnHeader, {width: column.width || 175}]}>
                   <Text style={styles.headerText}>{column.label}</Text>
                 </DataTable.Title>
               ))}
@@ -244,7 +249,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.greyLight,
   },
   columnHeader: {
-    paddingHorizontal: 10,
     paddingVertical: 10,
   },
   headerText: {
@@ -254,9 +258,7 @@ const styles = StyleSheet.create({
   scrollableTable: {
     flex: 1,
   },
-  cell: {
-    padding: 8,
-  },
+  cell: {},
   cellText: {
     flexWrap: 'wrap',
     fontSize: 12,
@@ -301,4 +303,3 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 });
-
