@@ -106,4 +106,8 @@ export const queryKeys = {
     options: (type: string) =>
       [...queryKeys.rentalKeys.all, 'options', type] as const,
   },
+
+  profile: {
+    all: ['profile'] as const,
+  },
 };

@@ -14,4 +14,5 @@ export interface ProfileResponse {
 export interface UpdateProfilePayload {
   full_name: string;
   phone: string;
-} 
+}
+

@@ -1,16 +1,24 @@
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {profileService} from '../services/profileService';
-import {UpdateProfilePayload} from '../types/profile';
+import {UpdateProfilePayload, ProfileResponse, Profile} from '../types/profile';
 import {useAuthStore} from '../store/useAuthStore';
 import {LoginApiResponseData} from '../types/auth';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {AUTH_SESSION_KEY} from '../constants/storage';
 import axios from 'axios';
+import {queryKeys} from '../services/queryKeys';
 
-export const useProfileQuery = () => {
-  return useQuery({
-    queryKey: ['profile'],
+export const useMyProfileQuery = () => {
+  const {isLoggedIn} = useAuthStore();
+
+  return useQuery<ProfileResponse, Error, Profile>({
+    queryKey: queryKeys.profile.all,
     queryFn: profileService.getProfile,
+    staleTime: Infinity,
+    enabled: isLoggedIn,
+    select: data => {
+      return data.data;
+    },
   });
 };
 
@@ -49,4 +57,3 @@ export const useUpdateProfileMutation = () => {
     },
   });
 };
-

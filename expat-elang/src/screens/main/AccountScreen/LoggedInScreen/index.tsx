@@ -1,4 +1,4 @@
-import React, {useState, useLayoutEffect, useCallback} from 'react';
+import React, {useState, useLayoutEffect, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,12 @@ import Icon from '@react-native-vector-icons/ionicons';
 import ErrorLabel from '../../../../components/common/ErrorLabel';
 import {IMAGE_AVATAR_PLACEHOLDER} from '../../../../constants/images';
 import {useAuthStore} from '../../../../store/useAuthStore';
+import {
+  useMyProfileQuery,
+  useUpdateProfileMutation,
+} from '../../../../hooks/useProfileQuery';
+import {useLoadingOverlayStore} from '../../../../store/useLoadingOverlayStore';
+import {UpdateProfilePayload} from '../../../../types/profile';
 
 interface EditProfileFormData {
   name: string;
@@ -37,27 +43,36 @@ interface EditProfileScreenProps
   extends NativeStackScreenProps<DrawerParamList, 'Profile'> {}
 
 const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
-  const {userSession} = useAuthStore();
-  
+  const {userSession, setUserSession} = useAuthStore();
+  const mutation = useUpdateProfileMutation();
+  const {
+    data: profile,
+    isLoading: isLoadingProfile,
+    error,
+  } = useMyProfileQuery();
+
   // State lokal untuk gambar dan status submit
   const [currentAvatarUri, setCurrentAvatarUri] = useState<string | null>(
     IMAGE_AVATAR_PLACEHOLDER,
   );
   const [selectedImage, setSelectedImage] = useState<Asset | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {show, hide} = useLoadingOverlayStore();
 
   // React Hook Form setup
   const {
     control,
     handleSubmit,
-    formState: {errors, isDirty},
-  } = useForm<EditProfileFormData>({
-    defaultValues: {
-      name: userSession?.nama || '',
-      email: userSession?.email || '',
-      phone: '',
-    },
-  });
+    setValue,
+    formState: {errors, isDirty, isLoading},
+  } = useForm<EditProfileFormData>();
+
+  useEffect(() => {
+    if (profile) {
+      setValue('name', profile.full_name || '');
+      setValue('email', profile.email || '');
+      setValue('phone', profile.phone || '');
+    }
+  }, [profile, setValue]);
 
   // Handler submit form
   const onSubmit: SubmitHandler<EditProfileFormData> = useCallback(
@@ -67,14 +82,23 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
         'Selected Image:',
         selectedImage ? selectedImage.fileName : 'None',
       );
-      setIsSubmitting(true);
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      show();
+      try {
+        const payload: UpdateProfilePayload = {
+          full_name: data.name,
+          phone: data.phone || '',
+        };
 
-      setIsSubmitting(false);
-      Alert.alert('Info (Dummy)', 'Data profil disimpan (simulasi)');
+        await mutation.mutateAsync(payload);
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        Alert.alert('Error', 'Gagal memperbarui profil. Silakan coba lagi.');
+      } finally {
+        hide();
+      }
     },
-    [selectedImage],
+    [selectedImage, show, hide, mutation], // Tambahkan userSession dan setAuthState ke dependensi,
   );
 
   // Mengatur tombol 'Simpan' di header navigasi
@@ -83,9 +107,11 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
       headerRight: () => (
         <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
-          disabled={(!isDirty && !selectedImage) || isSubmitting}
+          disabled={
+            (!isDirty && !selectedImage) || isLoading || mutation.isPending
+          }
           style={styles.headerButton}>
-          {isSubmitting ? (
+          {isLoading ? (
             <ActivityIndicator size="small" color={COLORS.primary} />
           ) : (
             <Text
@@ -104,8 +130,9 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
     handleSubmit,
     isDirty,
     selectedImage,
-    isSubmitting,
     onSubmit,
+    isLoading,
+    mutation.isPending,
   ]);
 
   // Handler untuk memilih foto dari galeri
@@ -126,10 +153,32 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
         setSelectedImage(result.assets[0]);
         setCurrentAvatarUri(result.assets[0].uri ?? null);
       }
-    } catch (error) {
+    } catch (er) {
       Alert.alert('Error', 'Gagal membuka galeri.');
     }
   };
+
+  if (isLoadingProfile) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <View style={styles.scrollContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <View style={styles.scrollContainer}>
+          <Text style={{color: COLORS.red}}>Gagal memuat profil</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -169,7 +218,7 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
                   onBlur={onBlur}
                   placeholder="Masukkan nama lengkap"
                   placeholderTextColor={COLORS.greyDark}
-                  editable={!isSubmitting}
+                  editable={!mutation.isPending}
                 />
               )}
             />
@@ -204,12 +253,12 @@ const EditProfileScreen = ({navigation}: EditProfileScreenProps) => {
                 <TextInput
                   style={[styles.input, errors.phone && styles.inputError]}
                   value={value}
-                  onChangeText={(text) => onChange(text.replace(/[^0-9]/g, ''))}
+                  onChangeText={text => onChange(text.replace(/[^0-9]/g, ''))}
                   onBlur={onBlur}
                   placeholder="Masukkan nomor telepon"
                   placeholderTextColor={COLORS.greyDark}
                   keyboardType="phone-pad"
-                  editable={!isSubmitting}
+                  editable={!mutation.isPending}
                 />
               )}
             />

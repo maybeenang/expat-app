@@ -16,7 +16,7 @@ interface AuthState {
   clearAuthState: () => void;
   setLoading: (loading: boolean) => void;
   setToken: (token: string | null) => void;
-  setUserSession: (user: any | null) => void;
+  setUserSession: (user: LoginApiResponseData | null) => void;
   logout: () => void;
 }
 
@@ -41,7 +41,12 @@ export const useAuthStore = create<AuthState>()(set => ({
     }),
   setLoading: loading => set({isLoading: loading}),
   setToken: token => set({token, isLoggedIn: !!token}),
-  setUserSession: user => set({userSession: user}),
+  setUserSession: async user => {
+    set({userSession: user});
+    if (user) {
+      await EncryptedStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
+    }
+  },
   logout: () => set({token: null, userSession: null, isLoggedIn: false}),
 }));
 
