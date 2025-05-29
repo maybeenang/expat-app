@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Image,
   StatusBar,
   Alert,
   ActivityIndicator,
@@ -14,7 +13,6 @@ import {
 import COLORS from '../../../constants/colors';
 import StyledText from '../../../components/common/StyledText';
 import {CustomIcon} from '../../../components/common/CustomPhosporIcon';
-import {launchImageLibrary} from 'react-native-image-picker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   ALL_FORUM_CATEGORY_PLACEHOLDER,
@@ -26,13 +24,17 @@ import {
 import {UpdateForumPayload} from '../../../types/forum';
 import {RootStackParamList} from '../../../navigation/types';
 import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore';
+import ImageSelectionManager, {
+  EnhancedImageAsset,
+  ExistingImageType,
+  prepareImagesForSubmission,
+} from '../../../components/common/ImageSelectionManager';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ForumUpdate'>;
 
 interface ForumFormData {
   title: string;
   content: string;
-  images: string[];
   categories: string[];
 }
 
@@ -41,9 +43,14 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
   const [formData, setFormData] = useState<ForumFormData>({
     title: '',
     content: '',
-    images: [],
     categories: [],
   });
+
+  const [existingImages, setExistingImages] = useState<ExistingImageType[]>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>(
+    [],
+  );
 
   const {show, hide} = useLoadingOverlayStore();
 
@@ -59,11 +66,30 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
       setFormData({
         title: forum.mainTopic.title,
         content: forum.mainTopic.contentHTML,
-        images: [],
         categories: forum.mainTopic.categories.map(cat => {
           return categories.filter(c => c.name === cat)[0]?.id || '';
         }),
       });
+
+      // Setup existing images
+      const existingImagesArray: ExistingImageType[] = [];
+
+      // Add feature image if exists
+      if (forum.mainTopic.images && forum.mainTopic.images.length > 0) {
+        forum.mainTopic.images.forEach((img, index) => {
+          existingImagesArray.push({
+            id: img.id || `feature-${index}`,
+            img_url: img.img_url,
+            title: img.img_title || '',
+            alt: img.img_alt || '',
+            isFeature: img.is_feature === '1',
+          });
+        });
+      }
+
+      setExistingImages(existingImagesArray);
+      setImagesToDelete([]);
+      setEnhancedImages([]);
     } else {
       show();
     }
@@ -72,39 +98,13 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
       setFormData({
         title: '',
         content: '',
-        images: [],
         categories: [],
       });
+      setExistingImages([]);
+      setImagesToDelete([]);
+      setEnhancedImages([]);
     };
   }, [forumDetail, categories, show, hide]);
-
-  const handleImagePick = async () => {
-    try {
-      const result = await launchImageLibrary({
-        mediaType: 'photo',
-        selectionLimit: 5,
-        includeBase64: true,
-      });
-
-      if (result.assets && result.assets.length > 0) {
-        const newImages = result.assets.map(asset => asset.uri || '');
-        setFormData(prev => ({
-          ...prev,
-          images: [...prev.images, ...newImages],
-        }));
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image. Please try again.');
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
-  };
 
   const toggleCategory = (categoryId: string) => {
     setFormData(prev => {
@@ -145,18 +145,24 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
     }
 
     try {
-      const imageFiles = formData.images.map((uri, index) => ({
-        uri,
-        type: 'image/jpeg',
-        name: `forum_image_${index}.jpg`,
-      }));
+      // Prepare images for submission
+      const {featureImageId, imagesToUpload, imageInfo} =
+        prepareImagesForSubmission(
+          enhancedImages,
+          existingImages,
+          imagesToDelete,
+        );
 
       const payload: UpdateForumPayload = {
         id: forumId,
         forum_title: formData.title,
         forum_content: formData.content,
-        images: imageFiles,
+        images: imagesToUpload,
         category: formData.categories,
+        imege_title: imageInfo.titles, // Note: This matches the API type which has a typo
+        image_alt: imageInfo.alts,
+        is_feature: featureImageId,
+        images_deleted: imagesToDelete.length > 0 ? imagesToDelete : undefined,
       };
 
       show();
@@ -164,7 +170,6 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
         await updateForumMutation.mutateAsync(payload);
       } catch (e) {
         console.log('Update Error:', e);
-
         throw new Error('Failed to update forum');
       } finally {
         hide();
@@ -221,34 +226,20 @@ const ForumUpdateScreen = ({navigation, route}: Props) => {
           />
         </View>
 
-        {/* Image Upload */}
-        <View style={styles.inputGroup}>
-          <StyledText style={styles.label} weight="medium">
-            Gambar
-          </StyledText>
-          <StyledText style={[styles.label, {fontSize: 12}]}>
-            Edit hanya bisa menambahkan gambar
-          </StyledText>
-          <View style={styles.imageContainer}>
-            {formData.images.map((uri, index) => (
-              <View key={index} style={styles.imageWrapper}>
-                <Image source={{uri}} style={styles.image} />
-                <TouchableOpacity
-                  style={styles.removeImageButton}
-                  onPress={() => removeImage(index)}>
-                  <CustomIcon name="X" color={COLORS.white} size={16} />
-                </TouchableOpacity>
-              </View>
-            ))}
-            {formData.images.length < 5 && (
-              <TouchableOpacity
-                style={styles.addImageButton}
-                onPress={handleImagePick}>
-                <CustomIcon name="Plus" color={COLORS.primary} size={24} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        {/* Image Selection Manager */}
+        <ImageSelectionManager
+          selectedImages={enhancedImages}
+          onImagesChange={setEnhancedImages}
+          existingImages={existingImages}
+          onExistingImagesChange={setExistingImages}
+          imagesToDelete={imagesToDelete}
+          onImagesToDeleteChange={setImagesToDelete}
+          maxImages={5}
+          isDisabled={updateForumMutation.isPending}
+          label="Gambar Forum (Maks. 5)"
+          showExistingImagesLabel="Gambar Tersimpan"
+          addNewImagesLabel="Tambah Gambar Baru"
+        />
 
         {/* Categories Selection */}
         <View style={styles.inputGroup}>
@@ -354,43 +345,6 @@ const styles = StyleSheet.create({
   contentInput: {
     height: 200,
     textAlignVertical: 'top',
-  },
-  imageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  imageWrapper: {
-    position: 'relative',
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: COLORS.red,
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addImageButton: {
-    width: 100,
-    height: 100,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   categoriesContainer: {
     flexDirection: 'row',

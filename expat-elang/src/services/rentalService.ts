@@ -18,7 +18,6 @@ import type {
   UpdateRentalFormData,
 } from '../types/rental';
 import apiClient from './authService';
-import {Asset} from 'react-native-image-picker';
 import {MY_RENTAL_CATEGORY} from '../hooks/useRentalQuery';
 import {useAuthStore} from '../store/useAuthStore';
 import {qss} from '../utils/helpers';
@@ -198,10 +197,7 @@ export const descExpandable = (desc: string, imgLenght): boolean => {
  * Membuat FormData untuk create rental.
  * Memastikan format key array (kt_details, images) sesuai Postman.
  */
-const buildRentalFormData = (
-  data: CreateRentalFormData,
-  images: Asset[],
-): FormData => {
+const buildRentalFormData = (data: CreateRentalFormData): FormData => {
   const formData = new FormData();
 
   // Append fields standar
@@ -237,15 +233,17 @@ const buildRentalFormData = (
   });
 
   // Append images array
-  images.forEach(asset => {
-    if (asset.uri) {
-      formData.append('images[]', {
-        uri: asset.uri,
-        type: asset.type || 'image/jpeg',
-        name: asset.fileName || `rental_image_${Date.now()}.jpg`,
-      } as any);
-    }
-  });
+  if (data.images && data.images.length > 0 && Array.isArray(data.images)) {
+    data.images.forEach(asset => {
+      if (asset.uri) {
+        formData.append('images[]', {
+          uri: asset.uri,
+          type: asset.type || 'image/jpeg',
+          name: asset.name || `rental_image_${Date.now()}.jpg`,
+        } as any);
+      }
+    });
+  }
 
   console.log('Constructed FormData:', formData); // Debugging
   return formData;
@@ -256,10 +254,8 @@ const buildRentalFormData = (
  */
 export const createRental = async (
   formDataPayload: CreateRentalFormData,
-  imagesPayload: Asset[],
-): Promise<any> => {
-  // Ganti `any` dengan tipe respons sukses API Anda
-  const formData = buildRentalFormData(formDataPayload, imagesPayload);
+): Promise<AxiosResponse> => {
+  const formData = buildRentalFormData(formDataPayload);
 
   const response = await apiClient.post(
     RENTAL_ADMIN_CREATE_ENDPOINT,
@@ -310,8 +306,6 @@ const buildUpdateRentalFormData = (data: UpdateRentalFormData): FormData => {
     formData.append(`kt_details[${index}][desc]`, detail.desc ?? ''); // Kirim string kosong jika null
   });
 
-  console.log(data.images);
-
   // Append gambar baru
   data.images?.forEach(asset => {
     if (asset.uri) {
@@ -319,7 +313,7 @@ const buildUpdateRentalFormData = (data: UpdateRentalFormData): FormData => {
         // Sesuaikan nama field jika beda
         uri: asset.uri,
         type: asset.type || 'image/jpeg',
-        name: asset.fileName || `new_rental_image_${Date.now()}.jpg`,
+        name: asset.name || `new_rental_image_${Date.now()}.jpg`,
       } as any);
     }
   });

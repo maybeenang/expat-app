@@ -44,6 +44,11 @@ import {
 } from '../../../hooks/useRentalQuery'; // Your rental query hooks
 import {UpdateRentalFormData} from '../../../types/rental';
 import FormPriceInput from '../../../components/common/FormPriceInput';
+import ImageSelectionManager, {
+  EnhancedImageAsset,
+  ExistingImageType,
+  prepareImagesForSubmission,
+} from '../../../components/common/ImageSelectionManager';
 
 // --- Props ---
 interface RentalsUpdateScreenProps
@@ -79,11 +84,9 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
   const {show, hide} = useLoadingOverlayStore();
 
   // --- Local UI State ---
-  const [existingImages, setExistingImages] = useState<RentalImageApiSource[]>(
-    [],
-  ); // Use helper type
+  const [existingImages, setExistingImages] = useState<ExistingImageType[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-  const [newSelectedImages, setNewSelectedImages] = useState<Asset[]>([]);
+  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>([]);
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [availabilityDate, setAvailabilityDate] = useState(new Date());
 
@@ -111,8 +114,8 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
   );
 
   useEffect(() => {
-    console.log(newSelectedImages.length);
-  }, [newSelectedImages]);
+    console.log(enhancedImages.length);
+  }, [enhancedImages]);
 
   // --- Form Population Effect ---
   useEffect(() => {
@@ -196,13 +199,20 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
       reset(formDataToReset); // Reset the entire form
 
       // --- Handle Images ---
-      const apiImages: RentalImageApiSource[] = [];
+      const apiImages: ExistingImageType[] = [];
+      
+      // Add feature image if exists
       if (rentalData.image_feature) {
         apiImages.push({
           id: rentalData.image_feature.id,
-          url: rentalData.image_feature.img_url,
+          img_url: rentalData.image_feature.img_url,
+          title: rentalData.image_feature.img_title || '',
+          alt: rentalData.image_feature.img_alt || '',
+          isFeature: true,
         });
       }
+      
+      // Add other images
       (rentalData.image_lists || []).forEach((img: any) => {
         // Avoid adding duplicates if feature image is also in lists
         if (
@@ -211,12 +221,19 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
           img.img_url &&
           !apiImages.some(existing => existing.id === img.id)
         ) {
-          apiImages.push({id: img.id, url: img.img_url});
+          apiImages.push({
+            id: img.id,
+            img_url: img.img_url,
+            title: img.img_title || '',
+            alt: img.img_alt || '',
+            isFeature: false,
+          });
         }
       });
+      
       setExistingImages(apiImages);
       setImagesToDelete([]);
-      setNewSelectedImages([]);
+      setEnhancedImages([]);
 
       if (formattedKtDetails.length > 0) {
         replace(formattedKtDetails);
@@ -248,42 +265,6 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
     typeDetails2Options,
   ]);
 
-  // --- Event Handlers (Image Pick, Remove, Submit) ---
-  const handleImagePick = async () => {
-    const currentTotalImages =
-      (existingImages?.length || 0) -
-      imagesToDelete.length +
-      newSelectedImages.length;
-    if (currentTotalImages >= 10) {
-      Alert.alert('Batas Gambar', 'Maksimal 10 gambar.');
-      return;
-    }
-    try {
-      const result: ImagePickerResponse = await launchImageLibrary({
-        mediaType: 'photo',
-        selectionLimit: 10 - currentTotalImages,
-        quality: 0.7,
-        includeBase64: false,
-      });
-      if (result.didCancel || result.errorCode || !result.assets) {
-        if (result.errorCode) {
-          Alert.alert('Error', result.errorMessage || 'Gagal memilih gambar');
-        }
-        return;
-      }
-      const validAssets = result.assets.filter(asset => asset.uri);
-      setNewSelectedImages(prev => [...prev, ...validAssets]);
-    } catch (error) {
-      Alert.alert('Error', 'Gagal membuka galeri.');
-    }
-  };
-
-  const removeNewImage = (index: number) =>
-    setNewSelectedImages(prev => prev.filter((_, i) => i !== index));
-  const markExistingImageForDeletion = (imageId: string) =>
-    setImagesToDelete(prev => [...prev, imageId]);
-  const unmarkExistingImageForDeletion = (imageId: string) =>
-    setImagesToDelete(prev => prev.filter(id => id !== imageId));
   const formatSimpleDateForAPI = (date: Date): string =>
     format(date, 'yyyy-MM-dd');
 
@@ -293,15 +274,42 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
       return;
     }
 
-    console.log(newSelectedImages);
+    const totalImagesAfterUpdate =
+      existingImages.filter(img => !imagesToDelete.includes(img.id)).length +
+      enhancedImages.length;
 
-    data.images = newSelectedImages;
+    if (totalImagesAfterUpdate === 0) {
+      Alert.alert('Error', 'Minimal harus ada satu gambar untuk properti');
+      return;
+    }
 
-    console.log(data);
+    // Check that a feature image is selected
+    const hasFeatureImage =
+      existingImages.some(
+        img => img.isFeature && !imagesToDelete.includes(img.id),
+      ) || enhancedImages.some(img => img.isFeature);
+
+    if (!hasFeatureImage) {
+      Alert.alert('Error', 'Pilih satu gambar sebagai gambar utama');
+      return;
+    }
+
+    // Prepare images for submission
+    const {featureImageId, imagesToUpload, imageInfo} =
+      prepareImagesForSubmission(enhancedImages, existingImages, imagesToDelete);
+
+    const updatePayload: UpdateRentalFormData = {
+      ...data,
+      images: imagesToUpload,
+      is_feature: featureImageId,
+      image_title: imageInfo.titles,
+      image_alt: imageInfo.alts,
+      images_deleted: imagesToDelete.length > 0 ? imagesToDelete : undefined,
+    };
 
     show();
     try {
-      await updateMutation.mutateAsync(data);
+      await updateMutation.mutateAsync(updatePayload);
       Alert.alert('Sukses', 'Rental berhasil diperbarui', [
         {text: 'OK', onPress: () => navigation.goBack()},
       ]);
@@ -934,100 +942,31 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
           </View>
 
           {/* --- Image Upload Section --- */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Gambar Properti (Maks. 10)</Text>
-            <View style={styles.imageContainer}>
-              {existingImages.map(image => {
-                const isMarkedForDeletion = imagesToDelete.includes(image.id);
-                return (
-                  <View
-                    key={image.id}
-                    style={[
-                      styles.imageWrapper,
-                      isMarkedForDeletion && styles.imageMarkedForDeletion,
-                    ]}>
-                    <Image
-                      source={{uri: image.url}}
-                      style={styles.imagePreview}
-                    />
-                    <TouchableOpacity
-                      style={styles.removeImageButton}
-                      onPress={() =>
-                        isMarkedForDeletion
-                          ? unmarkExistingImageForDeletion(image.id)
-                          : markExistingImageForDeletion(image.id)
-                      }
-                      disabled={updateMutation.isPending}
-                      activeOpacity={0.7}>
-                      <Icon
-                        name={
-                          isMarkedForDeletion
-                            ? 'refresh-circle'
-                            : 'close-circle'
-                        }
-                        size={24}
-                        color={
-                          isMarkedForDeletion ? COLORS.greyLight : COLORS.red
-                        }
-                      />
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
-              {newSelectedImages.map((asset, index) => (
-                <View key={asset.uri || index} style={styles.imageWrapper}>
-                  <Image
-                    source={{uri: asset.uri}}
-                    style={styles.imagePreview}
-                  />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() =>
-                      !updateMutation.isPending && removeNewImage(index)
-                    }
-                    disabled={updateMutation.isPending}
-                    activeOpacity={0.7}>
-                    <Icon name="close-circle" size={24} color={COLORS.red} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-              {(existingImages?.length || 0) -
-                imagesToDelete.length +
-                newSelectedImages.length <
-                10 && (
-                <TouchableOpacity
-                  style={[
-                    styles.addImageButton,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
-                  onPress={handleImagePick}
-                  disabled={updateMutation.isPending}
-                  activeOpacity={0.7}>
-                  <Icon
-                    name="camera-outline"
-                    size={30}
-                    color={COLORS.primary}
-                  />
-                  <Text style={styles.addImageText}>Tambah Gambar</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          <ImageSelectionManager
+            selectedImages={enhancedImages}
+            onImagesChange={setEnhancedImages}
+            existingImages={existingImages}
+            onExistingImagesChange={setExistingImages}
+            imagesToDelete={imagesToDelete}
+            onImagesToDeleteChange={setImagesToDelete}
+            maxImages={10}
+            isDisabled={updateMutation.isPending}
+            label="Gambar Properti (Maks. 10)"
+            showExistingImagesLabel="Gambar Tersimpan"
+            addNewImagesLabel="Tambah Gambar Baru"
+          />
 
           {/* --- Submit Button --- */}
           <TouchableOpacity
             style={[
               styles.submitButton,
-              (updateMutation.isPending || !isDirty) &&
-                styles.submitButtonDisabled,
+              updateMutation.isPending && styles.submitButtonDisabled,
             ]}
             activeOpacity={0.8}
             onPress={
-              !updateMutation.isPending && isDirty
-                ? handleSubmit(onSubmit)
-                : undefined
+              !updateMutation.isPending ? handleSubmit(onSubmit) : undefined
             }
-            disabled={updateMutation.isPending || !isDirty}>
+            disabled={updateMutation.isPending}>
             {updateMutation.isPending ? (
               <ActivityIndicator color={COLORS.white} size="small" />
             ) : (
@@ -1155,57 +1094,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.primary,
     fontFamily: 'Roboto-Medium',
-  },
-  imageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-    gap: 10,
-  },
-  imageWrapper: {position: 'relative', width: 100, height: 100},
-  imagePreview: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.greyMedium,
-  },
-  imageMarkedForDeletion: {
-    opacity: 0.5,
-    borderWidth: 2,
-    borderColor: COLORS.red,
-    borderRadius: 8,
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
-  },
-  addImageButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    padding: 5,
-  },
-  addImageText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: COLORS.primary,
-    textAlign: 'center',
-    fontFamily: 'Roboto-Regular',
   },
   submitButton: {
     backgroundColor: COLORS.primary,

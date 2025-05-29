@@ -22,7 +22,7 @@ export interface ForumImageFeature {
   s3_slug: string;
   img_title: string | null;
   img_alt: string | null;
-  is_feature?: string; // Opsional di reply
+  is_feature?: '0' | '1'; // Opsional di reply
   created_date: string;
   created_by: string;
   img_url: string;
@@ -54,7 +54,7 @@ export interface ForumTopicApi {
   categories: string | null; // Comma-separated string
   nama_ref_global: string; // Nama kategori utama?
   image_feature: ForumImageFeature | null;
-  image_lists: any[]; // Tipe spesifik jika diketahui
+  image_lists: ForumImageFeature[]; // Tipe spesifik jika diketahui
   total_reply: string; // String number
   detail_reply?: ForumReply[]; // Opsional di list, ada di detail
 }
@@ -109,7 +109,7 @@ export interface ProcessedForumReply {
   author: string;
   dateFormatted: string;
   content: string; // Konten reply
-  images: string[]; // Array URL gambar reply
+  images: ForumImageFeature[]; // Array URL gambar reply
 }
 
 export interface ProcessedForumDetailData {
@@ -122,6 +122,7 @@ export interface ProcessedForumDetail
   extends Omit<ProcessedForumTopic, 'excerpt' | 'replyCount'> {
   contentHTML: string; // Konten HTML asli
   imageUrls: string[]; // Semua gambar topic (feature + lists)
+  images: ForumImageFeature[]; // Semua gambar topic (feature + lists)
 }
 
 export interface CreateForumPayload {
@@ -134,10 +135,14 @@ export interface CreateForumPayload {
   }[];
   category: string[];
   key?: string[];
+  imege_title?: string[]; // Note: API uses 'imege_title' with a typo
+  image_alt?: string[];
+  is_feature?: string;
 }
 
 export interface UpdateForumPayload extends CreateForumPayload {
   id: string;
+  images_deleted?: string[]; // Array of image IDs to be deleted
 }
 
 export interface ForumReplyPayload {

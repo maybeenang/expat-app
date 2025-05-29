@@ -26,6 +26,7 @@ export const EVENT_ADMIN_ENDPOINT = '/admin_events';
 export const EVENT_CREATE_ENDPOINT = '/admin_events/create';
 export const EVENT_UPDATE_ENDPOINT = '/admin_events/update';
 export const EVENT_PRICE_ENDPOINT = '/admin_events/price';
+export const EVENT_DELETE_IMAGE_ENDPOINT = '/admin_events/image';
 export const DEFAULT_EVENT_LIMIT = 6;
 
 export const FORUM_LIST_ENDPOINT = '/forum';

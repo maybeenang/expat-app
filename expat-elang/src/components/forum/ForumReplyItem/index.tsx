@@ -36,7 +36,7 @@ const ForumReplyItem = ({item}: ForumReplyItemProps) => {
             item.images.map((img, idx) => (
               <Image
                 key={idx}
-                source={{uri: img}}
+                source={{uri: img.img_url}}
                 style={styles.replyImage}
                 resizeMode="cover"
               />

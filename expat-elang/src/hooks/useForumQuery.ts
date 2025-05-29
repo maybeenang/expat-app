@@ -164,20 +164,21 @@ export const useForumDetailQuery = (forumId: string) => {
         contentHTML: topic.forum_content,
         imageUrls: mainTopicImages,
         content: formatContentHtml(topic.forum_content),
+        images: [
+          ...(topic.image_feature ? [topic.image_feature] : []),
+          ...(topic.image_lists ?? []),
+        ],
       };
 
       const repliesProcessed: ProcessedForumReply[] = (
         topic.detail_reply ?? []
       ).map(reply => {
-        const replyImages = (reply.image_lists ?? [])
-          .map(img => img.img_url)
-          .filter(url => url);
         return {
           id: reply.id,
           author: reply.created_by,
           dateFormatted: formatForumDate(reply.created_date),
           content: reply.reply_content,
-          images: replyImages,
+          images: reply.image_lists,
         };
       });
 

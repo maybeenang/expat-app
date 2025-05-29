@@ -6,13 +6,11 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Platform,
   StatusBar,
   Alert,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useForm, useFieldArray} from 'react-hook-form';
-import {Asset} from 'react-native-image-picker';
 import Icon from '@react-native-vector-icons/ionicons';
 
 import COLORS from '../../../constants/colors';
@@ -28,9 +26,12 @@ import {useRentalCreateMutation} from '../../../hooks/useRentalQuery';
 import FormInput from '../../../components/common/FormInput';
 import FormDropdown from '../../../components/common/FormDropdown';
 import FormDatePicker from '../../../components/common/FormDatePicker';
-import ImagePicker from '../../../components/common/ImagePicker';
 import SubmitButton from '../../../components/common/SubmitButton';
 import FormPriceInput from '../../../components/common/FormPriceInput';
+import ImageSelectionManager, {
+  EnhancedImageAsset,
+  prepareImagesForSubmission,
+} from '../../../components/common/ImageSelectionManager';
 
 interface RentalsCreateScreenProps
   extends NativeStackScreenProps<RootStackParamList, 'RentalCreate'> {}
@@ -51,7 +52,9 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
   const {show, hide} = useLoadingOverlayStore();
 
   // --- Local UI State ---
-  const [selectedImages, setSelectedImages] = useState<Asset[]>([]);
+  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>(
+    [],
+  );
 
   // --- React Hook Form Setup ---
   const {
@@ -59,7 +62,6 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
     handleSubmit,
     watch,
     setValue,
-    trigger,
     formState: {errors},
   } = useForm<CreateRentalFormData>({
     defaultValues: {
@@ -123,9 +125,31 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
       return;
     }
 
+    if (enhancedImages.length === 0) {
+      Alert.alert('Error', 'Please select at least one image');
+      return;
+    }
+
+    // Check for feature image
+    const hasFeatureImage = enhancedImages.some(img => img.isFeature);
+    if (!hasFeatureImage) {
+      Alert.alert('Error', 'Please select a feature image');
+      return;
+    }
+
     show();
     try {
-      await mutation.mutateAsync({formData: data, images: selectedImages});
+      // Prepare images for submission
+      const {featureImageId, imagesToUpload, imageInfo} =
+        prepareImagesForSubmission(enhancedImages);
+
+      await mutation.mutateAsync({
+        ...data,
+        images: imagesToUpload,
+        is_feature: featureImageId,
+        image_alt: imageInfo.titles,
+        image_title: imageInfo.alts,
+      });
       Alert.alert('Sukses', 'Rental berhasil dibuat', [
         {text: 'OK', onPress: () => navigation.goBack()},
       ]);
@@ -317,7 +341,8 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
                   required: 'Maks. sewa harus diisi',
                   pattern: {value: /^[1-9]\d*$/, message: 'Harus angka > 0'},
                   validate: (val: string) =>
-                    parseInt(val || '0') >= parseInt(watch('stay_min') || '0') ||
+                    parseInt(val || '0') >=
+                      parseInt(watch('stay_min') || '0') ||
                     'Maksimal < minimal',
                 }}
                 error={errors.stay_max?.message}
@@ -392,9 +417,7 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
                     error={errors.kt_details?.[index]?.nama_details1?.message}
                     isDisabled={mutation.isPending || !isMainType}
                     placeholder={
-                      isMainType
-                        ? 'Contoh: 2'
-                        : '(Hanya aktif jika tipe MAIN)'
+                      isMainType ? 'Contoh: 2' : '(Hanya aktif jika tipe MAIN)'
                     }
                     keyboardType={isMainType ? 'number-pad' : 'default'}
                   />
@@ -459,9 +482,9 @@ const RentalsCreateScreen = ({navigation}: RentalsCreateScreenProps) => {
             </TouchableOpacity>
           </View>
 
-          <ImagePicker
-            selectedImages={selectedImages}
-            onImagesChange={setSelectedImages}
+          <ImageSelectionManager
+            selectedImages={enhancedImages}
+            onImagesChange={setEnhancedImages}
             maxImages={10}
             isDisabled={mutation.isPending}
             label="Gambar Properti (Maks. 10)"

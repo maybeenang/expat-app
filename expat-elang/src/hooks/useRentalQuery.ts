@@ -206,23 +206,11 @@ export const useRentalDetailUnprocessedQuery = (rentalId: string) => {
   });
 };
 
-export const useRentalCreateMutation = (): UseMutationResult<
-  any, // Tipe sukses API
-  Error, // Tipe error
-  {formData: CreateRentalFormData; images: Asset[]} // Input untuk mutateAsync
-> => {
+export const useRentalCreateMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      formData,
-      images,
-    }: {
-      formData: CreateRentalFormData;
-      images: Asset[];
-    }) => {
-      return createRental(formData, images);
-    },
+    mutationFn: (formData: CreateRentalFormData) => createRental(formData),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({

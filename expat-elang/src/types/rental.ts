@@ -155,10 +155,19 @@ export interface CreateRentalFormData {
   stay_max: string;
   stay_type: string;
   kt_details: KtDetailItem[];
+
+  images?: {
+    uri: string;
+    type: string;
+    name: string;
+  }[];
+  image_title?: string[];
+  image_alt?: string[];
+  is_feature?: string;
 }
 
 export interface UpdateRentalFormData extends CreateRentalFormData {
   id: string;
   rent_slug: string;
-  images?: Asset[];
+  images_deleted?: string[]; // Array of image IDs to be deleted
 }

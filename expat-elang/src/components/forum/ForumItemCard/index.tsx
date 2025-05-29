@@ -184,6 +184,7 @@ const styles = StyleSheet.create({
   bubbleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginVertical: 8,
     gap: 8,
   },
 });

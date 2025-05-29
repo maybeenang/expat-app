@@ -6,6 +6,7 @@ import {
   EVENT_ADMIN_ENDPOINT,
   EVENT_CATEGORIES_ENDPOINT,
   EVENT_CREATE_ENDPOINT,
+  EVENT_DELETE_IMAGE_ENDPOINT,
   EVENT_ENDPOINT,
   EVENT_PRICE_ENDPOINT,
   EVENT_UPDATE_ENDPOINT,
@@ -230,6 +231,11 @@ export const adminCreateEventApi = (
         value.forEach(title => {
           formdata.append('image_title[]', title);
         });
+      } else if (key === 'image_alt' && Array.isArray(value)) {
+        // Handle image title array
+        value.forEach(title => {
+          formdata.append('image_alt[]', title);
+        });
       } else {
         formdata.append(key, value);
       }
@@ -287,7 +293,7 @@ export const adminDeleteEventApi = (
   });
 };
 
-export const adminUpdateEventApi = (
+export const adminUpdateEventApi = async (
   payload: UpdateEventPayload,
 ): Promise<AxiosResponse> => {
   try {
@@ -305,6 +311,11 @@ export const adminUpdateEventApi = (
         value.forEach(title => {
           formdata.append('image_title[]', title);
         });
+      } else if (key === 'image_alt' && Array.isArray(value)) {
+        // Handle image title array
+        value.forEach(title => {
+          formdata.append('image_alt[]', title);
+        });
       } else if (key === 'organizer_phone' && value) {
         // Hapus awalan +1 dari nomor telepon
         formdata.append(key, value.replace('+1', ''));
@@ -313,6 +324,15 @@ export const adminUpdateEventApi = (
       }
     });
 
+    // get all deleted images
+    if (payload.images_deleted && Array.isArray(payload.images_deleted)) {
+      await Promise.all(
+        payload.images_deleted.map(imageId => {
+          adminDeleteImageApi(imageId);
+        }),
+      );
+    }
+
     return apiClient.post(EVENT_UPDATE_ENDPOINT, formdata, {
       headers: {'Content-Type': 'multipart/form-data'},
     });
@@ -320,6 +340,28 @@ export const adminUpdateEventApi = (
     if (axios.isAxiosError(error) && error.response) {
       console.error('Error response:', error.response.data);
       throw new Error(error.response.data?.message || 'Failed to update event');
+    }
+    throw new Error('Network error or failed to connect');
+  }
+};
+
+export const adminDeleteImageApi = (
+  imageId: string,
+): Promise<AxiosResponse> => {
+  try {
+    const data = {
+      id_image: imageId,
+    };
+
+    return apiClient.request({
+      method: 'DELETE',
+      url: EVENT_DELETE_IMAGE_ENDPOINT,
+      data,
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('Error response:', error.response.data);
+      throw new Error(error.response.data?.message || 'Failed to delete image');
     }
     throw new Error('Network error or failed to connect');
   }

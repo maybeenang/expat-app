@@ -23,7 +23,7 @@ export interface EventImageFeature {
   s3_slug: string;
   img_title: string | null;
   img_alt: string | null;
-  is_feature: string;
+  is_feature: '0' | '1';
   created_date: string;
   created_by: string;
   img_url: string;
@@ -106,7 +106,7 @@ export interface CreateEventPayload {
     name: string;
   }[];
   image_title?: string[];
-  image_alt?: string;
+  image_alt?: string[];
   event_start: string; // Format 'YYYY-MM-DD HH:mm'
   event_end: string; // Format 'YYYY-MM-DD HH:mm'
   location: string;
@@ -127,7 +127,8 @@ export interface UpdateEventPayload extends Omit<CreateEventPayload, 'file'> {
     name: string;
   }[];
   image_title?: string[];
-  image_alt?: string;
+  image_alt?: string[];
+  images_deleted?: string[]; // Array of image IDs to delete
 }
 
 export interface CategoryOption {
