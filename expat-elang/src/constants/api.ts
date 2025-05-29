@@ -37,6 +37,7 @@ export const ADMIN_FORUM_CREATE_ENDPOINT = '/admin_forum/create';
 export const ADMIN_FORUM_UPDATE_ENDPOINT = '/admin_forum/update';
 export const ADMIN_FORUM_DELETE_ENDPOINT = '/admin_forum';
 export const ADMIN_FORUM_LIST_ENDPOINT = '/admin_forum';
+export const ADMIN_FORUM_REPLY_ENDPOINT = '/forum/save_reply';
 
 export const JOBS_ENDPOINT = '/jobs';
 export const JOBS_ADMIN_ENDPOINT = '/admin_jobs';

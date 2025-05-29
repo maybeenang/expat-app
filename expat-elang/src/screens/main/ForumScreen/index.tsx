@@ -1,4 +1,10 @@
-import React, {useRef, useCallback, useState, useEffect} from 'react';
+import React, {
+  useRef,
+  useCallback,
+  useState,
+  useEffect,
+  useLayoutEffect,
+} from 'react';
 import {
   View,
   StyleSheet,
@@ -28,6 +34,8 @@ import {useAuthStore} from '../../../store/useAuthStore';
 import ForumItemList from '../../../components/forum/ForumItemList';
 import ForumItemCard from '../../../components/forum/ForumItemCard';
 import BottomSheetForum from '../../../components/forum/BottomSheetForum';
+import useSearchDebounce from '../../../hooks/useSearchDebounce';
+import DrawerSearchHeader from '../../../components/header/DrawerSearchHeader';
 
 const {width} = Dimensions.get('window');
 
@@ -43,7 +51,12 @@ const ForumScreen = ({navigation, route}: ForumScreenProps) => {
     null,
   );
 
-  const forumQuery = useForumTopicsInfinite(activeCategory);
+  const [search, setSearch] = useSearchDebounce('', 500);
+
+  const forumQuery = useForumTopicsInfinite({
+    categories: activeCategory?.name,
+    search,
+  });
   const [activeItem, setActiveItem] = useState<ProcessedForumTopic | null>(
     null,
   );
@@ -128,6 +141,19 @@ const ForumScreen = ({navigation, route}: ForumScreenProps) => {
       }
     }
   }, [route.params?.category, categoryQuery.data]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <DrawerSearchHeader
+          searchPlaceholder="Search Forum"
+          createScreen="ForumCreate"
+          handleSearchChange={setSearch}
+        />
+      ),
+    });
+    return () => {};
+  }, [navigation, setSearch]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

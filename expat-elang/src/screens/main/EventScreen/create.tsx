@@ -216,7 +216,10 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
             control={control}
             name="category"
             label="Kategori Event *"
-            options={(categories ?? []).map((c: any) => ({label: c.name, value: c.id}))}
+            options={(categories ?? []).map((c: any) => ({
+              label: c.name,
+              value: c.id,
+            }))}
             rules={{required: 'Kategori harus dipilih'}}
             error={errors.category?.message}
             placeholder="Pilih Kategori"
@@ -243,7 +246,6 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
             isDisabled={mutation.isPending}
             placeholder="Pilih Tanggal & Waktu Mulai"
             mode="datetime"
-            minimumDate={new Date()}
           />
           <FormDatePicker
             control={control}
@@ -278,7 +280,12 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
             control={control}
             name="max_capacity"
             label="Kapasitas Maksimal"
-            rules={{pattern: {value: /^[1-9]\d*$/, message: 'Kapasitas harus berupa angka positif'}}}
+            rules={{
+              pattern: {
+                value: /^[1-9]\d*$/,
+                message: 'Kapasitas harus berupa angka positif',
+              },
+            }}
             error={errors.max_capacity?.message}
             placeholder="100"
             isDisabled={mutation.isPending}
@@ -288,7 +295,10 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
             control={control}
             name="price"
             label="Harga Tiket *"
-            options={(prices ?? []).map((p: any) => ({label: p.name, value: p.id}))}
+            options={(prices ?? []).map((p: any) => ({
+              label: p.name,
+              value: p.id,
+            }))}
             rules={{required: 'Harga tiket harus dipilih'}}
             error={errors.price?.message}
             placeholder="Pilih Harga (Gratis/Berbayar)"

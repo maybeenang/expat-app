@@ -26,6 +26,7 @@ import type {
   CreateRentalFormData,
   UpdateRentalFormData,
   RentalDetailsFeature,
+  RentalFilterParams,
 } from '../types/rental';
 import NUMBER from '../constants/number';
 import {Asset} from 'react-native-image-picker';
@@ -61,11 +62,7 @@ export const useRentalCategoriesQuery = () => {
   });
 };
 
-export const useRentalItemsInfinite = (
-  activeCategory: RentalCategory | null,
-) => {
-  const categoryTypeFilter = activeCategory?.value;
-
+export const useRentalItemsInfinite = (filter: RentalFilterParams) => {
   return useInfiniteQuery<
     RentalListApiResponse,
     Error,
@@ -73,9 +70,8 @@ export const useRentalItemsInfinite = (
     QueryKey,
     number
   >({
-    queryKey: queryKeys.rentalKeys.items(categoryTypeFilter),
-    queryFn: ({pageParam}) =>
-      fetchRentalItemsApi({pageParam}, categoryTypeFilter),
+    queryKey: queryKeys.rentalKeys.items(filter.categories, filter),
+    queryFn: ({pageParam}) => fetchRentalItemsApi({pageParam}, filter),
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {

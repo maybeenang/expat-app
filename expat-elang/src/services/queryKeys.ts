@@ -1,4 +1,7 @@
 import {FetchBizItemsParams} from '../types/biz';
+import {EventFilterParams} from '../types/event';
+import {ForumFilterParams} from '../types/forum';
+import {RentalFilterParams} from '../types/rental';
 
 export const queryKeys = {
   all: ['all'] as const,
@@ -16,8 +19,13 @@ export const queryKeys = {
   eventKeys: {
     all: ['event'] as const,
     categories: () => [...queryKeys.eventKeys.all, 'categories'] as const,
-    items: (categoryId?: string) =>
-      [...queryKeys.eventKeys.all, 'items', categoryId ?? 'all'] as const,
+    items: (categoryId?: string, filter?: EventFilterParams) =>
+      [
+        ...queryKeys.eventKeys.all,
+        'items',
+        categoryId ?? 'all',
+        {filter},
+      ] as const,
     detail: (eventId: string, categoryId?: string) =>
       [...queryKeys.eventKeys.all, 'detail', eventId, categoryId] as const,
     detailUnprocessed: (eventId: string) =>
@@ -42,8 +50,13 @@ export const queryKeys = {
     categories: () => [...queryKeys.forumKeys.all, 'categories'] as const,
     userCategories: () =>
       [...queryKeys.forumKeys.all, 'userCategories'] as const,
-    topics: (categoryId?: string) =>
-      [...queryKeys.forumKeys.all, 'topics', categoryId ?? 'all'] as const,
+    topics: (categoryId?: string, filter?: ForumFilterParams) =>
+      [
+        ...queryKeys.forumKeys.all,
+        'topics',
+        categoryId ?? 'all',
+        {filter},
+      ] as const,
     detail: (forumId: string) =>
       [...queryKeys.forumKeys.all, 'detail', forumId] as const,
   },
@@ -79,8 +92,13 @@ export const queryKeys = {
   rentalKeys: {
     all: ['rental'] as const,
     categories: () => [...queryKeys.rentalKeys.all, 'categories'] as const,
-    items: (rentalType?: string) =>
-      [...queryKeys.rentalKeys.all, 'items', rentalType ?? 'all'] as const,
+    items: (rentalType?: string, filter?: RentalFilterParams) =>
+      [
+        ...queryKeys.rentalKeys.all,
+        'items',
+        rentalType ?? 'all',
+        {filter},
+      ] as const,
     detail: (rentalId: string) =>
       [...queryKeys.rentalKeys.all, 'detail', rentalId] as const,
     detailUnprocessed: (rentalId: string) =>

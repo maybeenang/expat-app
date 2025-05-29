@@ -1,4 +1,11 @@
-import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+} from 'react';
 import {
   View,
   Text,
@@ -30,6 +37,8 @@ import BottomSheetAction, {
   ActionItem,
 } from '../../../components/common/BottomSheetAction';
 import {useAuthStore} from '../../../store/useAuthStore';
+import DrawerSearchHeader from '../../../components/header/DrawerSearchHeader';
+import useSearchDebounce from '../../../hooks/useSearchDebounce';
 
 const EventScreen = ({
   navigation,
@@ -57,6 +66,8 @@ const EventScreen = ({
     bottomSheetModalRef.current?.present();
   }, []);
 
+  const [debouncedSearch, setSearch] = useSearchDebounce('', 500);
+
   const {
     data: eventItems,
     fetchNextPage,
@@ -66,7 +77,10 @@ const EventScreen = ({
     isFetching: isFetchingEvents,
     error: errorEvents,
     refetch: refetchEvents,
-  } = useEventItemsInfinite(activeCategory);
+  } = useEventItemsInfinite({
+    categories: activeCategory?.id,
+    search: debouncedSearch,
+  });
 
   const {handleManualRefresh, isManualRefreshing} = useManualRefresh({
     refetch: refetchEvents,
@@ -143,6 +157,20 @@ const EventScreen = ({
       }
     }
   }, [categoriesData, activeCategory, isLoggedIn]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <DrawerSearchHeader
+          searchPlaceholder="Search Event"
+          createScreen="EventCreate"
+          handleSearchChange={setSearch}
+        />
+      ),
+    });
+
+    return () => {};
+  }, [navigation, setSearch]);
 
   const renderCategoryFilter = () => {
     if (isLoadingCategories && !categoriesData) {

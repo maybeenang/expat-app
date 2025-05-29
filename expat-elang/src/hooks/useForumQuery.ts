@@ -15,6 +15,7 @@ import {
   adminDeleteForumApi,
   formatContentHtml,
   getReplyCount,
+  adminForumReplyApi,
 } from '../services/forumService';
 import type {
   ForumCategoryApi,
@@ -26,6 +27,8 @@ import type {
   ProcessedForumReply,
   CreateForumPayload,
   UpdateForumPayload,
+  ForumFilterParams,
+  ForumReplyPayload,
 } from '../types/forum';
 import {AxiosError} from 'axios';
 import {useAuthStore} from '../store/useAuthStore';
@@ -71,11 +74,7 @@ export const useForumCategoriesQuery = () => {
   });
 };
 
-export const useForumTopicsInfinite = (
-  activeCategory: ForumCategoryApi | null,
-) => {
-  const categoryIdFilter = activeCategory?.name;
-
+export const useForumTopicsInfinite = (filter: ForumFilterParams) => {
   return useInfiniteQuery<
     ForumListApiResponse,
     Error,
@@ -83,9 +82,8 @@ export const useForumTopicsInfinite = (
     QueryKey,
     number
   >({
-    queryKey: queryKeys.forumKeys.topics(categoryIdFilter),
-    queryFn: ({pageParam}) =>
-      fetchForumTopicsApi({pageParam}, categoryIdFilter),
+    queryKey: queryKeys.forumKeys.topics(filter.categories, filter),
+    queryFn: ({pageParam}) => fetchForumTopicsApi({pageParam}, filter),
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {
@@ -260,6 +258,25 @@ export const useDeleteForumMutation = (
       }
       console.error('Error deleting forum:', error);
       throw error;
+    },
+  });
+};
+
+export const useForumReplyMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: ForumReplyPayload) => adminForumReplyApi(payload),
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.forumKeys.detail(variables.id_forum),
+      });
+    },
+    onError: error => {
+      if (error instanceof AxiosError) {
+        console.error('Error replying to forum:', error.response?.data);
+      }
+      console.error('Error replying to forum:', error);
     },
   });
 };

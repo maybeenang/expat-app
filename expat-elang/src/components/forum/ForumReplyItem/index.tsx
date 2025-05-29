@@ -42,15 +42,6 @@ const ForumReplyItem = ({item}: ForumReplyItemProps) => {
               />
             ))}
         </View>
-
-        <View style={styles.bubbleContainer}>
-          <CustomIcon
-            name="ChatsTeardrop"
-            color={COLORS.textSecondary}
-            size={20}
-          />
-          <StyledText style={styles.replyCount}>3</StyledText>
-        </View>
       </View>
     </View>
   );
@@ -92,16 +83,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 6,
-  },
-  replyCount: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  bubbleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
   },
 });
 

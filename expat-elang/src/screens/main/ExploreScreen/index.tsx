@@ -1,4 +1,11 @@
-import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  useLayoutEffect,
+} from 'react';
 import {
   View,
   Text,
@@ -40,6 +47,8 @@ import BottomSheetAction, {
 import useManualRefresh from '../../../hooks/useManualRefresh';
 import {useLoadingOverlayStore} from '../../../store/useLoadingOverlayStore'; // Import loading store
 import {MainTabParamList, RootStackParamList} from '../../../navigation/types'; // Sesuaikan Path & Nama ParamList
+import useSearchDebounce from '../../../hooks/useSearchDebounce';
+import DrawerSearchHeader from '../../../components/header/DrawerSearchHeader';
 
 interface ExploreScreenProps
   extends NativeStackScreenProps<MainTabParamList, 'Rental'> {}
@@ -61,6 +70,8 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
     null,
   );
 
+  const [search, setSearch] = useSearchDebounce('', 500);
+
   const {
     data: rentalItems,
     fetchNextPage,
@@ -69,7 +80,10 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
     isLoading: isLoadingRentals,
     error: errorRentals,
     refetch: refetchRentals,
-  } = useRentalItemsInfinite(activeCategory); // Gunakan activeCategory?.value jika hook butuh ID
+  } = useRentalItemsInfinite({
+    categories: activeCategory?.value, // Gunakan value untuk kategori
+    search, // Gunakan search yang sudah di-debounce
+  }); // Gunakan activeCategory?.value jika hook butuh ID
 
   const deleteMutation = useRentalDeleteMutation(); // Hook mutasi hapus
   const {show, hide} = useLoadingOverlayStore();
@@ -157,6 +171,20 @@ const ExploreScreen = ({route}: ExploreScreenProps) => {
       },
     ];
   }, [selectedRental, navigation, deleteMutation, show, hide]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <DrawerSearchHeader
+          searchPlaceholder="Search Rental"
+          createScreen="RentalCreate"
+          handleSearchChange={setSearch}
+        />
+      ),
+    });
+
+    return () => {};
+  }, [navigation, setSearch]);
 
   const renderCategoryFilter = () => {
     if (isLoadingCategories && !categoriesData) {

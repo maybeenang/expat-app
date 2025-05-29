@@ -23,13 +23,19 @@ import {LoadingFooter} from '../../LoadingScreen';
 import LoadingScreen from '../../LoadingScreen';
 import ErrorScreen from '../../ErrorScreen';
 import EmptyScreen from '../../EmptyScreen';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {useAuthStore} from '../../../store/useAuthStore';
 import JobCategoryList from '../../../components/jobs/JobCategoryList';
 import BottomSheetJobs from '../../../components/jobs/BottomSheetJobs';
 import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {DrawerParamList} from '../../../navigation/types';
+import DrawerSearchHeader from '../../../components/header/DrawerSearchHeader';
 
-const JobsScreen = () => {
+interface JobsScreenProps
+  extends NativeStackScreenProps<DrawerParamList, 'Jobs'> {}
+
+const JobsScreen = (props: JobsScreenProps) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedJob, setSelectedJob] = useState<ProcessedJobItem | null>(null);
   const handlePresentModalPress = useCallback(() => {
@@ -79,6 +85,23 @@ const JobsScreen = () => {
 
     return () => {};
   }, [isLoggedIn, activeCategory]);
+
+  useLayoutEffect(() => {
+    props.navigation.setOptions({
+      headerTitle: () => (
+        <DrawerSearchHeader
+          searchPlaceholder="Search Jobs"
+          createScreen="JobCreate"
+          searchable={false}
+          handleSearchPress={() => {
+            props.navigation.navigate('JobSearch' as any);
+          }}
+        />
+      ),
+    });
+
+    return () => {};
+  }, [props.navigation]);
 
   const renderItem = ({item}: {item: ProcessedListItem}) => {
     if (item.type === 'ad') {

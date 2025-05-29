@@ -12,6 +12,7 @@ import type {
   RentalCategoriesApiResponse,
   RentalCategory,
   RentalDetailApiResponse,
+  RentalFilterParams,
   RentalItemApi,
   RentalListApiResponse,
   UpdateRentalFormData,
@@ -50,7 +51,7 @@ export const fetchRentalCategoriesApi = async (): Promise<RentalCategory[]> => {
 
 export const fetchRentalItemsApi = async (
   {pageParam = 1},
-  rentalType?: string,
+  filter: RentalFilterParams,
 ): Promise<RentalListApiResponse> => {
   const isLoggedIn = useAuthStore.getState().isLoggedIn;
 
@@ -59,18 +60,19 @@ export const fetchRentalItemsApi = async (
   const params: Record<string, string | number> = {
     page: pageParam,
     limit: DEFAULT_RENTAL_LIMIT,
+    search: filter.search || '',
   };
 
-  if (rentalType === MY_RENTAL_CATEGORY.value && isLoggedIn) {
+  if (filter.categories === MY_RENTAL_CATEGORY.value && isLoggedIn) {
     endpoint = RENTAL_ADMIN_ENDPOINT;
   }
 
   if (
-    rentalType &&
-    rentalType !== 'all' &&
-    rentalType !== MY_RENTAL_CATEGORY.value
+    filter.categories &&
+    filter.categories !== 'all' &&
+    filter.categories !== MY_RENTAL_CATEGORY.value
   ) {
-    params.categories = rentalType;
+    params.categories = filter.categories;
   }
 
   try {
@@ -111,9 +113,7 @@ export const formatPrice = (price: string | number, type: string): string[] => {
 
   let formattedNum = '-';
   if (num >= 1000000) {
-    formattedNum = `$${(num / 1000000).toFixed(
-      num % 1000000 !== 0 ? 1 : 0,
-    )}M `;
+    formattedNum = `$${(num / 1000000).toFixed(num % 1000000 !== 0 ? 1 : 0)}M `;
   } else if (num >= 1000) {
     formattedNum = `$${(num / 1000).toFixed(num % 1000 !== 0 ? 1 : 0)}K `;
   } else {

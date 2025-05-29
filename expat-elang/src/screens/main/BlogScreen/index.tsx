@@ -1,5 +1,5 @@
 // src/screens/BlogScreen/index.tsx
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useLayoutEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -23,6 +23,7 @@ import {LoadingFooter} from '../../LoadingScreen';
 import useManualRefresh from '../../../hooks/useManualRefresh';
 import ErrorScreen from '../../ErrorScreen';
 import StyledText from '../../../components/common/StyledText';
+import DrawerSearchHeader from '../../../components/header/DrawerSearchHeader';
 
 const BlogScreen = ({navigation}: NativeStackScreenProps<any>) => {
   const {
@@ -55,6 +56,23 @@ const BlogScreen = ({navigation}: NativeStackScreenProps<any>) => {
       setActiveCategory(categoriesData[0]);
     }
   }, [categoriesData, activeCategory]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <DrawerSearchHeader
+          searchPlaceholder="Search Blog"
+          showCreateButton={false}
+          searchable={false}
+          handleSearchPress={() => {
+            navigation.navigate('BlogSearch', {});
+          }}
+        />
+      ),
+    });
+
+    return () => {};
+  }, [navigation]);
 
   const renderCategoryFilter = () => {
     if (isLoadingCategories && !categoriesData) {

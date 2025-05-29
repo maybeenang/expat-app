@@ -1,5 +1,6 @@
 // src/hooks/useEventQuery.ts (Buat file baru)
 import {
+  QueryKey,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -20,6 +21,7 @@ import {
 import type {
   CreateEventPayload,
   EventCategoryApi,
+  EventFilterParams,
   EventItemApi,
   EventListApiResponse,
   EventPriceOption,
@@ -68,20 +70,16 @@ export const useEventCategoriesQuery = () => {
   });
 };
 
-export const useEventItemsInfinite = (
-  activeCategory: EventCategoryApi | null,
-) => {
-  const categoryIdFilter = activeCategory?.id;
-
+export const useEventItemsInfinite = (filter: EventFilterParams) => {
   return useInfiniteQuery<
     EventListApiResponse,
     Error,
     ProcessedEventItem[],
-    readonly ['event', 'items', string],
+    QueryKey,
     number
   >({
-    queryKey: queryKeys.eventKeys.items(categoryIdFilter),
-    queryFn: ({pageParam}) => fetchEventItemsApi({pageParam}, categoryIdFilter),
+    queryKey: queryKeys.eventKeys.items(filter.categories, filter),
+    queryFn: ({pageParam}) => fetchEventItemsApi({pageParam}, filter),
     initialPageParam: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
     getNextPageParam: lastPage => {

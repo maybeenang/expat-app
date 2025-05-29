@@ -26,14 +26,13 @@ const IMAGE_HEIGHT = width * 0.6;
 
 const ForumItemCard = React.memo(
   ({item, handlePress, isInOwnCategory = false}: ForumItemCardProps) => {
-    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+    const navigation =
+      useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
     return (
       <TouchableOpacity
         style={styles.cardContainer}
-        onPress={() =>
-          navigation.navigate('ForumDetail', {forumId: item.id})
-        }
+        onPress={() => navigation.navigate('ForumDetail', {forumId: item.id})}
         activeOpacity={0.8}>
         <View style={styles.metaContainer}>
           <View style={styles.authorContainer}>
@@ -43,17 +42,23 @@ const ForumItemCard = React.memo(
               type="fill"
               color={COLORS.greyMedium}
             />
-            <View>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'column',
+                justifyContent: 'center',
+              }}>
               <View
-                style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-                <StyledText
-                  style={[styles.author]}
-                  numberOfLines={1}
-                  weight="medium">
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                <StyledText style={[styles.author]} weight="medium">
                   {item.author}
                 </StyledText>
                 {item.firstCategory && (
-                  <StyledText style={styles.category} numberOfLines={1}>
+                  <StyledText style={styles.category}>
                     {item.firstCategory}{' '}
                   </StyledText>
                 )}
@@ -87,17 +92,19 @@ const ForumItemCard = React.memo(
             <ImageBackground
               source={{uri: item.imageUrl}}
               style={styles.image}
-              resizeMode="cover">
-              {item.replyCount > 0 && (
-                <View style={styles.imageCount}>
-                  <StyledText style={styles.imageCountText}>
-                    {item.replyCount} replies
-                  </StyledText>
-                </View>
-              )}
-            </ImageBackground>
+              resizeMode="cover"
+            />
           </View>
         )}
+
+        <View style={styles.bubbleContainer}>
+          <CustomIcon
+            name="ChatsTeardrop"
+            color={COLORS.textSecondary}
+            size={20}
+          />
+          <StyledText style={styles.replyCount}>{item.replyCount}</StyledText>
+        </View>
       </TouchableOpacity>
     );
   },
@@ -169,6 +176,15 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 11,
     fontFamily: 'Roboto-Medium',
+  },
+  replyCount: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  bubbleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 });
 

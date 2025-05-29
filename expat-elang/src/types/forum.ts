@@ -4,6 +4,11 @@ export interface ForumCategoryApi {
   total_post?: string; // String number
 }
 
+export interface ForumFilterParams {
+  search?: string;
+  categories?: string;
+}
+
 export interface ForumCategoriesApiResponse {
   status: number;
   message: string;
@@ -133,4 +138,9 @@ export interface CreateForumPayload {
 
 export interface UpdateForumPayload extends CreateForumPayload {
   id: string;
+}
+
+export interface ForumReplyPayload {
+  id_forum: string;
+  reply_content: string;
 }

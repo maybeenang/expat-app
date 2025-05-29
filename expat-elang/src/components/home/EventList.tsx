@@ -55,7 +55,7 @@ const EventList = () => {
     data: eventItems,
     isLoading: isLoadingEvents,
     error: errorEvents,
-  } = useEventItemsInfinite(null);
+  } = useEventItemsInfinite({});
 
   if (isLoadingEvents) {
     return (

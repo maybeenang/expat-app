@@ -10,6 +10,7 @@ import {
   USER_FORUM_CATEGORIES_ENDPOINT,
   ADMIN_FORUM_UPDATE_ENDPOINT,
   ADMIN_FORUM_DELETE_ENDPOINT,
+  ADMIN_FORUM_REPLY_ENDPOINT,
 } from '../constants/api'; // Ganti ke DEFAULT_FORUM_LIMIT
 import type {
   ForumCategoriesApiResponse,
@@ -19,6 +20,8 @@ import type {
   CreateForumPayload,
   UpdateForumPayload,
   ForumReply,
+  ForumFilterParams,
+  ForumReplyPayload,
 } from '../types/forum';
 import apiClient from './authService';
 import {
@@ -56,7 +59,7 @@ export const fetchForumCategoriesApi = async (): Promise<
 // Fetch List Forum (pagination & filter category ID)
 export const fetchForumTopicsApi = async (
   {pageParam = 1},
-  categoryId?: string,
+  filter: ForumFilterParams,
 ): Promise<ForumListApiResponse> => {
   const isLoggedIn = useAuthStore.getState().isLoggedIn;
 
@@ -64,9 +67,13 @@ export const fetchForumTopicsApi = async (
     const params: Record<string, string | number> = {
       page: pageParam,
       limit: DEFAULT_FORUM_LIMIT,
+      search: filter.search || '',
     };
 
-    if (categoryId === MY_FORUM_CATEGORY_PLACEHOLDER.name && isLoggedIn) {
+    if (
+      filter.categories === MY_FORUM_CATEGORY_PLACEHOLDER.name &&
+      isLoggedIn
+    ) {
       // Use admin_forum endpoint for "Forum Saya"
       const response = await apiClient.get<ForumListApiResponse>(
         ADMIN_FORUM_LIST_ENDPOINT,
@@ -75,9 +82,11 @@ export const fetchForumTopicsApi = async (
       return response.data;
     }
 
-    params.categories = categoryId || '';
+    params.categories = filter.categories || '';
 
-    if (categoryId?.trim() === ALL_FORUM_CATEGORY_PLACEHOLDER.name.trim()) {
+    if (
+      filter.categories?.trim() === ALL_FORUM_CATEGORY_PLACEHOLDER.name.trim()
+    ) {
       delete params.categories;
     }
 
@@ -121,6 +130,29 @@ export const fetchForumDetailApi = async (
       throw new Error(
         error.response.data?.message ||
           `Failed to fetch forum detail: ${forumId}`,
+      );
+    }
+
+    throw new Error('Network error or failed to connect');
+  }
+};
+
+export const adminForumReplyApi = async (payload: ForumReplyPayload) => {
+  try {
+    const formData = new FormData();
+    formData.append('id_forum', payload.id_forum);
+    formData.append('reply_content', payload.reply_content);
+
+    return await apiClient.post(ADMIN_FORUM_REPLY_ENDPOINT, payload, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  } catch (error) {
+    console.log('Error response:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data?.message || 'Failed to post forum reply',
       );
     }
 

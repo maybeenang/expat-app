@@ -9,6 +9,7 @@ import {
   Dimensions,
   StatusBar,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import Swiper from 'react-native-swiper';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -23,42 +24,12 @@ import RenderHTML, {MixedStyleDeclaration} from 'react-native-render-html';
 import {CustomIcon} from '../../../components/common/CustomPhosporIcon';
 import ForumReplyItem from '../../../components/forum/ForumReplyItem';
 import ForumReplyInput from '../../../components/forum/ForumReplyInput';
+import {useAuthStore} from '../../../store/useAuthStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ForumDetail'>;
 
 const {width} = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.6;
-
-const repliesDemo: ProcessedForumReply[] = [
-  {
-    id: '1',
-    author: 'John Doe',
-    images: [
-      'https://picsum.photos/200/300.jpg',
-      'https://picsum.photos/200/300.jpg',
-      'https://picsum.photos/200/300.jpg',
-      'https://picsum.photos/200/300.jpg',
-      'https://picsum.photos/200/300.jpg',
-    ],
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    dateFormatted: '2023-10-01',
-  },
-  {
-    id: '2',
-    author: 'John Doe',
-    images: [],
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    dateFormatted: '2023-10-01',
-  },
-  {
-    id: '3',
-    author: 'John Doe',
-    images: [],
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    dateFormatted: '2023-10-01',
-  },
-];
 
 // HTML styles for better rendering
 const htmlStyles: Record<string, MixedStyleDeclaration> = {
@@ -139,6 +110,8 @@ const formatPlainText = (text: string): string => {
 };
 
 const ForumDetailScreen = ({route}: Props) => {
+  const {isLoggedIn} = useAuthStore();
+
   const {forumId} = route.params;
   const {data, isLoading, error, refetch} = useForumDetailQuery(forumId);
 
@@ -180,18 +153,22 @@ const ForumDetailScreen = ({route}: Props) => {
         />
       );
     }
-    return (
-      <Text style={styles.plainText}>
-        {formatPlainText(content)}
-      </Text>
-    );
+    return <Text style={styles.plainText}>{formatPlainText(content)}</Text>;
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            colors={[COLORS.primary]}
+          />
+        }>
         <View style={{minHeight: width * 0.5}}>
           <View style={styles.metaContainer}>
             <View style={styles.authorContainer}>
@@ -201,13 +178,10 @@ const ForumDetailScreen = ({route}: Props) => {
                 type="fill"
                 color={COLORS.greyMedium}
               />
-              <View>
+              <View style={{flex: 1, flexDirection: 'column', gap: 4}}>
                 <View
                   style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-                  <StyledText
-                    style={[styles.author]}
-                    numberOfLines={1}
-                    weight="medium">
+                  <StyledText style={[styles.author]} weight="medium">
                     {mainTopic.author}
                   </StyledText>
                   {mainTopic.firstCategory && (
@@ -255,7 +229,7 @@ const ForumDetailScreen = ({route}: Props) => {
           <Text style={styles.sectionTitle}>Replies</Text>
         </View>
 
-        <ForumReplyInput />
+        {isLoggedIn && <ForumReplyInput forumId={forumId} />}
 
         <FlatList
           data={replies}

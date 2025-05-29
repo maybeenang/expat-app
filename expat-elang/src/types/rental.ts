@@ -5,6 +5,12 @@ export interface RentalCategory {
   label: string;
 }
 
+export interface RentalFilterParams {
+  search?: string;
+  location?: string;
+  categories?: string;
+}
+
 export interface RentalCategoriesApiResponse {
   status: number;
   message: string;

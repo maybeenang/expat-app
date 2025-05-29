@@ -8,7 +8,7 @@ import COLORS from '../constants/colors';
 import ExploreScreen from '../screens/main/ExploreScreen';
 import {getTabBarIconName} from '../utils/helpers';
 import NoRippleTabBarButton from '../components/tabbar/NoRippleTabBarButton';
-import {StyleSheet, TouchableOpacity} from 'react-native';
+import {Alert, StyleSheet, TouchableOpacity} from 'react-native';
 import EventScreen from '../screens/main/EventScreen';
 import {CustomIcon} from '../components/common/CustomPhosporIcon';
 import HomeScreen from '../screens/main/HomeScreen';
@@ -30,49 +30,20 @@ const MainTabNavigator = () => {
             <DrawerSearchHeader
               searchPlaceholder="Search"
               showCreateButton={false}
+              searchable={false}
+              handleSearchPress={() => {
+                Alert.alert('Search', 'This feature is not available yet.', [
+                  {text: 'OK'},
+                ]);
+              }}
             />
           ),
         }}
       />
 
-      <Tab.Screen
-        name="Event"
-        component={EventScreen}
-        options={{
-          headerTitle: () => (
-            <DrawerSearchHeader
-              searchPlaceholder="Search Event"
-              createScreen="EventCreate"
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Rental"
-        component={ExploreScreen}
-        options={{
-          headerTitle: () => (
-            <DrawerSearchHeader
-              searchPlaceholder="Search Rental"
-              createScreen="RentalCreate"
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Forum"
-        component={ForumScreen}
-        options={{
-          headerTitle: () => (
-            <DrawerSearchHeader
-              searchPlaceholder="Search Forum"
-              searchScreen="ForumSearch"
-              createScreen="ForumCreate"
-            />
-          ),
-        }}
-      />
+      <Tab.Screen name="Event" component={EventScreen} options={{}} />
+      <Tab.Screen name="Rental" component={ExploreScreen} options={{}} />
+      <Tab.Screen name="Forum" component={ForumScreen} options={{}} />
 
       <Tab.Screen name="Notification" component={NotificationScreen} />
     </Tab.Navigator>
@@ -84,6 +55,7 @@ const screenOptions = ({
   navigation,
 }: any): BottomTabNavigationOptions => {
   return {
+    tabBarHideOnKeyboard: true,
     headerShown: true,
     tabBarIcon: ({focused, color, size}) => {
       const iconName = getTabBarIconName(route.name);

@@ -3,6 +3,14 @@ export interface EventCategoryApi {
   name: string;
 }
 
+export interface EventFilterParams {
+  search?: string;
+  location?: string;
+  categories?: string;
+  bulan?: string;
+  tahun?: string;
+}
+
 export interface EventCategoriesApiResponse {
   status: number;
   message: string;

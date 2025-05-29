@@ -70,19 +70,7 @@ export function AppDrawer() {
           headerShown: false,
         }}
       />
-      <Drawer.Screen
-        name="Blog"
-        component={BlogScreen}
-        options={{
-          headerTitle: () => (
-            <DrawerSearchHeader
-              searchPlaceholder="Search Blog"
-              searchScreen="BlogSearch"
-              showCreateButton={false}
-            />
-          ),
-        }}
-      />
+      <Drawer.Screen name="Blog" component={BlogScreen} options={{}} />
       <Drawer.Screen name="Gallery" component={GalleryScreen} />
       <Drawer.Screen
         name="Restaurant"
@@ -108,19 +96,7 @@ export function AppDrawer() {
           ),
         }}
       />
-      <Drawer.Screen
-        name="Jobs"
-        component={JobsScreen}
-        options={{
-          headerTitle: () => (
-            <DrawerSearchHeader
-              searchPlaceholder="Search Jobs"
-              searchScreen="JobSearch"
-              createScreen="JobCreate"
-            />
-          ),
-        }}
-      />
+      <Drawer.Screen name="Jobs" component={JobsScreen} options={{}} />
       <Drawer.Screen
         name="Profile"
         component={AccountStackNavigator}

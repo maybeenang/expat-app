@@ -15,6 +15,7 @@ import {
   EventCategoriesApiResponse,
   EventCategoryApi,
   EventDetailApiResponse,
+  EventFilterParams,
   EventItemApi,
   EventListApiResponse,
   EventPriceApiResponse,
@@ -58,27 +59,29 @@ export const fetchEventCategoriesApi = async (): Promise<
 
 export const fetchEventItemsApi = async (
   {pageParam = 1},
-  categoryId?: string,
+  filter: EventFilterParams,
 ): Promise<EventListApiResponse> => {
   const isLoggedIn = useAuthStore.getState().isLoggedIn;
 
   const params: Record<string, string | number> = {
     page: pageParam,
     limit: DEFAULT_EVENT_LIMIT,
-    categories: categoryId || '',
+    ...filter,
   };
 
   let endpoint = EVENT_ENDPOINT;
 
-  if (categoryId === MY_EVENT_CATEGORY.id && isLoggedIn) {
+  if (filter.categories === MY_EVENT_CATEGORY.id && isLoggedIn) {
     endpoint = EVENT_ADMIN_ENDPOINT;
     // delete categories from params
     delete params.categories;
   }
 
-  if (categoryId === ALL_EVENT_CATEGORY_PLACEHOLDER.id) {
+  if (filter.categories === ALL_EVENT_CATEGORY_PLACEHOLDER.id) {
     delete params.categories;
   }
+
+  console.log('params:', params);
 
   try {
     const response = await apiClient.get<EventListApiResponse>(endpoint, {
