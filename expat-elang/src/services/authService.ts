@@ -86,10 +86,10 @@ export const registerApiCall = async (
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-      }
+      },
     );
 
-    if (response.data && response.data.status === "200") {
+    if (response.data && response.data.status === '200') {
       return response.data.data;
     } else {
       throw new Error(response.data.message || 'Invalid response data');
@@ -139,7 +139,7 @@ export const forgotPasswordApiCall = async (
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-      }
+      },
     );
 
     if (response.data && response.data.status === 200) {
@@ -149,7 +149,9 @@ export const forgotPasswordApiCall = async (
     }
   } catch (error) {
     if (axios.isAxiosError<ApiErrorData>(error) && error.response) {
-      throw new Error(error.response.data?.message || 'Password reset request failed');
+      throw new Error(
+        error.response.data?.message || 'Password reset request failed',
+      );
     }
     throw new Error('Network error or failed to connect');
   }

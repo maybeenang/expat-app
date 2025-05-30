@@ -11,6 +11,7 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
@@ -38,6 +39,7 @@ import {
 } from '../../../hooks/useRentalQuery'; // Your rental query hooks
 import {UpdateRentalFormData} from '../../../types/rental';
 import FormPriceInput from '../../../components/common/FormPriceInput';
+import RichTextEditor from '../../../components/common/RichTextEditor';
 import ImageSelectionManager, {
   EnhancedImageAsset,
   ExistingImageType,
@@ -102,10 +104,6 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
       typeDetailsOptions.find(opt => opt.label.toUpperCase() === 'MAIN')?.value,
     [typeDetailsOptions],
   );
-
-  useEffect(() => {
-    console.log(enhancedImages.length);
-  }, [enhancedImages]);
 
   // --- Form Population Effect ---
   useEffect(() => {
@@ -346,144 +344,30 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContentContainer}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.formContainer}>
-          <Text style={styles.screenTitle}>Edit Rental</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContentContainer}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.formContainer}>
+            <Text style={styles.screenTitle}>Edit Rental</Text>
 
-          {/* --- Standard Fields --- */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Judul/Nama Properti *</Text>
-            <Controller
-              control={control}
-              name="title"
-              rules={{required: 'Judul properti harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Contoh: Kost Eksklusif Mawar"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!updateMutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.title?.message} />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Status Pembayaran *</Text>
-            <Controller
-              control={control}
-              name="status_paid"
-              rules={{required: 'Status pembayaran harus dipilih'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <Dropdown
-                  mode="modal"
-                  style={[
-                    styles.dropdownPlaceholder,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
-                  data={paidOptions}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Pilih Status"
-                  value={value || null}
-                  onChange={item => onChange(item.value)}
-                  onBlur={onBlur}
-                  disable={updateMutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.status_paid?.message} />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Tipe Properti *</Text>
-            <Controller
-              control={control}
-              name="type"
-              rules={{required: 'Tipe properti harus dipilih'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <Dropdown
-                  mode="modal"
-                  style={[
-                    styles.dropdownPlaceholder,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
-                  data={typeOptions}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Pilih Tipe"
-                  value={value || null}
-                  onChange={item => onChange(item.value)}
-                  onBlur={onBlur}
-                  disable={updateMutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.type?.message} />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Alamat Lengkap *</Text>
-            <Controller
-              control={control}
-              name="address"
-              rules={{required: 'Alamat harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Jl. Contoh No. 123..."
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!updateMutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.address?.message} />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Alamat Tambahan (Opsional)</Text>
-            <Controller
-              control={control}
-              name="address2"
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Contoh: Blok C"
-                  value={value ?? ''}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!updateMutation.isPending}
-                />
-              )}
-            />
-          </View>
-          <View style={styles.addressRow}>
-            <View style={[styles.inputGroup, styles.addressCity]}>
-              <Text style={styles.label}>Kota *</Text>
+            {/* --- Standard Fields --- */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Judul/Nama Properti *</Text>
               <Controller
                 control={control}
-                name="city"
-                rules={{required: 'Kota harus diisi'}}
+                name="title"
+                rules={{required: 'Judul properti harus diisi'}}
                 render={({field: {onChange, onBlur, value}}) => (
                   <TextInput
                     style={[
                       styles.input,
                       updateMutation.isPending && styles.disabledInput,
                     ]}
-                    placeholder="Kota"
+                    placeholder="Contoh: Kost Eksklusif Mawar"
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -491,233 +375,25 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
                   />
                 )}
               />
-              <ErrorLabel error={errors.city?.message} />
+              <ErrorLabel error={errors.title?.message} />
             </View>
-            <View style={[styles.inputGroup, styles.addressState]}>
-              <Text style={styles.label}>Provinsi *</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Status Pembayaran *</Text>
               <Controller
                 control={control}
-                name="state"
-                rules={{required: 'Provinsi harus diisi'}}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      updateMutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="Provinsi"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!updateMutation.isPending}
-                  />
-                )}
-              />
-              <ErrorLabel error={errors.state?.message} />
-            </View>
-            <View style={[styles.inputGroup, styles.addressZip]}>
-              <Text style={styles.label}>Kode Pos *</Text>
-              <Controller
-                control={control}
-                name="zip"
-                rules={{
-                  required: 'Kode pos harus diisi',
-                  pattern: {value: /^\d{5}$/, message: 'Kode pos 5 digit'},
-                }}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      updateMutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="12345"
-                    keyboardType="number-pad"
-                    maxLength={5}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!updateMutation.isPending}
-                  />
-                )}
-              />
-              <ErrorLabel error={errors.zip?.message} />
-            </View>
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Deskripsi Properti *</Text>
-            <Controller
-              control={control}
-              name="description"
-              rules={{required: 'Deskripsi properti harus diisi'}}
-              render={({field: {onChange, onBlur, value}}) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.textArea,
-                    updateMutation.isPending && styles.disabledInput,
-                  ]}
-                  placeholder="Jelaskan fasilitas..."
-                  multiline
-                  textAlignVertical="top"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  editable={!updateMutation.isPending}
-                />
-              )}
-            />
-            <ErrorLabel error={errors.description?.message} />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Tersedia Mulai Tanggal *</Text>
-            <Controller
-              control={control}
-              name="availability"
-              rules={{required: 'Tanggal ketersediaan harus diisi'}}
-              render={({field: {onChange, value}}) => (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.dropdownPlaceholder,
-                      updateMutation.isPending && styles.disabledInput,
-                    ]}
-                    onPress={() =>
-                      !updateMutation.isPending && setOpenDatePicker(true)
-                    }
-                    activeOpacity={0.7}
-                    disabled={updateMutation.isPending}>
-                    <Text style={styles.dropdownText}>
-                      {value && isValid(parseISO(value))
-                        ? format(parseISO(value), 'dd MMM yyyy')
-                        : 'Pilih Tanggal'}
-                    </Text>
-                    <Icon
-                      name="calendar-outline"
-                      size={20}
-                      color={COLORS.greyDark}
-                    />
-                  </TouchableOpacity>
-                  <DatePicker
-                    modal
-                    mode="date"
-                    open={openDatePicker}
-                    date={availabilityDate}
-                    onConfirm={_date => {
-                      setOpenDatePicker(false);
-                      setAvailabilityDate(_date);
-                      onChange(formatSimpleDateForAPI(_date));
-                    }}
-                    onCancel={() => setOpenDatePicker(false)}
-                    title="Pilih Tanggal Tersedia"
-                    confirmText="Konfirmasi"
-                    cancelText="Batal"
-                    minimumDate={new Date()}
-                  />
-                </>
-              )}
-            />
-            <ErrorLabel error={errors.availability?.message} />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Harga Sewa (per satuan waktu) *</Text>
-            <Controller
-              control={control}
-              name="price"
-              rules={{
-                required: 'Harga sewa harus diisi',
-                pattern: {value: /^\d+$/, message: 'Harga harus angka'},
-              }}
-              render={({field: {onChange, onBlur, value}}) => (
-                <FormPriceInput
-                  control={control}
-                  name="price"
-                  label=""
-                  rules={{
-                    required: 'Harga sewa harus diisi',
-                    pattern: {value: /^\d+$/, message: 'Harga harus angka'},
-                  }}
-                  error={errors.price?.message}
-                  isDisabled={updateMutation.isPending}
-                  placeholder="500000"
-                />
-              )}
-            />
-            <ErrorLabel error={errors.price?.message} />
-          </View>
-          <View style={styles.stayRow}>
-            <View style={[styles.inputGroup, styles.stayDuration]}>
-              <Text style={styles.label}>Min. Sewa *</Text>
-              <Controller
-                control={control}
-                name="stay_min"
-                rules={{
-                  required: 'Min. sewa harus diisi',
-                  pattern: {value: /^[1-9]\d*$/, message: 'Harus angka > 0'},
-                }}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      updateMutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="1"
-                    keyboardType="number-pad"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!updateMutation.isPending}
-                  />
-                )}
-              />
-              <ErrorLabel error={errors.stay_min?.message} />
-            </View>
-            <View style={[styles.inputGroup, styles.stayDuration]}>
-              <Text style={styles.label}>Maks. Sewa *</Text>
-              <Controller
-                control={control}
-                name="stay_max"
-                rules={{
-                  required: 'Maks. sewa harus diisi',
-                  pattern: {value: /^[1-9]\d*$/, message: 'Harus angka > 0'},
-                  validate: val =>
-                    parseInt(val || '0') >=
-                      parseInt(watch('stay_min') || '0') ||
-                    'Maksimal < minimal',
-                }}
-                render={({field: {onChange, onBlur, value}}) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      updateMutation.isPending && styles.disabledInput,
-                    ]}
-                    placeholder="12"
-                    keyboardType="number-pad"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    editable={!updateMutation.isPending}
-                  />
-                )}
-              />
-              <ErrorLabel error={errors.stay_max?.message} />
-            </View>
-            <View style={[styles.inputGroup, styles.stayType]}>
-              <Text style={styles.label}>Satuan *</Text>
-              <Controller
-                control={control}
-                name="stay_type"
-                rules={{required: 'Satuan waktu sewa harus dipilih'}}
+                name="status_paid"
+                rules={{required: 'Status pembayaran harus dipilih'}}
                 render={({field: {onChange, onBlur, value}}) => (
                   <Dropdown
                     mode="modal"
-                    data={stayTypeOptions}
-                    labelField="label"
-                    valueField="value"
                     style={[
                       styles.dropdownPlaceholder,
                       updateMutation.isPending && styles.disabledInput,
                     ]}
-                    placeholder="Bulan/Tahun"
+                    data={paidOptions}
+                    labelField="label"
+                    valueField="value"
+                    placeholder="Pilih Status"
                     value={value || null}
                     onChange={item => onChange(item.value)}
                     onBlur={onBlur}
@@ -725,130 +401,365 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
                   />
                 )}
               />
-              <ErrorLabel error={errors.stay_type?.message} />
+              <ErrorLabel error={errors.status_paid?.message} />
             </View>
-          </View>
-
-          {/* --- KT Details Section --- */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.detailsTitle}>Detail Fasilitas / Ruangan</Text>
-            {fields.map((field, index) => {
-              const currentTypeDetailsId = watch(
-                `kt_details.${index}.type_details`,
-              );
-              const isMainType =
-                !!mainTypeValue && currentTypeDetailsId === mainTypeValue; // Use mainTypeValue
-              return (
-                <View key={field.id} style={styles.detailItemContainer}>
-                  <View style={styles.detailItemHeader}>
-                    <Text style={styles.detailItemIndex}>
-                      Detail #{index + 1}
-                    </Text>
-                    {fields.length > 1 && (
-                      <TouchableOpacity
-                        onPress={() =>
-                          !updateMutation.isPending && remove(index)
-                        }
-                        disabled={updateMutation.isPending}
-                        style={styles.removeDetailButton}>
-                        <Icon
-                          name="trash-outline"
-                          size={20}
-                          color={COLORS.red}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Tipe Detail *</Text>
-                    <Controller
-                      control={control}
-                      name={`kt_details.${index}.type_details`}
-                      rules={{required: 'Tipe detail harus dipilih'}}
-                      render={({field: {onChange, onBlur, value}}) => (
-                        <Dropdown
-                          mode="modal"
-                          style={[
-                            styles.dropdownPlaceholder,
-                            updateMutation.isPending && styles.disabledInput,
-                          ]}
-                          data={typeDetailsOptions}
-                          labelField="label"
-                          valueField="value"
-                          placeholder="Pilih Tipe"
-                          value={value || null}
-                          onChange={item => {
-                            onChange(item.value);
-                            if (mainTypeValue && item.value !== mainTypeValue) {
-                              setValue(
-                                `kt_details.${index}.nama_details1`,
-                                '',
-                                {shouldValidate: true},
-                              );
-                              setValue(
-                                `kt_details.${index}.nama_details2`,
-                                '',
-                                {shouldValidate: true},
-                              );
-                            } else if (item.value === mainTypeValue) {
-                              trigger(`kt_details.${index}.nama_details1`);
-                              trigger(`kt_details.${index}.nama_details2`);
-                            }
-                          }}
-                          onBlur={onBlur}
-                          disable={updateMutation.isPending}
-                        />
-                      )}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Tipe Properti *</Text>
+              <Controller
+                control={control}
+                name="type"
+                rules={{required: 'Tipe properti harus dipilih'}}
+                render={({field: {onChange, onBlur, value}}) => (
+                  <Dropdown
+                    mode="modal"
+                    style={[
+                      styles.dropdownPlaceholder,
+                      updateMutation.isPending && styles.disabledInput,
+                    ]}
+                    data={typeOptions}
+                    labelField="label"
+                    valueField="value"
+                    placeholder="Pilih Tipe"
+                    value={value || null}
+                    onChange={item => onChange(item.value)}
+                    onBlur={onBlur}
+                    disable={updateMutation.isPending}
+                  />
+                )}
+              />
+              <ErrorLabel error={errors.type?.message} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Alamat Lengkap *</Text>
+              <Controller
+                control={control}
+                name="address"
+                rules={{required: 'Alamat harus diisi'}}
+                render={({field: {onChange, onBlur, value}}) => (
+                  <TextInput
+                    style={[
+                      styles.input,
+                      updateMutation.isPending && styles.disabledInput,
+                    ]}
+                    placeholder="Jl. Contoh No. 123..."
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    editable={!updateMutation.isPending}
+                  />
+                )}
+              />
+              <ErrorLabel error={errors.address?.message} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Alamat Tambahan (Opsional)</Text>
+              <Controller
+                control={control}
+                name="address2"
+                render={({field: {onChange, onBlur, value}}) => (
+                  <TextInput
+                    style={[
+                      styles.input,
+                      updateMutation.isPending && styles.disabledInput,
+                    ]}
+                    placeholder="Contoh: Blok C"
+                    value={value ?? ''}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    editable={!updateMutation.isPending}
+                  />
+                )}
+              />
+            </View>
+            <View style={styles.addressRow}>
+              <View style={[styles.inputGroup, styles.addressCity]}>
+                <Text style={styles.label}>Kota *</Text>
+                <Controller
+                  control={control}
+                  name="city"
+                  rules={{required: 'Kota harus diisi'}}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        updateMutation.isPending && styles.disabledInput,
+                      ]}
+                      placeholder="Kota"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      editable={!updateMutation.isPending}
                     />
-                    <ErrorLabel
-                      error={errors.kt_details?.[index]?.type_details?.message}
+                  )}
+                />
+                <ErrorLabel error={errors.city?.message} />
+              </View>
+              <View style={[styles.inputGroup, styles.addressState]}>
+                <Text style={styles.label}>Provinsi *</Text>
+                <Controller
+                  control={control}
+                  name="state"
+                  rules={{required: 'Provinsi harus diisi'}}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        updateMutation.isPending && styles.disabledInput,
+                      ]}
+                      placeholder="Provinsi"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      editable={!updateMutation.isPending}
                     />
-                  </View>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Detail Kuantitas/Nama 1</Text>
-                    <Controller
-                      control={control}
-                      name={`kt_details.${index}.nama_details1`}
-                      rules={{
-                        required: isMainType ? 'Kuantitas harus diisi' : false,
-                      }}
-                      render={({field: {onChange, onBlur, value}}) => (
-                        <TextInput
-                          style={[
-                            styles.input,
-                            updateMutation.isPending && styles.disabledInput,
-                            !isMainType && styles.disabledInput,
-                          ]}
-                          placeholder={
-                            isMainType
-                              ? 'Contoh: 2'
-                              : '(Hanya aktif jika tipe MAIN)'
-                          }
-                          value={value ?? ''}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          editable={!updateMutation.isPending && isMainType}
-                          keyboardType={isMainType ? 'number-pad' : 'default'}
-                        />
-                      )}
+                  )}
+                />
+                <ErrorLabel error={errors.state?.message} />
+              </View>
+              <View style={[styles.inputGroup, styles.addressZip]}>
+                <Text style={styles.label}>Kode Pos *</Text>
+                <Controller
+                  control={control}
+                  name="zip"
+                  rules={{
+                    required: 'Kode pos harus diisi',
+                    pattern: {value: /^\d{5}$/, message: 'Kode pos 5 digit'},
+                  }}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        updateMutation.isPending && styles.disabledInput,
+                      ]}
+                      placeholder="12345"
+                      keyboardType="number-pad"
+                      maxLength={5}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      editable={!updateMutation.isPending}
                     />
-                    {isMainType && (
-                      <ErrorLabel
-                        error={
-                          errors.kt_details?.[index]?.nama_details1?.message
-                        }
+                  )}
+                />
+                <ErrorLabel error={errors.zip?.message} />
+              </View>
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Deskripsi Properti *</Text>
+              <Controller
+                control={control}
+                name="description"
+                rules={{required: 'Deskripsi properti harus diisi'}}
+                render={({field: {onChange, value}}) => (
+                  <RichTextEditor
+                    initialContent={rentalData.rent_descriptions || ''}
+                    onContentChange={onChange}
+                    editorHeight={250}
+                    disabled={updateMutation.isPending}
+                  />
+                )}
+              />
+              <ErrorLabel error={errors.description?.message} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Tersedia Mulai Tanggal *</Text>
+              <Controller
+                control={control}
+                name="availability"
+                rules={{required: 'Tanggal ketersediaan harus diisi'}}
+                render={({field: {onChange, value}}) => (
+                  <>
+                    <TouchableOpacity
+                      style={[
+                        styles.dropdownPlaceholder,
+                        updateMutation.isPending && styles.disabledInput,
+                      ]}
+                      onPress={() =>
+                        !updateMutation.isPending && setOpenDatePicker(true)
+                      }
+                      activeOpacity={0.7}
+                      disabled={updateMutation.isPending}>
+                      <Text style={styles.dropdownText}>
+                        {value && isValid(parseISO(value))
+                          ? format(parseISO(value), 'dd MMM yyyy')
+                          : 'Pilih Tanggal'}
+                      </Text>
+                      <Icon
+                        name="calendar-outline"
+                        size={20}
+                        color={COLORS.greyDark}
                       />
-                    )}
-                  </View>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Detail Unit/Nama 2</Text>
-                    {isMainType ? (
+                    </TouchableOpacity>
+                    <DatePicker
+                      modal
+                      mode="date"
+                      open={openDatePicker}
+                      date={availabilityDate}
+                      onConfirm={_date => {
+                        setOpenDatePicker(false);
+                        setAvailabilityDate(_date);
+                        onChange(formatSimpleDateForAPI(_date));
+                      }}
+                      onCancel={() => setOpenDatePicker(false)}
+                      title="Pilih Tanggal Tersedia"
+                      confirmText="Konfirmasi"
+                      cancelText="Batal"
+                      minimumDate={new Date()}
+                    />
+                  </>
+                )}
+              />
+              <ErrorLabel error={errors.availability?.message} />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Harga Sewa (per satuan waktu) *</Text>
+              <Controller
+                control={control}
+                name="price"
+                rules={{
+                  required: 'Harga sewa harus diisi',
+                  pattern: {value: /^\d+$/, message: 'Harga harus angka'},
+                }}
+                render={({field: {onChange, onBlur, value}}) => (
+                  <FormPriceInput
+                    control={control}
+                    name="price"
+                    label=""
+                    rules={{
+                      required: 'Harga sewa harus diisi',
+                      pattern: {value: /^\d+$/, message: 'Harga harus angka'},
+                    }}
+                    error={errors.price?.message}
+                    isDisabled={updateMutation.isPending}
+                    placeholder="500000"
+                  />
+                )}
+              />
+              <ErrorLabel error={errors.price?.message} />
+            </View>
+            <View style={styles.stayRow}>
+              <View style={[styles.inputGroup, styles.stayDuration]}>
+                <Text style={styles.label}>Min. Sewa *</Text>
+                <Controller
+                  control={control}
+                  name="stay_min"
+                  rules={{
+                    required: 'Min. sewa harus diisi',
+                    pattern: {value: /^[1-9]\d*$/, message: 'Harus angka > 0'},
+                  }}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        updateMutation.isPending && styles.disabledInput,
+                      ]}
+                      placeholder="1"
+                      keyboardType="number-pad"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      editable={!updateMutation.isPending}
+                    />
+                  )}
+                />
+                <ErrorLabel error={errors.stay_min?.message} />
+              </View>
+              <View style={[styles.inputGroup, styles.stayDuration]}>
+                <Text style={styles.label}>Maks. Sewa *</Text>
+                <Controller
+                  control={control}
+                  name="stay_max"
+                  rules={{
+                    required: 'Maks. sewa harus diisi',
+                    pattern: {value: /^[1-9]\d*$/, message: 'Harus angka > 0'},
+                    validate: val =>
+                      parseInt(val || '0') >=
+                        parseInt(watch('stay_min') || '0') ||
+                      'Maksimal < minimal',
+                  }}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        updateMutation.isPending && styles.disabledInput,
+                      ]}
+                      placeholder="12"
+                      keyboardType="number-pad"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      editable={!updateMutation.isPending}
+                    />
+                  )}
+                />
+                <ErrorLabel error={errors.stay_max?.message} />
+              </View>
+              <View style={[styles.inputGroup, styles.stayType]}>
+                <Text style={styles.label}>Satuan *</Text>
+                <Controller
+                  control={control}
+                  name="stay_type"
+                  rules={{required: 'Satuan waktu sewa harus dipilih'}}
+                  render={({field: {onChange, onBlur, value}}) => (
+                    <Dropdown
+                      mode="modal"
+                      data={stayTypeOptions}
+                      labelField="label"
+                      valueField="value"
+                      style={[
+                        styles.dropdownPlaceholder,
+                        updateMutation.isPending && styles.disabledInput,
+                      ]}
+                      placeholder="Bulan/Tahun"
+                      value={value || null}
+                      onChange={item => onChange(item.value)}
+                      onBlur={onBlur}
+                      disable={updateMutation.isPending}
+                    />
+                  )}
+                />
+                <ErrorLabel error={errors.stay_type?.message} />
+              </View>
+            </View>
+
+            {/* --- KT Details Section --- */}
+            <View style={styles.detailsSection}>
+              <Text style={styles.detailsTitle}>
+                Detail Fasilitas / Ruangan
+              </Text>
+              {fields.map((field, index) => {
+                const currentTypeDetailsId = watch(
+                  `kt_details.${index}.type_details`,
+                );
+                const isMainType =
+                  !!mainTypeValue && currentTypeDetailsId === mainTypeValue; // Use mainTypeValue
+                return (
+                  <View key={field.id} style={styles.detailItemContainer}>
+                    <View style={styles.detailItemHeader}>
+                      <Text style={styles.detailItemIndex}>
+                        Detail #{index + 1}
+                      </Text>
+                      {fields.length > 1 && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            !updateMutation.isPending && remove(index)
+                          }
+                          disabled={updateMutation.isPending}
+                          style={styles.removeDetailButton}>
+                          <Icon
+                            name="trash-outline"
+                            size={20}
+                            color={COLORS.red}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Tipe Detail *</Text>
                       <Controller
                         control={control}
-                        name={`kt_details.${index}.nama_details2`}
-                        rules={{
-                          required: isMainType ? 'Unit harus dipilih' : false,
-                        }}
+                        name={`kt_details.${index}.type_details`}
+                        rules={{required: 'Tipe detail harus dipilih'}}
                         render={({field: {onChange, onBlur, value}}) => (
                           <Dropdown
                             mode="modal"
@@ -856,120 +767,213 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
                               styles.dropdownPlaceholder,
                               updateMutation.isPending && styles.disabledInput,
                             ]}
-                            data={typeDetails2Options}
+                            data={typeDetailsOptions}
                             labelField="label"
                             valueField="value"
-                            placeholder="Pilih Unit"
+                            placeholder="Pilih Tipe"
                             value={value || null}
-                            onChange={item => onChange(item.value)}
+                            onChange={item => {
+                              onChange(item.value);
+                              if (
+                                mainTypeValue &&
+                                item.value !== mainTypeValue
+                              ) {
+                                setValue(
+                                  `kt_details.${index}.nama_details1`,
+                                  '',
+                                  {shouldValidate: true},
+                                );
+                                setValue(
+                                  `kt_details.${index}.nama_details2`,
+                                  '',
+                                  {shouldValidate: true},
+                                );
+                              } else if (item.value === mainTypeValue) {
+                                trigger(`kt_details.${index}.nama_details1`);
+                                trigger(`kt_details.${index}.nama_details2`);
+                              }
+                            }}
                             onBlur={onBlur}
                             disable={updateMutation.isPending}
                           />
                         )}
                       />
-                    ) : (
+                      <ErrorLabel
+                        error={
+                          errors.kt_details?.[index]?.type_details?.message
+                        }
+                      />
+                    </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Detail Kuantitas/Nama 1</Text>
                       <Controller
                         control={control}
-                        name={`kt_details.${index}.nama_details2`}
-                        render={({field: {value}}) => (
+                        name={`kt_details.${index}.nama_details1`}
+                        rules={{
+                          required: isMainType
+                            ? 'Kuantitas harus diisi'
+                            : false,
+                        }}
+                        render={({field: {onChange, onBlur, value}}) => (
                           <TextInput
-                            style={[styles.input, styles.disabledInput]}
-                            placeholder="(Hanya aktif jika tipe MAIN)"
-                            value={value as string}
-                            editable={false}
+                            style={[
+                              styles.input,
+                              updateMutation.isPending && styles.disabledInput,
+                              !isMainType && styles.disabledInput,
+                            ]}
+                            placeholder={
+                              isMainType
+                                ? 'Contoh: 2'
+                                : '(Hanya aktif jika tipe MAIN)'
+                            }
+                            value={value ?? ''}
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            editable={!updateMutation.isPending && isMainType}
+                            keyboardType={isMainType ? 'number-pad' : 'default'}
                           />
                         )}
                       />
-                    )}
-                    {isMainType && (
-                      <ErrorLabel
-                        error={
-                          errors.kt_details?.[index]?.nama_details2?.message
-                        }
-                      />
-                    )}
-                  </View>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Deskripsi Detail</Text>
-                    <Controller
-                      control={control}
-                      name={`kt_details.${index}.desc`}
-                      render={({field: {onChange, onBlur, value}}) => (
-                        <TextInput
-                          style={[
-                            styles.input,
-                            updateMutation.isPending && styles.disabledInput,
-                          ]}
-                          placeholder="Contoh: AC, Wifi, Lemari"
-                          value={value ?? ''}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          editable={!updateMutation.isPending}
+                      {isMainType && (
+                        <ErrorLabel
+                          error={
+                            errors.kt_details?.[index]?.nama_details1?.message
+                          }
                         />
                       )}
-                    />
+                    </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Detail Unit/Nama 2</Text>
+                      {isMainType ? (
+                        <Controller
+                          control={control}
+                          name={`kt_details.${index}.nama_details2`}
+                          rules={{
+                            required: isMainType ? 'Unit harus dipilih' : false,
+                          }}
+                          render={({field: {onChange, onBlur, value}}) => (
+                            <Dropdown
+                              mode="modal"
+                              style={[
+                                styles.dropdownPlaceholder,
+                                updateMutation.isPending &&
+                                  styles.disabledInput,
+                              ]}
+                              data={typeDetails2Options}
+                              labelField="label"
+                              valueField="value"
+                              placeholder="Pilih Unit"
+                              value={value || null}
+                              onChange={item => onChange(item.value)}
+                              onBlur={onBlur}
+                              disable={updateMutation.isPending}
+                            />
+                          )}
+                        />
+                      ) : (
+                        <Controller
+                          control={control}
+                          name={`kt_details.${index}.nama_details2`}
+                          render={({field: {value}}) => (
+                            <TextInput
+                              style={[styles.input, styles.disabledInput]}
+                              placeholder="(Hanya aktif jika tipe MAIN)"
+                              value={value as string}
+                              editable={false}
+                            />
+                          )}
+                        />
+                      )}
+                      {isMainType && (
+                        <ErrorLabel
+                          error={
+                            errors.kt_details?.[index]?.nama_details2?.message
+                          }
+                        />
+                      )}
+                    </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Deskripsi Detail</Text>
+                      <Controller
+                        control={control}
+                        name={`kt_details.${index}.desc`}
+                        render={({field: {onChange, onBlur, value}}) => (
+                          <TextInput
+                            style={[
+                              styles.input,
+                              updateMutation.isPending && styles.disabledInput,
+                            ]}
+                            placeholder="Contoh: AC, Wifi, Lemari"
+                            value={value ?? ''}
+                            onChangeText={onChange}
+                            onBlur={onBlur}
+                            editable={!updateMutation.isPending}
+                          />
+                        )}
+                      />
+                    </View>
                   </View>
-                </View>
-              );
-            })}
+                );
+              })}
+              <TouchableOpacity
+                style={[
+                  styles.addDetailButton,
+                  updateMutation.isPending && styles.disabledInput,
+                ]}
+                onPress={() =>
+                  !updateMutation.isPending &&
+                  append({
+                    type_details: '',
+                    nama_details1: '',
+                    nama_details2: '',
+                    desc: '',
+                  })
+                }
+                disabled={updateMutation.isPending}>
+                <Icon
+                  name="add-circle-outline"
+                  size={22}
+                  color={COLORS.primary}
+                />
+                <Text style={styles.addDetailButtonText}>Tambah Detail</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* --- Image Upload Section --- */}
+            <ImageSelectionManager
+              selectedImages={enhancedImages}
+              onImagesChange={setEnhancedImages}
+              existingImages={existingImages}
+              onExistingImagesChange={setExistingImages}
+              imagesToDelete={imagesToDelete}
+              onImagesToDeleteChange={setImagesToDelete}
+              maxImages={10}
+              isDisabled={updateMutation.isPending}
+              label="Gambar Properti (Maks. 10)"
+              showExistingImagesLabel="Gambar Tersimpan"
+              addNewImagesLabel="Tambah Gambar Baru"
+            />
+
+            {/* --- Submit Button --- */}
             <TouchableOpacity
               style={[
-                styles.addDetailButton,
-                updateMutation.isPending && styles.disabledInput,
+                styles.submitButton,
+                updateMutation.isPending && styles.submitButtonDisabled,
               ]}
-              onPress={() =>
-                !updateMutation.isPending &&
-                append({
-                  type_details: '',
-                  nama_details1: '',
-                  nama_details2: '',
-                  desc: '',
-                })
+              activeOpacity={0.8}
+              onPress={
+                !updateMutation.isPending ? handleSubmit(onSubmit) : undefined
               }
               disabled={updateMutation.isPending}>
-              <Icon
-                name="add-circle-outline"
-                size={22}
-                color={COLORS.primary}
-              />
-              <Text style={styles.addDetailButtonText}>Tambah Detail</Text>
+              {updateMutation.isPending ? (
+                <ActivityIndicator color={COLORS.white} size="small" />
+              ) : (
+                <Text style={styles.submitButtonText}>Simpan Perubahan</Text>
+              )}
             </TouchableOpacity>
           </View>
-
-          {/* --- Image Upload Section --- */}
-          <ImageSelectionManager
-            selectedImages={enhancedImages}
-            onImagesChange={setEnhancedImages}
-            existingImages={existingImages}
-            onExistingImagesChange={setExistingImages}
-            imagesToDelete={imagesToDelete}
-            onImagesToDeleteChange={setImagesToDelete}
-            maxImages={10}
-            isDisabled={updateMutation.isPending}
-            label="Gambar Properti (Maks. 10)"
-            showExistingImagesLabel="Gambar Tersimpan"
-            addNewImagesLabel="Tambah Gambar Baru"
-          />
-
-          {/* --- Submit Button --- */}
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              updateMutation.isPending && styles.submitButtonDisabled,
-            ]}
-            activeOpacity={0.8}
-            onPress={
-              !updateMutation.isPending ? handleSubmit(onSubmit) : undefined
-            }
-            disabled={updateMutation.isPending}>
-            {updateMutation.isPending ? (
-              <ActivityIndicator color={COLORS.white} size="small" />
-            ) : (
-              <Text style={styles.submitButtonText}>Simpan Perubahan</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

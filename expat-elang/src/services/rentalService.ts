@@ -188,8 +188,11 @@ export const fetchRentalDetailApi = async (
 
 // @ts-ignore
 export const descExpandable = (desc: string, imgLenght): boolean => {
+  if (!desc) {
+    return false; // Tidak ada deskripsi, tidak perlu expandable
+  }
   const descLength = desc.length;
-  const descWordCount = desc.split(' ').length;
+  const descWordCount = desc?.split(' ').length;
   return descLength > 150 || descWordCount > 30 || imgLenght - 1 > 0;
 };
 
