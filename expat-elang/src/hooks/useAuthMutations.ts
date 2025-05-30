@@ -1,9 +1,16 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {useAuthStore} from '../store/useAuthStore';
-import {loginApiCall} from '../services/authService';
+import {loginApiCall, registerApiCall, forgotPasswordApiCall} from '../services/authService';
 import {AUTH_TOKEN_KEY, AUTH_SESSION_KEY} from '../constants/storage';
-import type {LoginCredentials, LoginApiResponseData} from '../types/auth';
+import type {
+  LoginCredentials, 
+  LoginApiResponseData,
+  RegisterCredentials,
+  RegisterApiResponseData,
+  ForgotPasswordCredentials,
+  ForgotPasswordApiResponse
+} from '../types/auth';
 import {useShallow} from 'zustand/react/shallow';
 import {queryKeys} from '../services/queryKeys';
 
@@ -71,6 +78,48 @@ export const useAuthMutations = () => {
     },
   });
 
+  const registerMutation = useMutation<
+    RegisterApiResponseData,
+    Error,
+    RegisterCredentials
+  >({
+    mutationFn: registerApiCall,
+    onSuccess: async (data: RegisterApiResponseData) => {
+      // Registration successful, but we don't need to store anything yet
+      // User will need to login after successful registration
+    },
+    onError: err => {
+      console.error('Registration error:', err);
+    },
+  });
+
+  const forgotPasswordMutation = useMutation<
+    ForgotPasswordApiResponse,
+    Error,
+    ForgotPasswordCredentials
+  >({
+    mutationFn: forgotPasswordApiCall,
+    onSuccess: async () => {
+      // Password reset request successful, but we don't need to store anything
+      // User will receive email with reset instructions
+    },
+    onError: err => {
+      console.error('Forgot password error:', err);
+    },
+  });
+
+  const {mutateAsync: login, isPending: isLoading, error} = loginMutation;
+  const {
+    mutateAsync: register,
+    isPending: isRegistering,
+    error: registrationError,
+  } = registerMutation;
+  const {
+    mutateAsync: forgotPassword,
+    isPending: isResettingPassword,
+    error: forgotPasswordError,
+  } = forgotPasswordMutation;
+
   const logout = async () => {
     try {
       await EncryptedStorage.removeItem(AUTH_TOKEN_KEY);
@@ -80,14 +129,22 @@ export const useAuthMutations = () => {
     } finally {
       clearAuthState();
       loginMutation.reset();
+      registerMutation.reset();
+      forgotPasswordMutation.reset();
       // TODO: Panggil API logout jika ada
     }
   };
 
   return {
-    login: loginMutation.mutateAsync,
+    login,
+    isLoading,
+    error,
+    register,
+    isRegistering,
+    registrationError,
+    forgotPassword,
+    isResettingPassword,
+    forgotPasswordError,
     logout,
-    isLoading: loginMutation.isPending, // Status loading dari mutation
-    error: loginMutation.error,
   };
 };

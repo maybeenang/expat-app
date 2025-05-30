@@ -9,6 +9,8 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {RootStackParamList} from '../../../navigation/types';
 import COLORS from '../../../constants/colors';
@@ -27,6 +29,7 @@ import ImageSelectionManager, {
   EnhancedImageAsset,
   prepareImagesForSubmission,
 } from '../../../components/common/ImageSelectionManager';
+import RichTextEditor from '../../../components/common/RichTextEditor';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ForumCreate'>;
 
@@ -42,7 +45,9 @@ const ForumCreateScreen = ({navigation}: Props) => {
     content: '',
     categories: [],
   });
-  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>([]);
+  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>(
+    [],
+  );
 
   const createForumMutation = useCreateForumMutation();
   const {data: categories = []} = useForumCategoriesQuery();
@@ -89,7 +94,8 @@ const ForumCreateScreen = ({navigation}: Props) => {
 
     try {
       // Prepare images for submission
-      const {featureImageId, imagesToUpload, imageInfo} = prepareImagesForSubmission(enhancedImages);
+      const {featureImageId, imagesToUpload, imageInfo} =
+        prepareImagesForSubmission(enhancedImages);
 
       const payload: CreateForumPayload = {
         forum_title: formData.title,
@@ -125,112 +131,114 @@ const ForumCreateScreen = ({navigation}: Props) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <ScrollView style={styles.container}>
-        {/* Title Input */}
-        <View style={styles.inputGroup}>
-          <StyledText style={styles.label}>Judul Forum</StyledText>
-          <TextInput
-            style={styles.input}
-            readOnly={createForumMutation.isPending}
-            placeholder="Masukkan judul forum"
-            placeholderTextColor={COLORS.greyDark}
-            value={formData.title}
-            onChangeText={text => setFormData(prev => ({...prev, title: text}))}
-          />
-        </View>
-
-        {/* Content Input */}
-        <View style={styles.inputGroup}>
-          <StyledText style={styles.label}>Konten Forum</StyledText>
-          <TextInput
-            style={[styles.input, styles.contentInput]}
-            placeholder="Tulis konten forum di sini"
-            placeholderTextColor={COLORS.greyDark}
-            readOnly={createForumMutation.isPending}
-            value={formData.content}
-            onChangeText={text =>
-              setFormData(prev => ({...prev, content: text}))
-            }
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-          />
-        </View>
-
-        {/* Image Selection Manager */}
-        <ImageSelectionManager
-          selectedImages={enhancedImages}
-          onImagesChange={setEnhancedImages}
-          maxImages={5}
-          isDisabled={createForumMutation.isPending}
-          label="Gambar Forum (Maks. 5)"
-          addNewImagesLabel="Tambah Gambar"
-        />
-
-        {/* Categories Selection */}
-        <View style={styles.inputGroup}>
-          <StyledText style={styles.label}>Kategori</StyledText>
-          <View style={styles.categoriesContainer}>
-            {categories.map(category => {
-              if (
-                category.id === ALL_FORUM_CATEGORY_PLACEHOLDER.id ||
-                category.id === MY_FORUM_CATEGORY_PLACEHOLDER.id
-              ) {
-                return null;
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView style={styles.container}>
+          {/* Title Input */}
+          <View style={styles.inputGroup}>
+            <StyledText style={styles.label}>Judul Forum</StyledText>
+            <TextInput
+              style={styles.input}
+              readOnly={createForumMutation.isPending}
+              placeholder="Masukkan judul forum"
+              placeholderTextColor={COLORS.greyDark}
+              value={formData.title}
+              onChangeText={text =>
+                setFormData(prev => ({...prev, title: text}))
               }
-              const isSelected = formData.categories.includes(category.id);
-              return (
-                <TouchableOpacity
-                  key={category.id}
-                  disabled={createForumMutation.isPending}
-                  style={[
-                    styles.categoryCheckbox,
-                    isSelected && styles.categoryCheckboxSelected,
-                  ]}
-                  onPress={() => toggleCategory(category.id)}>
-                  <View style={styles.checkboxContainer}>
-                    <View
-                      style={[
-                        styles.checkbox,
-                        isSelected && styles.checkboxSelected,
-                      ]}>
-                      {isSelected && (
-                        <CustomIcon
-                          name="Check"
-                          size={12}
-                          color={COLORS.white}
-                        />
-                      )}
-                    </View>
-                    <StyledText
-                      style={[
-                        styles.categoryText,
-                        isSelected && styles.categoryTextSelected,
-                      ]}>
-                      {category.name}
-                    </StyledText>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            />
           </View>
-        </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            createForumMutation.isPending && styles.submitButtonDisabled,
-          ]}
-          onPress={handleSubmit}
-          disabled={createForumMutation.isPending}>
-          {createForumMutation.isPending ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <StyledText style={styles.submitButtonText}>Buat Forum</StyledText>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          {/* Content Input */}
+          <View style={styles.inputGroup}>
+            <StyledText style={styles.label}>Konten Forum</StyledText>
+            <RichTextEditor
+              initialContent={formData.content}
+              disabled={createForumMutation.isPending}
+              onContentChange={html => {
+                setFormData(prev => ({...prev, content: html}));
+              }}
+            />
+          </View>
+
+          {/* Image Selection Manager */}
+          <ImageSelectionManager
+            selectedImages={enhancedImages}
+            onImagesChange={setEnhancedImages}
+            maxImages={5}
+            isDisabled={createForumMutation.isPending}
+            label="Gambar Forum (Maks. 5)"
+            addNewImagesLabel="Tambah Gambar"
+          />
+
+          {/* Categories Selection */}
+          <View style={styles.inputGroup}>
+            <StyledText style={styles.label}>Kategori</StyledText>
+            <View style={styles.categoriesContainer}>
+              {categories.map(category => {
+                if (
+                  category.id === ALL_FORUM_CATEGORY_PLACEHOLDER.id ||
+                  category.id === MY_FORUM_CATEGORY_PLACEHOLDER.id
+                ) {
+                  return null;
+                }
+                const isSelected = formData.categories.includes(category.id);
+                return (
+                  <TouchableOpacity
+                    key={category.id}
+                    disabled={createForumMutation.isPending}
+                    style={[
+                      styles.categoryCheckbox,
+                      isSelected && styles.categoryCheckboxSelected,
+                    ]}
+                    onPress={() => toggleCategory(category.id)}>
+                    <View style={styles.checkboxContainer}>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          isSelected && styles.checkboxSelected,
+                        ]}>
+                        {isSelected && (
+                          <CustomIcon
+                            name="Check"
+                            size={12}
+                            color={COLORS.white}
+                          />
+                        )}
+                      </View>
+                      <StyledText
+                        style={[
+                          styles.categoryText,
+                          isSelected && styles.categoryTextSelected,
+                        ]}>
+                        {category.name}
+                      </StyledText>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Submit Button */}
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              createForumMutation.isPending && styles.submitButtonDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={createForumMutation.isPending}>
+            {createForumMutation.isPending ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <StyledText style={styles.submitButtonText}>
+                Buat Forum
+              </StyledText>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -239,6 +247,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.white,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   container: {
     flex: 1,

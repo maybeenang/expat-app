@@ -12,6 +12,10 @@ export const htmlStyles: Record<string, MixedStyleDeclaration> = {
   p: {
     marginBottom: 10,
   },
+  strong: {
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
   h1: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -77,4 +81,5 @@ export const formatPlainText = (text: string): string => {
     .split('\\n')
     .map(line => line.trim())
     .join('\n');
-}; 
+};
+

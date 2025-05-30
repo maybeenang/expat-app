@@ -7,6 +7,9 @@ export type RootStackParamList = {
   LoginV1: {
     goto: keyof RootStackParamList | undefined;
   };
+  Register?: undefined;
+  ForgotPassword?: undefined;
+
   AppDrawer: undefined;
   GalleryDetail: {
     selectedImageId: string;

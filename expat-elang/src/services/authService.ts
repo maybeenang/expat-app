@@ -3,6 +3,8 @@ import {
   API_BASE_URL,
   LOGIN_ENDPOINT,
   REFRESH_TOKEN_ENDPOINT,
+  SIGNUP_ENDPOINT,
+  FORGOT_PASSWORD_ENDPOINT,
 } from '../constants/api';
 import type {
   LoginCredentials,
@@ -11,6 +13,11 @@ import type {
   ApiErrorData,
   RefreshTokenCredentials,
   RefreshTokenApiResponse,
+  RegisterCredentials,
+  RegisterApiResponse,
+  RegisterApiResponseData,
+  ForgotPasswordCredentials,
+  ForgotPasswordApiResponse,
 } from '../types/auth';
 import {useAuthStore} from '../store/useAuthStore';
 import {useApiKeyStore} from '../store/useApiKeyStore';
@@ -61,6 +68,40 @@ export const loginApiCall = async (
   }
 };
 
+export const registerApiCall = async (
+  credentials: RegisterCredentials,
+): Promise<RegisterApiResponseData> => {
+  try {
+    // Create form data for the multipart/form-data request
+    const formData = new FormData();
+    formData.append('full_name', credentials.full_name);
+    formData.append('mobile_phone', credentials.mobile_phone);
+    formData.append('email', credentials.email);
+    formData.append('password', credentials.password);
+
+    const response = await apiClient.post<RegisterApiResponse>(
+      SIGNUP_ENDPOINT,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    if (response.data && response.data.status === "200") {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message || 'Invalid response data');
+    }
+  } catch (error) {
+    if (axios.isAxiosError<ApiErrorData>(error) && error.response) {
+      throw new Error(error.response.data?.message || 'Registration failed');
+    }
+    throw new Error('Network error or failed to connect');
+  }
+};
+
 export const refreshTokenApiCall = async (
   credentials: RefreshTokenCredentials,
 ): Promise<{session_token: string}> => {
@@ -78,6 +119,37 @@ export const refreshTokenApiCall = async (
   } catch (error) {
     if (axios.isAxiosError<ApiErrorData>(error) && error.response) {
       throw new Error(error.response.data?.message || 'Refresh token failed');
+    }
+    throw new Error('Network error or failed to connect');
+  }
+};
+
+export const forgotPasswordApiCall = async (
+  credentials: ForgotPasswordCredentials,
+): Promise<ForgotPasswordApiResponse> => {
+  try {
+    // Create form data for the multipart/form-data request
+    const formData = new FormData();
+    formData.append('email', credentials.email);
+
+    const response = await apiClient.post<ForgotPasswordApiResponse>(
+      FORGOT_PASSWORD_ENDPOINT,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    if (response.data && response.data.status === 200) {
+      return response.data;
+    } else {
+      throw new Error(response.data.message || 'Invalid response data');
+    }
+  } catch (error) {
+    if (axios.isAxiosError<ApiErrorData>(error) && error.response) {
+      throw new Error(error.response.data?.message || 'Password reset request failed');
     }
     throw new Error('Network error or failed to connect');
   }

@@ -154,6 +154,23 @@ const LoginScreenV1 = ({navigation, route}: LoginScreenV1Props) => {
               Masuk
             </StyledText>
           </StyledButton>
+
+          <View style={styles.forgotPasswordContainer}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ForgotPassword')}
+              style={styles.forgotPasswordLink}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>Belum memiliki akun?</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Register')}
+              style={styles.registerLink}>
+              <Text style={styles.registerLinkText}>Daftar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -233,6 +250,37 @@ const styles = StyleSheet.create({
   loginButtonText: {
     fontSize: 16,
     color: COLORS.white,
+  },
+  forgotPasswordContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  forgotPasswordLink: {
+    marginLeft: 10,
+  },
+  forgotPasswordText: {
+    fontFamily: 'Roboto-Medium',
+    fontSize: 16,
+    color: COLORS.primary,
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  registerText: {
+    fontFamily: 'Roboto-Regular',
+    fontSize: 16,
+    color: COLORS.textSecondary,
+  },
+  registerLink: {
+    marginLeft: 10,
+  },
+  registerLinkText: {
+    fontFamily: 'Roboto-Medium',
+    fontSize: 16,
+    color: COLORS.primary,
   },
 });
 

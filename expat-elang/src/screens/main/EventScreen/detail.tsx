@@ -21,6 +21,7 @@ import COLORS from '../../../constants/colors';
 import StyledText from '../../../components/common/StyledText';
 import RenderHTML from 'react-native-render-html';
 import {htmlStyles} from '../../../constants/styles';
+import ContentRenderer from '../../../components/common/ContentRenderer';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EventDetail'>;
 
@@ -117,12 +118,7 @@ const EventDetailScreen = ({route, navigation}: Props) => {
         </View>
 
         <View style={styles.descriptionSection}>
-          <RenderHTML
-            contentWidth={width}
-            source={{html: mainEvent.description}}
-            tagsStyles={htmlStyles}
-            enableExperimentalMarginCollapsing={true}
-          />
+          <ContentRenderer content={mainEvent.description} />
         </View>
 
         {recentEvents && recentEvents.length > 0 && (

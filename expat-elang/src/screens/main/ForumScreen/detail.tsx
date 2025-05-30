@@ -20,94 +20,16 @@ import ErrorScreen from '../../ErrorScreen';
 import {ProcessedForumReply} from '../../../types/forum';
 import COLORS from '../../../constants/colors';
 import StyledText from '../../../components/common/StyledText';
-import RenderHTML, {MixedStyleDeclaration} from 'react-native-render-html';
 import {CustomIcon} from '../../../components/common/CustomPhosporIcon';
 import ForumReplyItem from '../../../components/forum/ForumReplyItem';
 import ForumReplyInput from '../../../components/forum/ForumReplyInput';
 import {useAuthStore} from '../../../store/useAuthStore';
+import ContentRenderer from '../../../components/common/ContentRenderer';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ForumDetail'>;
 
 const {width} = Dimensions.get('window');
 const IMAGE_HEIGHT = width * 0.6;
-
-// HTML styles for better rendering
-const htmlStyles: Record<string, MixedStyleDeclaration> = {
-  body: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: COLORS.textSecondary,
-    fontFamily: 'Roboto-Regular',
-  },
-  p: {
-    marginBottom: 10,
-  },
-  h1: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: COLORS.textPrimary,
-  },
-  h2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: COLORS.textPrimary,
-  },
-  h3: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: COLORS.textPrimary,
-  },
-  ul: {
-    marginBottom: 10,
-  },
-  ol: {
-    marginBottom: 10,
-  },
-  li: {
-    marginBottom: 5,
-  },
-  a: {
-    color: COLORS.primary,
-    textDecorationLine: 'underline',
-  },
-  blockquote: {
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
-    paddingLeft: 10,
-    marginLeft: 0,
-    marginBottom: 10,
-  },
-  code: {
-    backgroundColor: COLORS.greyLight,
-    padding: 5,
-    borderRadius: 4,
-    fontFamily: 'monospace',
-  },
-  pre: {
-    backgroundColor: COLORS.greyLight,
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 10,
-  },
-};
-
-// Helper function to detect if content is HTML
-const isHtml = (content: string): boolean => {
-  const htmlRegex = /<[a-z][\s\S]*>/i;
-  return htmlRegex.test(content);
-};
-
-// Helper function to format plain text with proper line breaks
-const formatPlainText = (text: string): string => {
-  if (!text) return '';
-  return text
-    .split('\\n')
-    .map(line => line.trim())
-    .join('\n');
-};
 
 const ForumDetailScreen = ({route}: Props) => {
   const {isLoggedIn} = useAuthStore();
@@ -141,20 +63,6 @@ const ForumDetailScreen = ({route}: Props) => {
   const renderReply = ({item}: {item: ProcessedForumReply}) => (
     <ForumReplyItem item={item} />
   );
-
-  const renderContent = (content: string) => {
-    if (isHtml(content)) {
-      return (
-        <RenderHTML
-          contentWidth={width}
-          source={{html: content}}
-          tagsStyles={htmlStyles}
-          enableExperimentalMarginCollapsing={true}
-        />
-      );
-    }
-    return <Text style={styles.plainText}>{formatPlainText(content)}</Text>;
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -199,10 +107,10 @@ const ForumDetailScreen = ({route}: Props) => {
 
           <View style={styles.descriptionSection}>
             <StyledText style={styles.title}>{mainTopic.title}</StyledText>
-            {renderContent(mainTopic.contentHTML)}
+            <ContentRenderer content={mainTopic.content} />
           </View>
 
-          {mainTopic.imageUrls.length > 0 ? (
+          {mainTopic.images.length > 0 ? (
             <Swiper
               style={styles.swiperWrapper}
               height={IMAGE_HEIGHT}
@@ -211,10 +119,10 @@ const ForumDetailScreen = ({route}: Props) => {
               renderPagination={renderPagination}
               loadMinimal
               loadMinimalSize={1}>
-              {mainTopic.imageUrls.map((url, index) => (
+              {mainTopic.images.map((img, index) => (
                 <View style={styles.slide} key={`${mainTopic.id}-img-${index}`}>
                   <Image
-                    source={{uri: url}}
+                    source={{uri: img.img_url}}
                     style={styles.image}
                     resizeMode="cover"
                   />

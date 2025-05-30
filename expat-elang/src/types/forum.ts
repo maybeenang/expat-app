@@ -121,7 +121,6 @@ export interface ProcessedForumDetailData {
 export interface ProcessedForumDetail
   extends Omit<ProcessedForumTopic, 'excerpt' | 'replyCount'> {
   contentHTML: string; // Konten HTML asli
-  imageUrls: string[]; // Semua gambar topic (feature + lists)
   images: ForumImageFeature[]; // Semua gambar topic (feature + lists)
 }
 

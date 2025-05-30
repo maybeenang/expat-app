@@ -9,9 +9,11 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {SubmitHandler, useForm} from 'react-hook-form';
+import {SubmitHandler, useForm, Controller} from 'react-hook-form';
 import {format, parseISO, isValid} from 'date-fns';
 
 // --- Import Konstanta, Tipe, Hook, Komponen Kustom ---
@@ -37,6 +39,7 @@ import ImageSelectionManager, {
   ExistingImageType,
   prepareImagesForSubmission,
 } from '../../../components/common/ImageSelectionManager';
+import RichTextEditor from '../../../components/common/RichTextEditor';
 
 // --- Props Komponen ---
 interface EventUpdateScreenProps
@@ -100,7 +103,7 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
     handleSubmit,
     watch,
     reset,
-    formState: {errors, isDirty},
+    formState: {errors},
   } = useForm<UpdateEventPayload>();
 
   // Watch tanggal untuk validasi
@@ -240,210 +243,224 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContentContainer}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.formContainer}>
-          <Text style={styles.screenTitle}>Edit Event</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContentContainer}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.formContainer}>
+            <Text style={styles.screenTitle}>Edit Event</Text>
 
-          <FormInput
-            control={control}
-            name="event_title"
-            label="Judul Event *"
-            placeholder="Contoh: Workshop React Native Advanced"
-            rules={{required: 'Judul event harus diisi'}}
-            error={errors.event_title?.message}
-            isDisabled={updateMutation.isPending}
-          />
+            <FormInput
+              control={control}
+              name="event_title"
+              label="Judul Event *"
+              placeholder="Contoh: Workshop React Native Advanced"
+              rules={{required: 'Judul event harus diisi'}}
+              error={errors.event_title?.message}
+              isDisabled={updateMutation.isPending}
+            />
 
-          <FormDropdown
-            control={control}
-            name="category"
-            label="Kategori Event *"
-            placeholder="Pilih Kategori"
-            options={categoryOptions}
-            rules={{required: 'Kategori harus dipilih'}}
-            error={errors.category?.message}
-            isDisabled={
-              updateMutation.isPending || categoryOptions.length === 0
-            }
-          />
+            <FormDropdown
+              control={control}
+              name="category"
+              label="Kategori Event *"
+              placeholder="Pilih Kategori"
+              options={categoryOptions}
+              rules={{required: 'Kategori harus dipilih'}}
+              error={errors.category?.message}
+              isDisabled={
+                updateMutation.isPending || categoryOptions.length === 0
+              }
+            />
 
-          <FormInput
-            control={control}
-            name="description"
-            label="Deskripsi Event *"
-            placeholder="Jelaskan detail event..."
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-            rules={{required: 'Deskripsi event harus diisi'}}
-            error={errors.description?.message}
-            isDisabled={updateMutation.isPending}
-          />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Deskripsi Event *</Text>
+              {errors.description && (
+                <Text style={styles.errorText}>
+                  {errors.description.message}
+                </Text>
+              )}
+              <Controller
+                control={control}
+                name="description"
+                rules={{required: 'Deskripsi event harus diisi'}}
+                render={({field: {onChange, value}}) => (
+                  <RichTextEditor
+                    initialContent={eventData.mainEvent.event_description}
+                    onContentChange={onChange}
+                    editorHeight={200}
+                    disabled={updateMutation.isPending}
+                  />
+                )}
+              />
+            </View>
 
-          <FormDatePicker
-            control={control}
-            name="event_start"
-            label="Waktu Mulai *"
-            placeholder="Pilih Tanggal & Waktu Mulai"
-            mode="datetime"
-            rules={{required: 'Waktu mulai harus diisi'}}
-            error={errors.event_start?.message}
-            isDisabled={updateMutation.isPending}
-            minimumDate={new Date()}
-          />
+            <FormDatePicker
+              control={control}
+              name="event_start"
+              label="Waktu Mulai *"
+              placeholder="Pilih Tanggal & Waktu Mulai"
+              mode="datetime"
+              rules={{required: 'Waktu mulai harus diisi'}}
+              error={errors.event_start?.message}
+              isDisabled={updateMutation.isPending}
+              minimumDate={new Date()}
+            />
 
-          <FormDatePicker
-            control={control}
-            name="event_end"
-            label="Waktu Selesai *"
-            placeholder="Pilih Tanggal & Waktu Selesai"
-            mode="datetime"
-            minimumDate={
-              watchedStartDate ? parseISO(watchedStartDate) : undefined
-            }
-            rules={{
-              required: 'Waktu selesai harus diisi',
-              validate: (value: string) => {
-                if (!watchedStartDate || !value) {
-                  return true;
-                }
-                const start = parseISO(watchedStartDate);
-                const end = parseISO(value);
-                if (!isValid(start) || !isValid(end)) {
-                  return 'Format tanggal tidak valid';
-                }
-                return (
-                  end >= start ||
-                  'Waktu selesai tidak boleh sebelum waktu mulai'
-                );
-              },
-            }}
-            error={errors.event_end?.message}
-            isDisabled={updateMutation.isPending || !watchedStartDate}
-          />
+            <FormDatePicker
+              control={control}
+              name="event_end"
+              label="Waktu Selesai *"
+              placeholder="Pilih Tanggal & Waktu Selesai"
+              mode="datetime"
+              minimumDate={
+                watchedStartDate ? parseISO(watchedStartDate) : undefined
+              }
+              rules={{
+                required: 'Waktu selesai harus diisi',
+                validate: (value: string) => {
+                  if (!watchedStartDate || !value) {
+                    return true;
+                  }
+                  const start = parseISO(watchedStartDate);
+                  const end = parseISO(value);
+                  if (!isValid(start) || !isValid(end)) {
+                    return 'Format tanggal tidak valid';
+                  }
+                  return (
+                    end >= start ||
+                    'Waktu selesai tidak boleh sebelum waktu mulai'
+                  );
+                },
+              }}
+              error={errors.event_end?.message}
+              isDisabled={updateMutation.isPending || !watchedStartDate}
+            />
 
-          <FormInput
-            control={control}
-            name="location"
-            label="Lokasi *"
-            placeholder="Contoh: Gedung Serbaguna ABC"
-            rules={{required: 'Lokasi event harus diisi'}}
-            error={errors.location?.message}
-            isDisabled={updateMutation.isPending}
-          />
+            <FormInput
+              control={control}
+              name="location"
+              label="Lokasi *"
+              placeholder="Contoh: Gedung Serbaguna ABC"
+              rules={{required: 'Lokasi event harus diisi'}}
+              error={errors.location?.message}
+              isDisabled={updateMutation.isPending}
+            />
 
-          <FormInput
-            control={control}
-            name="max_capacity"
-            label="Kapasitas Maksimal"
-            placeholder="Contoh: 100"
-            keyboardType="number-pad"
-            rules={{
-              pattern: {
-                value: /^[1-9]\d*$/,
-                message: 'Kapasitas harus berupa angka positif',
-              },
-            }}
-            error={errors.max_capacity?.message}
-            isDisabled={updateMutation.isPending}
-          />
+            <FormInput
+              control={control}
+              name="max_capacity"
+              label="Kapasitas Maksimal"
+              placeholder="Contoh: 100"
+              keyboardType="number-pad"
+              rules={{
+                pattern: {
+                  value: /^[1-9]\d*$/,
+                  message: 'Kapasitas harus berupa angka positif',
+                },
+              }}
+              error={errors.max_capacity?.message}
+              isDisabled={updateMutation.isPending}
+            />
 
-          <FormDropdown
-            control={control}
-            name="price"
-            label="Harga Tiket *"
-            placeholder="Pilih Harga (Gratis/Berbayar)"
-            options={priceOptions}
-            rules={{required: 'Harga tiket harus dipilih'}}
-            error={errors.price?.message}
-            isDisabled={updateMutation.isPending || priceOptions.length === 0}
-          />
+            <FormDropdown
+              control={control}
+              name="price"
+              label="Harga Tiket *"
+              placeholder="Pilih Harga (Gratis/Berbayar)"
+              options={priceOptions}
+              rules={{required: 'Harga tiket harus dipilih'}}
+              error={errors.price?.message}
+              isDisabled={updateMutation.isPending || priceOptions.length === 0}
+            />
 
-          <FormInput
-            control={control}
-            name="organizer_name"
-            label="Nama Penyelenggara"
-            placeholder="Contoh: Komunitas Developer XYZ"
-            error={errors.organizer_name?.message}
-            isDisabled={updateMutation.isPending}
-          />
+            <FormInput
+              control={control}
+              name="organizer_name"
+              label="Nama Penyelenggara"
+              placeholder="Contoh: Komunitas Developer XYZ"
+              error={errors.organizer_name?.message}
+              isDisabled={updateMutation.isPending}
+            />
 
-          <FormInput
-            control={control}
-            name="organizer_email"
-            label="Email Penyelenggara"
-            placeholder="Contoh: contact@komunitasxyz.org"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            rules={{
-              pattern: {
-                value: /\S+@\S+\.\S+/,
-                message: 'Format email tidak valid',
-              },
-            }}
-            error={errors.organizer_email?.message}
-            isDisabled={updateMutation.isPending}
-          />
+            <FormInput
+              control={control}
+              name="organizer_email"
+              label="Email Penyelenggara"
+              placeholder="Contoh: contact@komunitasxyz.org"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              rules={{
+                pattern: {
+                  value: /\S+@\S+\.\S+/,
+                  message: 'Format email tidak valid',
+                },
+              }}
+              error={errors.organizer_email?.message}
+              isDisabled={updateMutation.isPending}
+            />
 
-          <FormInput
-            control={control}
-            name="organizer_phone"
-            label="Telepon Penyelenggara"
-            placeholder="Contoh: +1234567890"
-            keyboardType="phone-pad"
-            rules={{
-              pattern: {
-                value: /^\+1\d{10,}$/,
-                message:
-                  'Nomor telepon harus diawali dengan +1 dan minimal 10 angka',
-              },
-            }}
-            error={errors.organizer_phone?.message}
-            isDisabled={updateMutation.isPending}
-          />
+            <FormInput
+              control={control}
+              name="organizer_phone"
+              label="Telepon Penyelenggara"
+              placeholder="Contoh: +1234567890"
+              keyboardType="phone-pad"
+              rules={{
+                pattern: {
+                  value: /^\+1\d{10,}$/,
+                  message:
+                    'Nomor telepon harus diawali dengan +1 dan minimal 10 angka',
+                },
+              }}
+              error={errors.organizer_phone?.message}
+              isDisabled={updateMutation.isPending}
+            />
 
-          {/* Image Selection Component */}
-          <ImageSelectionManager
-            selectedImages={enhancedImages}
-            onImagesChange={setEnhancedImages}
-            existingImages={existingImages}
-            onExistingImagesChange={setExistingImages}
-            imagesToDelete={imagesToDelete}
-            onImagesToDeleteChange={setImagesToDelete}
-            maxImages={5}
-            isDisabled={updateMutation.isPending}
-            label="Gambar Event (Maks. 5) *"
-            showExistingImagesLabel="Gambar Tersimpan"
-            addNewImagesLabel="Tambah Gambar Baru"
-          />
+            {/* Image Selection Component */}
+            <ImageSelectionManager
+              selectedImages={enhancedImages}
+              onImagesChange={setEnhancedImages}
+              existingImages={existingImages}
+              onExistingImagesChange={setExistingImages}
+              imagesToDelete={imagesToDelete}
+              onImagesToDeleteChange={setImagesToDelete}
+              maxImages={5}
+              isDisabled={updateMutation.isPending}
+              label="Gambar Event (Maks. 5) *"
+              showExistingImagesLabel="Gambar Tersimpan"
+              addNewImagesLabel="Tambah Gambar Baru"
+            />
 
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              updateMutation.isPending && styles.submitButtonDisabled,
-            ]}
-            activeOpacity={0.8}
-            onPress={
-              !updateMutation.isPending ? handleSubmit(onSubmit) : undefined
-            }
-            disabled={updateMutation.isPending}>
-            {updateMutation.isPending ? (
-              <ActivityIndicator color={COLORS.white} size="small" />
-            ) : (
-              <Text style={styles.submitButtonText}>Simpan Perubahan</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                updateMutation.isPending && styles.submitButtonDisabled,
+              ]}
+              activeOpacity={0.8}
+              onPress={
+                !updateMutation.isPending ? handleSubmit(onSubmit) : undefined
+              }
+              disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? (
+                <ActivityIndicator color={COLORS.white} size="small" />
+              ) : (
+                <Text style={styles.submitButtonText}>Simpan Perubahan</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {flex: 1, backgroundColor: COLORS.white},
+  keyboardAvoid: {flex: 1},
   scrollView: {flex: 1},
   scrollContentContainer: {paddingBottom: 40},
   formContainer: {padding: 20},
@@ -453,6 +470,20 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     marginBottom: 25,
     textAlign: 'center',
+  },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontFamily: 'Roboto-Medium',
+    color: COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 14,
+    marginBottom: 5,
   },
   submitButton: {
     backgroundColor: COLORS.primary,

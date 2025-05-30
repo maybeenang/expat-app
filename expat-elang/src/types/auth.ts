@@ -17,6 +17,26 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterCredentials {
+  full_name: string;
+  mobile_phone: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterApiResponseData {
+  user_id: number;
+  full_name: string;
+  email: string;
+}
+
+export interface RegisterApiResponse {
+  status: string;
+  message: string;
+  data: RegisterApiResponseData;
+  csrf_token_hash: null;
+}
+
 export interface RefreshTokenCredentials {
   username: string;
   refresh_token: string;
@@ -47,6 +67,15 @@ export interface RefreshTokenApiResponse {
   data: {
     session_token: string;
   };
+}
+
+export interface ForgotPasswordCredentials {
+  email: string;
+}
+
+export interface ForgotPasswordApiResponse {
+  status: number;
+  message: string;
 }
 
 export interface ApiErrorData {

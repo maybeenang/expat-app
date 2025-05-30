@@ -189,17 +189,25 @@ export const adminFetchForumDetailApi = async (
 export const adminCreateForumApi = (
   payload: CreateForumPayload,
 ): Promise<AxiosResponse> => {
+  console.log('Creating forum with payload:', payload);
   const formData = new FormData();
   formData.append('forum_title', payload.forum_title);
   formData.append('forum_content', payload.forum_content);
 
-  payload.images.forEach(image => {
-    formData.append('images[]', {
-      name: image.name,
-      type: image.type,
-      uri: image.uri,
+  if (payload.images.length > 0) {
+    payload.images.forEach(image => {
+      formData.append('images[]', {
+        name: image.name,
+        type: image.type,
+        uri: image.uri,
+      });
+
+      formData.append('imege_title[]', image.name);
+      formData.append('image_alt[]', image.name);
     });
-  });
+
+    formData.append('is_feature', payload.is_feature || payload.images[0].name);
+  }
 
   payload.category.forEach(catId => {
     formData.append('category[]', catId);

@@ -4,6 +4,7 @@ import StyledText from '../../common/StyledText';
 import COLORS from '../../../constants/colors';
 import {ProcessedForumReply} from '../../../types/forum';
 import {CustomIcon} from '../../common/CustomPhosporIcon';
+import ContentRenderer from '../../common/ContentRenderer';
 
 interface ForumReplyItemProps {
   item: ProcessedForumReply;
@@ -28,7 +29,7 @@ const ForumReplyItem = ({item}: ForumReplyItemProps) => {
           <StyledText style={styles.replyDate}>{item.dateFormatted}</StyledText>
         </View>
         <View style={{width: width - width * 0.2}}>
-          <StyledText style={styles.replyContent}>{item.content}</StyledText>
+          <ContentRenderer content={item.content} />
         </View>
         <View style={styles.replyImageContainer}>
           {item.images &&

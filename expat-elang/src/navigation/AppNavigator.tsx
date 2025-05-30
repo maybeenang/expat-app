@@ -35,6 +35,8 @@ import RentalsCreateScreen from '../screens/main/ExploreScreen/create';
 import RentalsUpdateScreen from '../screens/main/ExploreScreen/update';
 import ChatDetailScreen from '../screens/main/ChatScreen/detail';
 import OtherMenu from '../screens/main/HomeScreen/other';
+import RegisterScreen from '../screens/RegisterScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -64,7 +66,7 @@ const AppNavigator = () => {
 
   useEffect(() => {
     if (isLoggedIn && targetScreen && navigationRef.isReady()) {
-      navigationRef.navigate(targetScreen as never, params as never);
+      (navigationRef as any).navigate(targetScreen, params);
       clearRedirect();
     }
 
@@ -329,17 +331,43 @@ const AppNavigator = () => {
         />
 
         {!isLoggedIn && (
-          <Stack.Screen
-            name="LoginV1"
-            component={LoginScreenV1}
-            options={{
-              headerShown: true,
-              title: '',
-              headerTransparent: true,
-              headerShadowVisible: false,
-              headerBackVisible: false,
-            }}
-          />
+          <>
+            <Stack.Screen
+              name="LoginV1"
+              component={LoginScreenV1}
+              options={{
+                headerShown: true,
+                title: '',
+                headerTransparent: true,
+                headerShadowVisible: false,
+                headerBackVisible: false,
+              }}
+            />
+
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{
+                headerShown: true,
+                title: '',
+                headerTransparent: true,
+                headerShadowVisible: false,
+                headerBackVisible: false,
+              }}
+            />
+
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+              options={{
+                headerShown: true,
+                title: '',
+                headerTransparent: true,
+                headerShadowVisible: false,
+                headerBackVisible: false,
+              }}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>

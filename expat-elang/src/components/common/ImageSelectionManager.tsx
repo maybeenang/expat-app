@@ -37,13 +37,13 @@ interface ImageSelectionManagerProps {
   // For new images
   selectedImages: EnhancedImageAsset[];
   onImagesChange: (images: EnhancedImageAsset[]) => void;
-  
+
   // For existing images (in case of update)
   existingImages?: ExistingImageType[];
   onExistingImagesChange?: (images: ExistingImageType[]) => void;
   imagesToDelete?: string[];
   onImagesToDeleteChange?: (imagesToDelete: string[]) => void;
-  
+
   // Configuration
   maxImages?: number;
   isDisabled?: boolean;
@@ -67,10 +67,11 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
 }) => {
   const hasExistingImages = existingImages.length > 0 && onExistingImagesChange;
   const availableExistingImages = existingImages.filter(
-    img => !imagesToDelete.includes(img.id)
+    img => !imagesToDelete.includes(img.id),
   );
-  
-  const totalImagesCount = selectedImages.length + availableExistingImages.length;
+
+  const totalImagesCount =
+    selectedImages.length + availableExistingImages.length;
   const remainingSlots = maxImages - totalImagesCount;
 
   // Handler for picking new images
@@ -98,17 +99,18 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
         Alert.alert('Error', 'Gagal memilih gambar: ' + result.errorMessage);
       } else if (result.assets && result.assets.length > 0) {
         const validAssets = result.assets.filter(asset => asset.uri);
-        
+
         // Convert to enhanced images with title, alt and feature flag
         const newEnhancedImages = validAssets.map((asset, index) => ({
           ...asset,
           title: `Image ${selectedImages.length + index + 1}`,
           alt: 'Image description',
-          isFeature: availableExistingImages.length === 0 && 
-                    selectedImages.length === 0 && 
-                    index === 0, // First image is feature if no other images exist
+          isFeature:
+            availableExistingImages.length === 0 &&
+            selectedImages.length === 0 &&
+            index === 0, // First image is feature if no other images exist
         }));
-        
+
         onImagesChange([...selectedImages, ...newEnhancedImages]);
       }
     } catch (e) {
@@ -122,55 +124,64 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
     const newImages = [...selectedImages];
     const removedImage = newImages[index];
     newImages.splice(index, 1);
-    
+
     // If we removed the feature image, set the first remaining image as feature if needed
     if (removedImage.isFeature) {
       // Check if there's any existing feature image
-      const hasExistingFeature = availableExistingImages.some(img => img.isFeature);
-      
+      const hasExistingFeature = availableExistingImages.some(
+        img => img.isFeature,
+      );
+
       if (!hasExistingFeature) {
         if (newImages.length > 0) {
           newImages[0] = {...newImages[0], isFeature: true};
-        } else if (availableExistingImages.length > 0 && onExistingImagesChange) {
+        } else if (
+          availableExistingImages.length > 0 &&
+          onExistingImagesChange
+        ) {
           // Set first existing image as feature if no new images left
           const updatedExistingImages = existingImages.map(img => ({
             ...img,
-            isFeature: img.id === availableExistingImages[0].id && !imagesToDelete.includes(img.id),
+            isFeature:
+              img.id === availableExistingImages[0].id &&
+              !imagesToDelete.includes(img.id),
           }));
           onExistingImagesChange(updatedExistingImages);
         }
       }
     }
-    
+
     onImagesChange(newImages);
   };
-  
+
   // Toggle deletion status of an existing image
   const toggleImageDeletion = (imageId: string) => {
     if (!onImagesToDeleteChange) return;
-    
+
     const isMarkedForDeletion = imagesToDelete.includes(imageId);
     let newImagesToDelete: string[];
-    
+
     if (isMarkedForDeletion) {
       // Unmark for deletion
       newImagesToDelete = imagesToDelete.filter(id => id !== imageId);
     } else {
       // Mark for deletion
       newImagesToDelete = [...imagesToDelete, imageId];
-      
+
       // If we're marking a feature image for deletion, set another image as feature
       const markedImage = existingImages.find(img => img.id === imageId);
       if (markedImage?.isFeature && onExistingImagesChange) {
         const remainingExistingImages = existingImages.filter(
-          img => !newImagesToDelete.includes(img.id)
+          img => !newImagesToDelete.includes(img.id),
         );
-        
+
         if (remainingExistingImages.length > 0) {
           // Set first remaining existing image as feature
           const updatedExistingImages = existingImages.map(img => ({
             ...img,
-            isFeature: img.id === remainingExistingImages[0].id && !newImagesToDelete.includes(img.id),
+            isFeature:
+              img.id === remainingExistingImages[0].id &&
+              !newImagesToDelete.includes(img.id),
           }));
           onExistingImagesChange(updatedExistingImages);
         } else if (selectedImages.length > 0) {
@@ -183,44 +194,44 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
         }
       }
     }
-    
+
     onImagesToDeleteChange(newImagesToDelete);
   };
-  
+
   // Update image title for new images
   const updateImageTitle = (index: number, title: string) => {
     const newImages = [...selectedImages];
     newImages[index] = {...newImages[index], title};
     onImagesChange(newImages);
   };
-  
+
   // Update image alt text for new images
   const updateImageAlt = (index: number, alt: string) => {
     const newImages = [...selectedImages];
     newImages[index] = {...newImages[index], alt};
     onImagesChange(newImages);
   };
-  
+
   // Update existing image title
   const updateExistingImageTitle = (imageId: string, title: string) => {
     if (!onExistingImagesChange) return;
-    
-    const updatedImages = existingImages.map(img => 
-      img.id === imageId ? {...img, title} : img
+
+    const updatedImages = existingImages.map(img =>
+      img.id === imageId ? {...img, title} : img,
     );
     onExistingImagesChange(updatedImages);
   };
-  
+
   // Update existing image alt text
   const updateExistingImageAlt = (imageId: string, alt: string) => {
     if (!onExistingImagesChange) return;
-    
-    const updatedImages = existingImages.map(img => 
-      img.id === imageId ? {...img, alt} : img
+
+    const updatedImages = existingImages.map(img =>
+      img.id === imageId ? {...img, alt} : img,
     );
     onExistingImagesChange(updatedImages);
   };
-  
+
   // Set a new image as the feature image
   const setNewImageAsFeature = (index: number) => {
     // Set all existing images to non-feature
@@ -231,7 +242,7 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
       }));
       onExistingImagesChange(updatedExistingImages);
     }
-    
+
     // Set only the selected new image as feature
     const updatedNewImages = selectedImages.map((img, i) => ({
       ...img,
@@ -239,18 +250,18 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
     }));
     onImagesChange(updatedNewImages);
   };
-  
+
   // Set an existing image as the feature image
   const setExistingImageAsFeature = (imageId: string) => {
     if (!onExistingImagesChange) return;
-    
+
     // Update existing images
     const updatedExistingImages = existingImages.map(img => ({
       ...img,
       isFeature: img.id === imageId,
     }));
     onExistingImagesChange(updatedExistingImages);
-    
+
     // Update new images to remove feature flag
     const updatedNewImages = selectedImages.map(img => ({
       ...img,
@@ -270,9 +281,7 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
       {hasExistingImages && existingImages.length > 0 && (
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionLabel}>{showExistingImagesLabel}</Text>
-          <Text style={styles.subLabel}>
-            Pilih gambar yang ingin dihapus
-          </Text>
+          <Text style={styles.subLabel}>Pilih gambar yang ingin dihapus</Text>
 
           <View style={styles.imagesContainer}>
             {existingImages.map(image => {
@@ -292,7 +301,9 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
                     />
                     <TouchableOpacity
                       style={styles.removeImageButton}
-                      onPress={() => !isDisabled && toggleImageDeletion(image.id)}
+                      onPress={() =>
+                        !isDisabled && toggleImageDeletion(image.id)
+                      }
                       disabled={isDisabled}
                       activeOpacity={0.7}>
                       <Icon
@@ -303,9 +314,7 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
                         }
                         size={24}
                         color={
-                          isMarkedForDeletion
-                            ? COLORS.greyDark
-                            : COLORS.error
+                          isMarkedForDeletion ? COLORS.greyDark : COLORS.error
                         }
                       />
                     </TouchableOpacity>
@@ -323,26 +332,34 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
                             styles.radioCircle,
                             image.isFeature && styles.radioSelected,
                           ]}
-                          onPress={() => !isDisabled && setExistingImageAsFeature(image.id)}
+                          onPress={() =>
+                            !isDisabled && setExistingImageAsFeature(image.id)
+                          }
                           disabled={isDisabled}>
-                          {image.isFeature && <View style={styles.radioInner} />}
+                          {image.isFeature && (
+                            <View style={styles.radioInner} />
+                          )}
                         </TouchableOpacity>
                         <Text style={styles.radioLabel}>Gambar Utama</Text>
                       </View>
-                      
+
                       <TextInput
                         style={styles.imageInput}
                         value={image.title}
-                        onChangeText={text => updateExistingImageTitle(image.id, text)}
+                        onChangeText={text =>
+                          updateExistingImageTitle(image.id, text)
+                        }
                         placeholder="Judul Gambar"
                         placeholderTextColor={COLORS.greyMedium}
                         editable={!isDisabled}
                       />
-                      
+
                       <TextInput
                         style={styles.imageInput}
                         value={image.alt}
-                        onChangeText={text => updateExistingImageAlt(image.id, text)}
+                        onChangeText={text =>
+                          updateExistingImageAlt(image.id, text)
+                        }
                         placeholder="Teks Alternatif"
                         placeholderTextColor={COLORS.greyMedium}
                         editable={!isDisabled}
@@ -364,27 +381,18 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
 
         <View style={styles.imagesContainer}>
           {selectedImages.map((image, index) => (
-            <View
-              key={image.uri || index}
-              style={styles.imageDetailContainer}>
+            <View key={image.uri || index} style={styles.imageDetailContainer}>
               <View style={styles.imageWrapper}>
-                <Image
-                  source={{uri: image.uri}}
-                  style={styles.imagePreview}
-                />
+                <Image source={{uri: image.uri}} style={styles.imagePreview} />
                 <TouchableOpacity
                   style={styles.removeImageButton}
                   onPress={() => !isDisabled && removeImage(index)}
                   disabled={isDisabled}
                   activeOpacity={0.7}>
-                  <Icon
-                    name="close-circle"
-                    size={24}
-                    color={COLORS.error}
-                  />
+                  <Icon name="close-circle" size={24} color={COLORS.error} />
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.imageDetailsForm}>
                 <View style={styles.featureRadio}>
                   <TouchableOpacity
@@ -398,7 +406,7 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
                   </TouchableOpacity>
                   <Text style={styles.radioLabel}>Gambar Utama</Text>
                 </View>
-                
+
                 <TextInput
                   style={styles.imageInput}
                   value={image.title}
@@ -407,7 +415,7 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
                   placeholderTextColor={COLORS.greyMedium}
                   editable={!isDisabled}
                 />
-                
+
                 <TextInput
                   style={styles.imageInput}
                   value={image.alt}
@@ -442,7 +450,7 @@ const ImageSelectionManager: React.FC<ImageSelectionManagerProps> = ({
 export const prepareImagesForSubmission = (
   enhancedImages: EnhancedImageAsset[],
   existingImages: ExistingImageType[] = [],
-  imagesToDelete: string[] = []
+  imagesToDelete: string[] = [],
 ) => {
   // Find the feature image
   let featureImageId = '';
@@ -653,4 +661,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ImageSelectionManager; 
+export default ImageSelectionManager;
+

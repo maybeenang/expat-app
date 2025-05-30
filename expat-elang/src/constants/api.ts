@@ -6,6 +6,9 @@ export const API_BASE_URL = ENV.API_BASE_URL;
 //export const API_BASE_URL = 'https://satuexpat.com/api';
 export const LOGIN_ENDPOINT = '/login';
 export const REFRESH_TOKEN_ENDPOINT = '/login/refresh';
+export const PROFILE_ENDPOINT = '/my_profile';
+export const SIGNUP_ENDPOINT = '/signup';
+export const FORGOT_PASSWORD_ENDPOINT = '/login/forgot_password';
 
 export const BLOG_LIST_ENDPOINT = '/blog';
 export const BLOG_CATEGORIES_ENDPOINT = '/blog/categories';
@@ -52,5 +55,3 @@ export const BIZ_CATEGORIES_ENDPOINT = '/biz/categories';
 export const DEFAULT_BIZ_LIMIT = 6;
 export const BIZ_RESTAURANT_CATEGORY_NAME = 'RESTAURANT';
 export const BIZ_LAWYER_CATEGORY_NAME = 'LAYWER';
-
-export const PROFILE_ENDPOINT = '/my_profile';

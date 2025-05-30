@@ -23,9 +23,11 @@ const ForumReplyInput = (props: Props) => {
     }
 
     try {
+
       await mutation.mutateAsync({
         ...data,
         id_forum: props.forumId,
+        // reply_content: processedContent,
       });
 
       reset();

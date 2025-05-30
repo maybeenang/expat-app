@@ -19,6 +19,7 @@
     "log": "react-native log-android"
   },
   "dependencies": {
+    "@10play/tentap-editor": "^0.7.0",
     "@gorhom/bottom-sheet": "^5.1.2",
     "@react-native-vector-icons/common": "^11.0.0",
     "@react-native-vector-icons/ionicons": "^7.4.0",

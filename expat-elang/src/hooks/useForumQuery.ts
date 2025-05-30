@@ -29,6 +29,7 @@ import type {
   UpdateForumPayload,
   ForumFilterParams,
   ForumReplyPayload,
+  ForumImageFeature,
 } from '../types/forum';
 import {AxiosError} from 'axios';
 import {useAuthStore} from '../store/useAuthStore';
@@ -120,12 +121,6 @@ export const useForumTopicsInfinite = (filter: ForumFilterParams) => {
   });
 };
 
-// --- Detail Forum Hook ---
-export const forumDetailQueryKey = (forumId: string) => [
-  'forumDetail',
-  forumId,
-];
-
 export const useForumDetailQuery = (forumId: string) => {
   return useQuery<ForumDetailApiResponse, Error, ProcessedForumDetailData>({
     queryKey: queryKeys.forumKeys.detail(forumId),
@@ -136,16 +131,20 @@ export const useForumDetailQuery = (forumId: string) => {
       const topic = data.data;
       const ads = data.data_ads ?? [];
 
-      const mainTopicImages: string[] = [];
-      if (topic.image_feature?.img_url) {
-        mainTopicImages.push(topic.image_feature.img_url);
+      const images: ForumImageFeature[] = [];
+      if (topic.image_feature && topic.image_feature.img_url) {
+        images.push(topic.image_feature);
       }
-
-      topic.image_lists?.forEach((img: any) => {
-        if (img?.img_url && !mainTopicImages.includes(img.img_url)) {
-          mainTopicImages.push(img.img_url);
-        }
-      });
+      if (topic.image_lists && topic.image_lists.length > 0) {
+        topic.image_lists.forEach(img => {
+          if (
+            img.img_url &&
+            !images.some(existing => existing.img_url === img.img_url)
+          ) {
+            images.push(img);
+          }
+        });
+      }
 
       const mainTopicProcessed: ProcessedForumDetail = {
         id: topic.id,
@@ -162,12 +161,8 @@ export const useForumDetailQuery = (forumId: string) => {
         imageUrl: null,
         slug: topic.forum_slug,
         contentHTML: topic.forum_content,
-        imageUrls: mainTopicImages,
-        content: formatContentHtml(topic.forum_content),
-        images: [
-          ...(topic.image_feature ? [topic.image_feature] : []),
-          ...(topic.image_lists ?? []),
-        ],
+        content: topic.forum_content,
+        images: images,
       };
 
       const repliesProcessed: ProcessedForumReply[] = (
