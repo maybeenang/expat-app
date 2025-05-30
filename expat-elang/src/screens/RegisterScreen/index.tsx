@@ -61,7 +61,7 @@ const RegisterScreen = ({navigation}: RegisterScreenProps) => {
         [
           {
             text: 'Login Now',
-            onPress: () => navigation.navigate('LoginV1' as never),
+            onPress: () => navigation.goBack(),
           },
         ],
       );
@@ -205,7 +205,7 @@ const RegisterScreen = ({navigation}: RegisterScreenProps) => {
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account?</Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('LoginV1' as never)}
+                onPress={() => navigation.goBack()}
                 style={styles.loginButton}>
                 <Text style={styles.loginButtonText}>Login</Text>
               </TouchableOpacity>

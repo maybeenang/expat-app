@@ -56,7 +56,14 @@ const ForgotPasswordScreen = ({navigation}: ForgotPasswordScreenProps) => {
       Alert.alert('Reset Password', msg, [
         {
           text: 'Back to Login',
-          onPress: () => navigation.navigate('LoginV1', {goto: undefined}),
+          onPress: () =>
+            navigation.navigate(
+              'LoginV1',
+              {goto: undefined},
+              {
+                pop: true,
+              },
+            ),
         },
       ]);
     } catch (e: any) {
@@ -139,7 +146,15 @@ const ForgotPasswordScreen = ({navigation}: ForgotPasswordScreenProps) => {
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Remember your password?</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('LoginV1', {goto: undefined})}
+              onPress={() =>
+                navigation.navigate(
+                  'LoginV1',
+                  {goto: undefined},
+                  {
+                    pop: true,
+                  },
+                )
+              }
               style={styles.loginButton}>
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
