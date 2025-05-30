@@ -8,6 +8,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {enableScreens} from 'react-native-screens';
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet';
 import {ENV} from './config/env';
+import {getApiKey} from './store/useApiKeyStore';
 
 enableScreens();
 
@@ -16,6 +17,7 @@ const queryClient = new QueryClient();
 function App(): React.JSX.Element {
   useEffect(() => {
     console.log('App mounted');
+    getApiKey();
     checkAuthStatus();
     return () => {};
   }, []);

@@ -90,7 +90,9 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
   // --- State Lokal untuk UI ---
   const [existingImages, setExistingImages] = useState<ExistingImageType[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>([]);
+  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>(
+    [],
+  );
 
   // --- React Hook Form ---
   const {
@@ -153,7 +155,11 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
     }
 
     const {featureImageId, imagesToUpload, imageInfo} =
-      prepareImagesForSubmission(enhancedImages, existingImages, imagesToDelete);
+      prepareImagesForSubmission(
+        enhancedImages,
+        existingImages,
+        imagesToDelete,
+      );
 
     const payload: UpdateEventPayload = {
       ...data,
@@ -286,6 +292,7 @@ const EventUpdateScreen = ({navigation, route}: EventUpdateScreenProps) => {
             rules={{required: 'Waktu mulai harus diisi'}}
             error={errors.event_start?.message}
             isDisabled={updateMutation.isPending}
+            minimumDate={new Date()}
           />
 
           <FormDatePicker

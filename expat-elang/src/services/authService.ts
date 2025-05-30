@@ -13,6 +13,7 @@ import type {
   RefreshTokenApiResponse,
 } from '../types/auth';
 import {useAuthStore} from '../store/useAuthStore';
+import {useApiKeyStore} from '../store/useApiKeyStore';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -84,10 +85,16 @@ export const refreshTokenApiCall = async (
 
 apiClient.interceptors.request.use(async config => {
   const token = useAuthStore.getState().token;
+  const xtoken = useApiKeyStore.getState().key;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  if (xtoken) {
+    config.headers['x-token'] = xtoken;
+  }
+
   return config;
 });
 
@@ -109,7 +116,7 @@ apiClient.interceptors.response.use(
     // Jika sedang melakukan refresh token, tambahkan request ke queue
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
+        failedQueue.push({resolve, reject});
       })
         .then(token => {
           originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -133,19 +140,19 @@ apiClient.interceptors.response.use(
       });
 
       // Update token di store
-      useAuthStore.getState().setAuthState(
-        response.session_token,
-        {
-          ...userSession,
-          session_token: response.session_token,
-        },
-      );
+      useAuthStore.getState().setAuthState(response.session_token, {
+        ...userSession,
+        session_token: response.session_token,
+      });
 
       // Update Authorization header
       originalRequest.headers.Authorization = `Bearer ${response.session_token}`;
 
       // Proses queue dengan token baru
       processQueue(null, response.session_token);
+
+      // update local storage if needed
+      useAuthStore.getState().updateLocalStorage();
 
       return apiClient(originalRequest);
     } catch (refreshError) {

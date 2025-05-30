@@ -29,7 +29,6 @@ import type {
   RentalFilterParams,
 } from '../types/rental';
 import NUMBER from '../constants/number';
-import {Asset} from 'react-native-image-picker';
 import {useAuthStore} from '../store/useAuthStore';
 import axios from 'axios';
 import {IMAGE_PLACEHOLDER} from '../constants/images';

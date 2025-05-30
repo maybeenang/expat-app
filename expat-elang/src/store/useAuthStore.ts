@@ -18,6 +18,7 @@ interface AuthState {
   setToken: (token: string | null) => void;
   setUserSession: (user: LoginApiResponseData | null) => void;
   logout: () => void;
+  updateLocalStorage: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(set => ({
@@ -48,6 +49,17 @@ export const useAuthStore = create<AuthState>()(set => ({
     }
   },
   logout: () => set({token: null, userSession: null, isLoggedIn: false}),
+  updateLocalStorage() {
+    const {token, userSession} = useAuthStore.getState();
+    if (userSession) {
+      EncryptedStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(userSession));
+    }
+    if (token) {
+      EncryptedStorage.setItem(AUTH_TOKEN_KEY, token);
+    } else {
+      EncryptedStorage.removeItem(AUTH_TOKEN_KEY);
+    }
+  },
 }));
 
 export const checkAuthStatus = async () => {

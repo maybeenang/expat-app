@@ -10,7 +10,6 @@ import {
   Platform,
   StatusBar,
   Alert,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -22,11 +21,6 @@ import {
 } from 'react-hook-form';
 import {Dropdown} from 'react-native-element-dropdown';
 import DatePicker from 'react-native-date-picker';
-import {
-  launchImageLibrary,
-  ImagePickerResponse,
-  Asset,
-} from 'react-native-image-picker';
 import Icon from '@react-native-vector-icons/ionicons';
 import {format, parseISO, isValid} from 'date-fns';
 
@@ -54,12 +48,6 @@ import ImageSelectionManager, {
 interface RentalsUpdateScreenProps
   extends NativeStackScreenProps<RootStackParamList, 'RentalUpdate'> {} // Adjust route name if needed
 
-// --- Helper Type for API Images (combining feature and lists) ---
-interface RentalImageApiSource {
-  id: string;
-  url: string;
-}
-
 const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
   const {rentalId} = route.params;
 
@@ -86,7 +74,9 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
   // --- Local UI State ---
   const [existingImages, setExistingImages] = useState<ExistingImageType[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>([]);
+  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>(
+    [],
+  );
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [availabilityDate, setAvailabilityDate] = useState(new Date());
 
@@ -97,7 +87,7 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
     setValue,
     watch,
     reset,
-    formState: {errors, isDirty},
+    formState: {errors},
     trigger,
   } = useForm<UpdateRentalFormData>();
 
@@ -200,7 +190,7 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
 
       // --- Handle Images ---
       const apiImages: ExistingImageType[] = [];
-      
+
       // Add feature image if exists
       if (rentalData.image_feature) {
         apiImages.push({
@@ -211,7 +201,7 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
           isFeature: true,
         });
       }
-      
+
       // Add other images
       (rentalData.image_lists || []).forEach((img: any) => {
         // Avoid adding duplicates if feature image is also in lists
@@ -230,7 +220,7 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
           });
         }
       });
-      
+
       setExistingImages(apiImages);
       setImagesToDelete([]);
       setEnhancedImages([]);
@@ -296,7 +286,11 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
 
     // Prepare images for submission
     const {featureImageId, imagesToUpload, imageInfo} =
-      prepareImagesForSubmission(enhancedImages, existingImages, imagesToDelete);
+      prepareImagesForSubmission(
+        enhancedImages,
+        existingImages,
+        imagesToDelete,
+      );
 
     const updatePayload: UpdateRentalFormData = {
       ...data,
@@ -617,6 +611,7 @@ const RentalsUpdateScreen = ({navigation, route}: RentalsUpdateScreenProps) => {
                     title="Pilih Tanggal Tersedia"
                     confirmText="Konfirmasi"
                     cancelText="Batal"
+                    minimumDate={new Date()}
                   />
                 </>
               )}

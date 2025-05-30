@@ -47,7 +47,9 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
   const {show, hide} = useLoadingOverlayStore();
 
   // State for images
-  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>([]);
+  const [enhancedImages, setEnhancedImages] = useState<EnhancedImageAsset[]>(
+    [],
+  );
 
   // --- React Hook Form ---
   const {
@@ -101,7 +103,8 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
     }
 
     // Prepare images for submission
-    const {featureImageId, imagesToUpload, imageInfo} = prepareImagesForSubmission(enhancedImages);
+    const {featureImageId, imagesToUpload, imageInfo} =
+      prepareImagesForSubmission(enhancedImages);
 
     const payload: CreateEventPayload = {
       ...data,
@@ -198,6 +201,7 @@ const EventsCreateScreen = ({navigation}: EventsCreateScreenProps) => {
             isDisabled={mutation.isPending}
             placeholder="Pilih Tanggal & Waktu Mulai"
             mode="datetime"
+            minimumDate={new Date()}
           />
           <FormDatePicker
             control={control}
